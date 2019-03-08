@@ -1,0 +1,201 @@
+
+Welcome to Gradle 4.10.1!
+
+Here are the highlights of this release:
+ - Incremental Java compilation by default
+ - Periodic Gradle caches cleanup
+ - Gradle Kotlin DSL 1.0-RC6
+ - Nested included builds
+ - SNAPSHOT plugin versions in the `plugins {}` block
+
+For more details see https://docs.gradle.org/4.10.1/release-notes.html
+
+Starting a Gradle Daemon, 1 incompatible Daemon could not be reused, use --status for details
+> Transform livedata-core.aar (android.arch.lifecycle:livedata-core:1.1.1) with IdentityTransform
+> Transform timber.aar (com.jakewharton.timber:timber:4.7.0) with IdentityTransform
+> Transform interpolator.aar (com.android.support:interpolator:28.0.0) with IdentityTransform
+> Transform runtime.aar (android.arch.core:runtime:1.1.1) with IdentityTransform
+> Transform runtime.aar (android.arch.core:runtime:1.1.1) with ExtractAarTransform
+> Transform livedata-core.aar (android.arch.lifecycle:livedata-core:1.1.1) with ExtractAarTransform
+> Transform timber.aar (com.jakewharton.timber:timber:4.7.0) with ExtractAarTransform
+> Transform interpolator.aar (com.android.support:interpolator:28.0.0) with ExtractAarTransform
+> Transform timber.aar (com.jakewharton.timber:timber:4.7.0) with AarTransform
+> Transform runtime.aar (android.arch.core:runtime:1.1.1) with AarTransform
+> Transform livedata-core.aar (android.arch.lifecycle:livedata-core:1.1.1) with AarTransform
+> Transform interpolator.aar (com.android.support:interpolator:28.0.0) with AarTransform
+> Transform viewmodel.aar (android.arch.lifecycle:viewmodel:1.1.1) with IdentityTransform
+> Transform print.aar (com.android.support:print:28.0.0) with IdentityTransform
+> Transform localbroadcastmanager.aar (com.android.support:localbroadcastmanager:28.0.0) with IdentityTransform
+> Transform viewmodel.aar (android.arch.lifecycle:viewmodel:1.1.1) with ExtractAarTransform
+> Transform print.aar (com.android.support:print:28.0.0) with ExtractAarTransform
+> Transform localbroadcastmanager.aar (com.android.support:localbroadcastmanager:28.0.0) with ExtractAarTransform
+> Transform livedata.aar (android.arch.lifecycle:livedata:1.1.1) with IdentityTransform
+> Transform print.aar (com.android.support:print:28.0.0) with AarTransform
+> Transform localbroadcastmanager.aar (com.android.support:localbroadcastmanager:28.0.0) with AarTransform
+> Transform viewmodel.aar (android.arch.lifecycle:viewmodel:1.1.1) with AarTransform
+> Transform runtime.aar (android.arch.lifecycle:runtime:1.1.1) with IdentityTransform
+> Transform cursoradapter.aar (com.android.support:cursoradapter:28.0.0) with IdentityTransform
+> Transform runtime.aar (android.arch.lifecycle:runtime:1.1.1) with ExtractAarTransform
+> Transform cursoradapter.aar (com.android.support:cursoradapter:28.0.0) with ExtractAarTransform
+> Transform cursoradapter.aar (com.android.support:cursoradapter:28.0.0) with AarTransform
+> Transform versionedparcelable.aar (com.android.support:versionedparcelable:28.0.0) with IdentityTransform
+> Transform versionedparcelable.aar (com.android.support:versionedparcelable:28.0.0) with ExtractAarTransform
+> Transform versionedparcelable.aar (com.android.support:versionedparcelable:28.0.0) with AarTransform
+> Transform support-compat.aar (com.android.support:support-compat:28.0.0) with IdentityTransform
+> Transform support-compat.aar (com.android.support:support-compat:28.0.0) with ExtractAarTransform
+> Transform livedata.aar (android.arch.lifecycle:livedata:1.1.1) with ExtractAarTransform
+> Transform runtime.aar (android.arch.lifecycle:runtime:1.1.1) with AarTransform
+> Transform documentfile.aar (com.android.support:documentfile:28.0.0) with IdentityTransform
+> Transform documentfile.aar (com.android.support:documentfile:28.0.0) with ExtractAarTransform
+> Transform support-compat.aar (com.android.support:support-compat:28.0.0) with AarTransform
+> Transform asynclayoutinflater.aar (com.android.support:asynclayoutinflater:28.0.0) with IdentityTransform
+> Transform documentfile.aar (com.android.support:documentfile:28.0.0) with AarTransform
+> Transform swiperefreshlayout.aar (com.android.support:swiperefreshlayout:28.0.0) with IdentityTransform
+> Transform asynclayoutinflater.aar (com.android.support:asynclayoutinflater:28.0.0) with ExtractAarTransform
+> Transform swiperefreshlayout.aar (com.android.support:swiperefreshlayout:28.0.0) with ExtractAarTransform
+> Transform livedata.aar (android.arch.lifecycle:livedata:1.1.1) with AarTransform
+> Transform asynclayoutinflater.aar (com.android.support:asynclayoutinflater:28.0.0) with AarTransform
+> Transform customview.aar (com.android.support:customview:28.0.0) with IdentityTransform
+> Transform swiperefreshlayout.aar (com.android.support:swiperefreshlayout:28.0.0) with AarTransform
+> Transform customview.aar (com.android.support:customview:28.0.0) with ExtractAarTransform
+> Transform customview.aar (com.android.support:customview:28.0.0) with AarTransform
+> Transform slidingpanelayout.aar (com.android.support:slidingpanelayout:28.0.0) with IdentityTransform
+> Transform slidingpanelayout.aar (com.android.support:slidingpanelayout:28.0.0) with ExtractAarTransform
+> Transform viewpager.aar (com.android.support:viewpager:28.0.0) with IdentityTransform
+> Transform drawerlayout.aar (com.android.support:drawerlayout:28.0.0) with IdentityTransform
+> Transform coordinatorlayout.aar (com.android.support:coordinatorlayout:28.0.0) with IdentityTransform
+> Transform coordinatorlayout.aar (com.android.support:coordinatorlayout:28.0.0) with ExtractAarTransform
+> Transform slidingpanelayout.aar (com.android.support:slidingpanelayout:28.0.0) with AarTransform
+> Transform viewpager.aar (com.android.support:viewpager:28.0.0) with ExtractAarTransform
+> Transform coordinatorlayout.aar (com.android.support:coordinatorlayout:28.0.0) with AarTransform
+> Transform loader.aar (com.android.support:loader:28.0.0) with IdentityTransform
+> Transform viewpager.aar (com.android.support:viewpager:28.0.0) with AarTransform
+> Transform support-vector-drawable.aar (com.android.support:support-vector-drawable:28.0.0) with IdentityTransform
+> Transform drawerlayout.aar (com.android.support:drawerlayout:28.0.0) with ExtractAarTransform
+> Transform loader.aar (com.android.support:loader:28.0.0) with ExtractAarTransform
+> Transform support-vector-drawable.aar (com.android.support:support-vector-drawable:28.0.0) with ExtractAarTransform
+> Transform drawerlayout.aar (com.android.support:drawerlayout:28.0.0) with AarTransform
+> Transform support-core-utils.aar (com.android.support:support-core-utils:28.0.0) with IdentityTransform
+> Transform loader.aar (com.android.support:loader:28.0.0) with AarTransform
+> Transform support-core-ui.aar (com.android.support:support-core-ui:28.0.0) with IdentityTransform
+> Transform support-vector-drawable.aar (com.android.support:support-vector-drawable:28.0.0) with AarTransform
+> Transform support-core-ui.aar (com.android.support:support-core-ui:28.0.0) with ExtractAarTransform
+> Transform animated-vector-drawable.aar (com.android.support:animated-vector-drawable:28.0.0) with IdentityTransform
+> Transform animated-vector-drawable.aar (com.android.support:animated-vector-drawable:28.0.0) with ExtractAarTransform
+> Transform support-core-ui.aar (com.android.support:support-core-ui:28.0.0) with AarTransform
+> Transform support-fragment.aar (com.android.support:support-fragment:28.0.0) with IdentityTransform
+> Transform animated-vector-drawable.aar (com.android.support:animated-vector-drawable:28.0.0) with AarTransform
+> Transform timberkt.aar (com.github.ajalt:timberkt:1.5.1) with IdentityTransform
+> Transform support-fragment.aar (com.android.support:support-fragment:28.0.0) with ExtractAarTransform
+> Transform appcompat-v7.aar (com.android.support:appcompat-v7:28.0.0) with IdentityTransform
+> Transform timberkt.aar (com.github.ajalt:timberkt:1.5.1) with ExtractAarTransform
+> Transform support-fragment.aar (com.android.support:support-fragment:28.0.0) with AarTransform
+> Transform appcompat-v7.aar (com.android.support:appcompat-v7:28.0.0) with ExtractAarTransform
+> Transform timberkt.aar (com.github.ajalt:timberkt:1.5.1) with AarTransform
+> Transform appcompat-v7.aar (com.android.support:appcompat-v7:28.0.0) with AarTransform
+> Transform timber.aar (com.jakewharton.timber:timber:4.7.0) with AarTransform
+> Transform runtime.aar (android.arch.core:runtime:1.1.1) with AarTransform
+> Transform interpolator.aar (com.android.support:interpolator:28.0.0) with AarTransform
+> Transform livedata-core.aar (android.arch.lifecycle:livedata-core:1.1.1) with AarTransform
+> Transform livedata.aar (android.arch.lifecycle:livedata:1.1.1) with AarTransform
+> Transform viewmodel.aar (android.arch.lifecycle:viewmodel:1.1.1) with AarTransform
+> Transform print.aar (com.android.support:print:28.0.0) with AarTransform
+> Transform localbroadcastmanager.aar (com.android.support:localbroadcastmanager:28.0.0) with AarTransform
+> Transform documentfile.aar (com.android.support:documentfile:28.0.0) with AarTransform
+> Transform runtime.aar (android.arch.lifecycle:runtime:1.1.1) with AarTransform
+> Transform cursoradapter.aar (com.android.support:cursoradapter:28.0.0) with AarTransform
+> Transform versionedparcelable.aar (com.android.support:versionedparcelable:28.0.0) with AarTransform
+> Transform support-compat.aar (com.android.support:support-compat:28.0.0) with AarTransform
+> Transform asynclayoutinflater.aar (com.android.support:asynclayoutinflater:28.0.0) with AarTransform
+> Transform swiperefreshlayout.aar (com.android.support:swiperefreshlayout:28.0.0) with AarTransform
+> Transform customview.aar (com.android.support:customview:28.0.0) with AarTransform
+> Transform slidingpanelayout.aar (com.android.support:slidingpanelayout:28.0.0) with AarTransform
+> Transform drawerlayout.aar (com.android.support:drawerlayout:28.0.0) with AarTransform
+> Transform coordinatorlayout.aar (com.android.support:coordinatorlayout:28.0.0) with AarTransform
+> Transform viewpager.aar (com.android.support:viewpager:28.0.0) with AarTransform
+> Transform loader.aar (com.android.support:loader:28.0.0) with AarTransform
+> Transform support-vector-drawable.aar (com.android.support:support-vector-drawable:28.0.0) with AarTransform
+> Transform support-core-ui.aar (com.android.support:support-core-ui:28.0.0) with AarTransform
+> Transform animated-vector-drawable.aar (com.android.support:animated-vector-drawable:28.0.0) with AarTransform
+> Transform support-fragment.aar (com.android.support:support-fragment:28.0.0) with AarTransform
+> Transform timberkt.aar (com.github.ajalt:timberkt:1.5.1) with AarTransform
+> Transform appcompat-v7.aar (com.android.support:appcompat-v7:28.0.0) with AarTransform
+> Transform support-core-utils.aar (com.android.support:support-core-utils:28.0.0) with ExtractAarTransform
+> Task :app:preBuild UP-TO-DATE
+> Transform timber.aar (com.jakewharton.timber:timber:4.7.0) with LibrarySymbolTableTransform
+> Transform support-core-utils.aar (com.android.support:support-core-utils:28.0.0) with AarTransform
+> Transform interpolator.aar (com.android.support:interpolator:28.0.0) with LibrarySymbolTableTransform
+> Transform runtime.aar (android.arch.core:runtime:1.1.1) with LibrarySymbolTableTransform
+> Transform livedata-core.aar (android.arch.lifecycle:livedata-core:1.1.1) with LibrarySymbolTableTransform
+> Transform support-core-utils.aar (com.android.support:support-core-utils:28.0.0) with AarTransform
+> Task :app:preDebugBuild UP-TO-DATE
+> Task :app:compileDebugAidl NO-SOURCE
+> Task :app:compileDebugRenderscript UP-TO-DATE
+> Task :app:checkDebugManifest UP-TO-DATE
+> Task :app:generateDebugBuildConfig UP-TO-DATE
+> Transform viewmodel.aar (android.arch.lifecycle:viewmodel:1.1.1) with LibrarySymbolTableTransform
+> Transform print.aar (com.android.support:print:28.0.0) with LibrarySymbolTableTransform
+> Transform documentfile.aar (com.android.support:documentfile:28.0.0) with LibrarySymbolTableTransform
+> Transform runtime.aar (android.arch.lifecycle:runtime:1.1.1) with LibrarySymbolTableTransform
+> Transform localbroadcastmanager.aar (com.android.support:localbroadcastmanager:28.0.0) with LibrarySymbolTableTransform
+> Transform cursoradapter.aar (com.android.support:cursoradapter:28.0.0) with LibrarySymbolTableTransform
+> Transform versionedparcelable.aar (com.android.support:versionedparcelable:28.0.0) with LibrarySymbolTableTransform
+> Transform support-compat.aar (com.android.support:support-compat:28.0.0) with LibrarySymbolTableTransform
+> Transform asynclayoutinflater.aar (com.android.support:asynclayoutinflater:28.0.0) with LibrarySymbolTableTransform
+> Transform swiperefreshlayout.aar (com.android.support:swiperefreshlayout:28.0.0) with LibrarySymbolTableTransform
+> Transform customview.aar (com.android.support:customview:28.0.0) with LibrarySymbolTableTransform
+> Transform slidingpanelayout.aar (com.android.support:slidingpanelayout:28.0.0) with LibrarySymbolTableTransform
+> Transform drawerlayout.aar (com.android.support:drawerlayout:28.0.0) with LibrarySymbolTableTransform
+> Transform coordinatorlayout.aar (com.android.support:coordinatorlayout:28.0.0) with LibrarySymbolTableTransform
+> Transform viewpager.aar (com.android.support:viewpager:28.0.0) with LibrarySymbolTableTransform
+> Transform loader.aar (com.android.support:loader:28.0.0) with LibrarySymbolTableTransform
+> Transform livedata.aar (android.arch.lifecycle:livedata:1.1.1) with LibrarySymbolTableTransform
+> Transform support-core-utils.aar (com.android.support:support-core-utils:28.0.0) with LibrarySymbolTableTransform
+> Transform support-core-ui.aar (com.android.support:support-core-ui:28.0.0) with LibrarySymbolTableTransform
+> Transform support-vector-drawable.aar (com.android.support:support-vector-drawable:28.0.0) with LibrarySymbolTableTransform
+> Transform support-fragment.aar (com.android.support:support-fragment:28.0.0) with LibrarySymbolTableTransform
+> Transform timberkt.aar (com.github.ajalt:timberkt:1.5.1) with LibrarySymbolTableTransform
+> Transform appcompat-v7.aar (com.android.support:appcompat-v7:28.0.0) with LibrarySymbolTableTransform
+> Transform animated-vector-drawable.aar (com.android.support:animated-vector-drawable:28.0.0) with LibrarySymbolTableTransform
+> Task :app:mainApkListPersistenceDebug UP-TO-DATE
+> Transform timber.aar (com.jakewharton.timber:timber:4.7.0) with AarTransform
+> Transform interpolator.aar (com.android.support:interpolator:28.0.0) with AarTransform
+> Transform runtime.aar (android.arch.core:runtime:1.1.1) with AarTransform
+> Transform livedata.aar (android.arch.lifecycle:livedata:1.1.1) with AarTransform
+> Transform viewmodel.aar (android.arch.lifecycle:viewmodel:1.1.1) with AarTransform
+> Transform print.aar (com.android.support:print:28.0.0) with AarTransform
+> Transform localbroadcastmanager.aar (com.android.support:localbroadcastmanager:28.0.0) with AarTransform
+> Transform documentfile.aar (com.android.support:documentfile:28.0.0) with AarTransform
+> Transform runtime.aar (android.arch.lifecycle:runtime:1.1.1) with AarTransform
+> Transform cursoradapter.aar (com.android.support:cursoradapter:28.0.0) with AarTransform
+> Transform versionedparcelable.aar (com.android.support:versionedparcelable:28.0.0) with AarTransform
+> Transform support-compat.aar (com.android.support:support-compat:28.0.0) with AarTransform
+> Transform asynclayoutinflater.aar (com.android.support:asynclayoutinflater:28.0.0) with AarTransform
+> Transform swiperefreshlayout.aar (com.android.support:swiperefreshlayout:28.0.0) with AarTransform
+> Transform customview.aar (com.android.support:customview:28.0.0) with AarTransform
+> Transform slidingpanelayout.aar (com.android.support:slidingpanelayout:28.0.0) with AarTransform
+> Transform drawerlayout.aar (com.android.support:drawerlayout:28.0.0) with AarTransform
+> Transform coordinatorlayout.aar (com.android.support:coordinatorlayout:28.0.0) with AarTransform
+> Transform viewpager.aar (com.android.support:viewpager:28.0.0) with AarTransform
+> Transform loader.aar (com.android.support:loader:28.0.0) with AarTransform
+> Transform support-vector-drawable.aar (com.android.support:support-vector-drawable:28.0.0) with AarTransform
+> Transform support-core-utils.aar (com.android.support:support-core-utils:28.0.0) with AarTransform
+> Transform support-core-ui.aar (com.android.support:support-core-ui:28.0.0) with AarTransform
+> Transform animated-vector-drawable.aar (com.android.support:animated-vector-drawable:28.0.0) with AarTransform
+> Transform support-fragment.aar (com.android.support:support-fragment:28.0.0) with AarTransform
+> Transform timberkt.aar (com.github.ajalt:timberkt:1.5.1) with AarTransform
+> Transform appcompat-v7.aar (com.android.support:appcompat-v7:28.0.0) with AarTransform
+> Task :app:generateDebugResValues UP-TO-DATE
+> Task :app:generateDebugResources UP-TO-DATE
+> Transform livedata-core.aar (android.arch.lifecycle:livedata-core:1.1.1) with AarTransform
+> Task :app:createDebugCompatibleScreenManifests UP-TO-DATE
+> Task :app:mergeDebugResources UP-TO-DATE
+> Task :app:processDebugManifest
+> Task :app:processDebugResources
+
+> Task :app:kaptGenerateStubsDebugKotlin
+w: -Xcoroutines has no effect: coroutines are enabled anyway in 1.3 and beyond
+
+> Task :app:kaptDebugKotlin FAILED
+w: -Xcoroutines has no effect: coroutines are enabled anyway in 1.3 and beyond
+12 actionable tasks: 4 executed, 8 up-to-date
