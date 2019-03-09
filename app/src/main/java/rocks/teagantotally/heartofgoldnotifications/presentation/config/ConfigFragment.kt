@@ -2,14 +2,18 @@ package rocks.teagantotally.heartofgoldnotifications.presentation.config
 
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.support.design.widget.Snackbar
+import android.support.v14.preference.SwitchPreference
 import android.support.v7.preference.EditTextPreference
 import android.support.v7.preference.PreferenceFragmentCompat
-import android.support.v7.preference.SwitchPreferenceCompat
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
+import android.view.View
+import com.github.ajalt.timberkt.Timber
 import kotlinx.coroutines.CoroutineScope
 import rocks.teagantotally.heartofgoldnotifications.R
+import rocks.teagantotally.heartofgoldnotifications.common.extensions.safeLet
 import rocks.teagantotally.heartofgoldnotifications.presentation.MainActivity
 import rocks.teagantotally.heartofgoldnotifications.presentation.config.injection.ConfigModule
 import javax.inject.Inject
@@ -18,21 +22,64 @@ import kotlin.coroutines.CoroutineContext
 
 class ConfigFragment : PreferenceFragmentCompat(), ConfigContract.View,
     SharedPreferences.OnSharedPreferenceChangeListener, CoroutineScope {
+
+    companion object {
+        const val TAG = "rocks.teagantotally.heartofgoldnotifications.presentation.config.ConfigFragment"
+    }
     @Inject
     override lateinit var presenter: ConfigContract.Presenter
     @Inject
     override lateinit var coroutineContext: CoroutineContext
 
+    override var isValid: Boolean = false
+        set(value) {
+            field = value
+            activity?.invalidateOptionsMenu()
+        }
+
+    val brokerHostPreference: EditTextPreference?
+        get() =
+            findPreference(getString(R.string.pref_broker_host))
+                ?.let { it as? EditTextPreference }
+    val brokerPortPreference: EditTextPreference?
+        get() =
+            findPreference(getString(R.string.pref_broker_port))
+                ?.let { it as? EditTextPreference }
+    val usernamePreference: EditTextPreference?
+        get() =
+            findPreference(getString(R.string.pref_username))
+                ?.let { it as? EditTextPreference }
+    val passwordPreference: EditTextPreference?
+        get() =
+            findPreference(getString(R.string.pref_password))
+                ?.let { it as? EditTextPreference }
+    val clientIdPreference: EditTextPreference?
+        get() =
+            findPreference(getString(R.string.pref_client_id))
+                ?.let { it as? EditTextPreference }
+    val reconnectPreference: SwitchPreference?
+        get() =
+            findPreference(getString(R.string.pref_reconnect))
+                ?.let { it as? SwitchPreference }
+    val cleanSessionPreference: SwitchPreference?
+        get() =
+            findPreference(getString(R.string.pref_clean_session))
+                ?.let { it as? SwitchPreference }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        setHasOptionsMenu(true)
+    }
+
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
+        setPreferencesFromResource(R.xml.connection_configuration, rootKey)
+
         MainActivity.mainActivityComponent
             .configComponentBuilder()
             .module(ConfigModule(this))
             .build()
             .inject(this)
-
-        setHasOptionsMenu(true)
-
-        setPreferencesFromResource(R.xml.connection_configuration, rootKey)
 
         presenter.onViewCreated()
     }
@@ -41,28 +88,55 @@ class ConfigFragment : PreferenceFragmentCompat(), ConfigContract.View,
         inflater?.inflate(R.menu.menu_save, menu)
     }
 
+    override fun onPrepareOptionsMenu(menu: Menu?) {
+        super.onPrepareOptionsMenu(menu)
+        menu?.findItem(R.id.menu_item_save)
+            ?.let {
+                it.isEnabled = isValid
+                it.icon.alpha =
+                    when (isValid) {
+                        true -> 255
+                        false -> 127
+                    }
+            }
+    }
+
     override fun onOptionsItemSelected(item: MenuItem?): Boolean =
         when (item?.itemId) {
             R.id.menu_item_save ->
-                true
+                try {
+                    presenter.saveConfig(
+                        brokerHostPreference!!.text,
+                        brokerPortPreference!!.text.toInt(),
+                        usernamePreference?.text,
+                        passwordPreference?.text,
+                        clientIdPreference!!.text,
+                        reconnectPreference!!.isChecked,
+                        cleanSessionPreference!!.isChecked
+                    )
+                } catch (_: Throwable) {
+                    showError("Something went wrong")
+                }.run { true }
             else -> false
         }
 
     override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
-        findPreference(key)
-            ?.let { it as? EditTextPreference }
-            ?.let {
-                when (key == getString(R.string.pref_password)) {
-                    false -> it.summary = it.text
-                    true -> it.summary = String(CharArray(it.text.length) { '*' })
-                }
-            }
+        setSummary(key)
+            .run { checkValidity() }
     }
 
     override fun onResume() {
         super.onResume()
         preferenceScreen.sharedPreferences
-            .registerOnSharedPreferenceChangeListener(this)
+            .let {
+                it.registerOnSharedPreferenceChangeListener(this)
+                it.all
+                    .map { it.key }
+                    .forEach { prefKey ->
+                        setSummary(prefKey)
+                    }
+            }
+        checkValidity()
     }
 
     override fun onPause() {
@@ -72,68 +146,77 @@ class ConfigFragment : PreferenceFragmentCompat(), ConfigContract.View,
     }
 
     override fun setHost(host: String) {
-        findPreference(getString(R.string.pref_broker_host))
-            ?.let { it as? EditTextPreference }
-            ?.let {
-                it.text = host
-                it.summary = host
-            }
+        brokerHostPreference
+            ?.text = host
     }
 
     override fun setPort(port: Int) {
-        findPreference(getString(R.string.pref_broker_port))
-            ?.let { it as? EditTextPreference }
-            ?.let {
-                it.text = port.toString()
-                it.summary = port.toString()
-            }
+        brokerPortPreference
+            ?.text = port.toString()
     }
 
-    override fun setUsername(usernmae: String) {
-        findPreference(getString(R.string.pref_username))
-            ?.let { it as? EditTextPreference }
-            ?.let {
-                it.text = usernmae
-                it.summary = usernmae
-            }
+    override fun setUsername(usernmae: String?) {
+        usernamePreference
+            ?.text = usernmae
     }
 
-    override fun setPassword(password: String) {
-        findPreference(getString(R.string.pref_password))
-            ?.let { it as? EditTextPreference }
-            ?.let {
-                it.text = password
-                it.summary = String(CharArray(password.length) { '*' })
-            }
+    override fun setPassword(password: String?) {
+        passwordPreference
+            ?.text = password
     }
 
     override fun setClientId(clientId: String) {
-        findPreference(getString(R.string.pref_client_id))
-            ?.let { it as? EditTextPreference }
-            ?.let {
-                it.summary = clientId
-                it.text = clientId
-            }
+        clientIdPreference
+            ?.text = clientId
     }
 
     override fun setReconnect(reconnect: Boolean) {
-        findPreference(getString(R.string.pref_reconnect))
-            ?.let { it as? SwitchPreferenceCompat }
-            ?.let { it.isChecked = reconnect }
+        reconnectPreference
+            ?.isChecked = reconnect
     }
 
     override fun setCleanSession(cleanSession: Boolean) {
-        findPreference(getString(R.string.pref_clean_session))
-            ?.let { it as? SwitchPreferenceCompat }
-            ?.let { it.isChecked = cleanSession }
+        cleanSessionPreference
+            ?.isChecked = cleanSession
     }
-
 
     override fun showLoading(loading: Boolean) {
         // no-op
     }
 
-    override fun showError() {
-        // no-op
+    override fun showError(message: String?) {
+        safeLet(message, view) { message, view ->
+            Snackbar.make(
+                view,
+                message,
+                Snackbar.LENGTH_SHORT
+            ).show()
+        }
+    }
+
+    override fun close() {
+        activity?.onBackPressed()
+    }
+
+    private fun setSummary(key: String?) =
+        findPreference(key)
+            ?.let { it as? EditTextPreference }
+            ?.let {
+                when (key == getString(R.string.pref_password)) {
+                    false -> it.summary = it.text
+                    true -> it.summary = String(CharArray(it.text.length) { '*' })
+                }
+            }
+
+    private fun checkValidity() {
+        presenter.checkValidity(
+            brokerHostPreference?.text,
+            brokerPortPreference?.text?.toIntOrNull(),
+            usernamePreference?.text,
+            passwordPreference?.text,
+            clientIdPreference?.text,
+            reconnectPreference?.isChecked,
+            cleanSessionPreference?.isChecked
+        )
     }
 }

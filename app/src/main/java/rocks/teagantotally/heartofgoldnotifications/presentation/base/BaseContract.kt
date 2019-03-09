@@ -7,7 +7,7 @@ interface BaseView<PresenterType: BasePresenter>: CoroutineScope {
     override var coroutineContext: CoroutineContext
     var presenter: PresenterType
     fun showLoading(loading: Boolean = true)
-    fun showError()
+    fun showError(message: String?)
 }
 
 interface BasePresenter {

@@ -1,6 +1,7 @@
 package rocks.teagantotally.heartofgoldnotifications.presentation.config
 
 import kotlinx.coroutines.CoroutineScope
+import rocks.teagantotally.heartofgoldnotifications.common.extensions.safeLet
 import rocks.teagantotally.heartofgoldnotifications.data.common.ConnectionConfigProvider
 import rocks.teagantotally.heartofgoldnotifications.domain.models.ConnectionConfiguration
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.ScopedPresenter
@@ -13,8 +14,8 @@ class ConfigPresenter(
     override fun saveConfig(
         host: String,
         port: Int,
-        username: String,
-        password: String,
+        username: String?,
+        password: String?,
         clientId: String,
         reconnect: Boolean,
         cleanSession: Boolean
@@ -29,7 +30,7 @@ class ConfigPresenter(
                 reconnect,
                 cleanSession
             )
-        )
+        ).run { view.close() }
     }
 
     override fun onViewCreated() {
@@ -46,8 +47,35 @@ class ConfigPresenter(
                 view.setPassword(it.clientPassword)
                 view.setReconnect(it.autoReconnect)
                 view.setCleanSession(it.cleanSession)
-            }
 
+                checkValidity(
+                    it.brokerHost,
+                    it.brokerPort,
+                    it.clientUsername,
+                    it.clientPassword,
+                    it.clientId,
+                    it.autoReconnect,
+                    it.cleanSession
+                )
+            }
+    }
+
+    override fun checkValidity(
+        host: String?,
+        port: Int?,
+        username: String?,
+        password: String?,
+        clientId: String?,
+        reconnect: Boolean?,
+        cleanSession: Boolean?
+    ) {
+        safeLet(host, port, clientId) { host, _, clientId ->
+            if (host.isBlank() || clientId.isBlank()) {
+                null
+            } else {
+                view.isValid = true
+            }
+        } ?: run { view.isValid = false }
     }
 
     override fun onDestroyView() {

@@ -8,8 +8,8 @@ import java.net.InetAddress
 data class ConnectionConfiguration(
     val brokerHost: String,
     val brokerPort: Int,
-    val clientUsername: String,
-    val clientPassword: String,
+    val clientUsername: String? = null,
+    val clientPassword: String? = null,
     val clientId: String,
     val autoReconnect: Boolean = false,
     val cleanSession: Boolean = false

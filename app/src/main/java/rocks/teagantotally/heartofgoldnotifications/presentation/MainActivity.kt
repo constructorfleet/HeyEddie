@@ -23,6 +23,7 @@ import rocks.teagantotally.heartofgoldnotifications.domain.models.MessageEvent
 import rocks.teagantotally.heartofgoldnotifications.presentation.config.ConfigFragment
 import rocks.teagantotally.heartofgoldnotifications.presentation.injection.MainActivityComponent
 import rocks.teagantotally.heartofgoldnotifications.presentation.injection.MainActivityModule
+import rocks.teagantotally.heartofgoldnotifications.presentation.status.StatusFragment
 import timber.log.Timber
 import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
@@ -81,6 +82,11 @@ class MainActivity : AppCompatActivity(),
             }.also { drawer_container.closeDrawers() }
         }
 
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.main_container, StatusFragment())
+            .setCustomAnimations(R.anim.slide_in_right, R.anim.slide_out_left)
+            .commit()
+
 //        client.connect(configProvider.getConnectionConfiguration())
     }
 
@@ -121,13 +127,14 @@ class MainActivity : AppCompatActivity(),
             android.R.id.home ->
                 drawer_container.openDrawer(GravityCompat.START)
                     .run { true }
-            else -> super.onOptionsItemSelected(item)
+            else -> false
         }
 
     override fun showConfigSettings() {
         supportFragmentManager.beginTransaction()
-            .replace(R.id.main_container, ConfigFragment())
+            .replace(R.id.main_container, ConfigFragment(), ConfigFragment.TAG)
             .setCustomAnimations(R.anim.slide_in_right, R.anim.slide_out_left)
+            .addToBackStack(ConfigFragment.TAG)
             .commit()
     }
 
@@ -139,7 +146,7 @@ class MainActivity : AppCompatActivity(),
             }
     }
 
-    override fun showError() {
+    override fun showError(message: String?) {
         // TODO
     }
 }

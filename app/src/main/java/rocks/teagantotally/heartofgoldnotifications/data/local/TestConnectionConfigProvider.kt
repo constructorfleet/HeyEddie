@@ -6,7 +6,7 @@ import rocks.teagantotally.heartofgoldnotifications.domain.models.ConnectionConf
 class TestConnectionConfigProvider : ConnectionConfigProvider {
     val configuration =
         ConnectionConfiguration(
-            brokerHost = "test.domain.com",
+            brokerHost = "some.broker.com",
             brokerPort = 1883,
             cleanSession = true,
             clientId = "test",

@@ -40,9 +40,9 @@ class ApplicationModule(
         sharedPreferences: SharedPreferences,
         gson: Gson
     ): ConnectionConfigProvider =
-        TestConnectionConfigProvider()
-//        SharedPreferenceConnectionConfigProvider(
-//            sharedPreferences,
-//            gson
-//        )
+//        TestConnectionConfigProvider()
+        SharedPreferenceConnectionConfigProvider(
+            sharedPreferences,
+            gson
+        )
 }
