@@ -213,7 +213,6 @@ class MqttClient(
                     message?.let { validMessage ->
 
                         ClientMessageReceive.Successful(
-                            null,
                             Message(
                                 validTopic,
                                 validMessage.payload,
@@ -221,8 +220,8 @@ class MqttClient(
                                 validMessage.isRetained
                             )
                         )
-                    } ?: ClientMessageReceive.Failed(null, Throwable("Empty message"))
-                } ?: ClientMessageReceive.Failed(null, Throwable("Empty topic"))
+                    } ?: ClientMessageReceive.Failed(Throwable("Empty message"))
+                } ?: ClientMessageReceive.Failed(Throwable("Empty topic"))
             )
         }
     }
@@ -255,6 +254,12 @@ class MqttClient(
                     when (it) {
                         CommandEvent.Disconnect -> disconnect()
                         CommandEvent.Connect -> connect()
+                        CommandEvent.GetStatus ->
+                            if (!clientEventChannel.isClosedForSend) {
+                                clientEventChannel.send(
+                                    ClientStatus(client.isConnected)
+                                )
+                            }
                         is CommandEvent.Subscribe -> subscribe(it.topic, it.maxQoS)
                         is CommandEvent.Unsubscribe -> unsubscribe(it.topic)
                     }

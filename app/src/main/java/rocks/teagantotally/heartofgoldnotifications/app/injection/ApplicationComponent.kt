@@ -12,8 +12,6 @@ import javax.inject.Singleton
     modules = [ApplicationModule::class]
 )
 interface ApplicationComponent {
-    fun inject(fragment: StatusFragment)
-
     fun clientComponentBuilder(): ClientComponent.Builder
 
     fun mainActivityComponentBuilder(): MainActivityComponent.Builder

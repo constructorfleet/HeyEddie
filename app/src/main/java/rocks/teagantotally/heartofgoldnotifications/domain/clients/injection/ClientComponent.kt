@@ -11,7 +11,6 @@ import rocks.teagantotally.heartofgoldnotifications.presentation.status.StatusFr
 )
 interface ClientComponent {
     fun inject(service: MqttService)
-    fun inject(fragment: StatusFragment)
 
     @Subcomponent.Builder
     interface Builder {

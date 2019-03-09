@@ -1,18 +1,15 @@
 package rocks.teagantotally.heartofgoldnotifications.presentation.status
 
+import rocks.teagantotally.heartofgoldnotifications.domain.models.Message
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.BasePresenter
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.BaseView
 
 interface StatusContract {
     interface View : BaseView<Presenter> {
-        fun showNeedsConfigured()
+        fun showStatus(clientStatus: String)
 
-        fun showConnected(connected: Boolean)
-
-        fun showConfigured(configured: Boolean)
+        fun logMessage(message: Message)
     }
 
-    interface Presenter: BasePresenter {
-        fun checkConnectionConfiguration()
-    }
+    interface Presenter : BasePresenter
 }
