@@ -12,6 +12,7 @@ import kotlinx.coroutines.CoroutineScope
 import rocks.teagantotally.heartofgoldnotifications.R
 import rocks.teagantotally.heartofgoldnotifications.app.HeartOfGoldNotificationsApplication
 import rocks.teagantotally.heartofgoldnotifications.app.injection.qualifiers.MainDispatcher
+import rocks.teagantotally.heartofgoldnotifications.presentation.base.Navigable
 import rocks.teagantotally.heartofgoldnotifications.presentation.config.ConfigFragment
 import rocks.teagantotally.heartofgoldnotifications.presentation.injection.MainActivityComponent
 import rocks.teagantotally.heartofgoldnotifications.presentation.injection.MainActivityModule
@@ -123,20 +124,15 @@ class MainActivity : AppCompatActivity(),
         when (item.itemId) {
             android.R.id.home ->
                 drawer_container.openDrawer(GravityCompat.START)
-                    .run { true }
-            else -> false
+            else -> null
         }
+            ?.let { true }
+            ?: false
 
     override fun onBackStackChanged() {
         currentFragment
-            ?.tag
-            ?.let {
-                when (it) {
-                    ConfigFragment.TAG ->
-                        navigation_drawer.menu.findItem(R.id.menu_item_settings)
-                    else -> null
-                }
-            }
+            ?.let { it as? Navigable }
+            ?.let { navigation_drawer.menu.findItem(it.navigationMenuId) }
             ?.run { isChecked = true }
             ?: uncheckNavigationItems()
     }

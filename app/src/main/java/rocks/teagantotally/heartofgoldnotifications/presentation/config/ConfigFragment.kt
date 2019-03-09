@@ -9,19 +9,18 @@ import android.support.v7.preference.PreferenceFragmentCompat
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
-import android.view.View
-import com.github.ajalt.timberkt.Timber
 import kotlinx.coroutines.CoroutineScope
 import rocks.teagantotally.heartofgoldnotifications.R
 import rocks.teagantotally.heartofgoldnotifications.common.extensions.safeLet
 import rocks.teagantotally.heartofgoldnotifications.presentation.MainActivity
+import rocks.teagantotally.heartofgoldnotifications.presentation.base.Navigable
 import rocks.teagantotally.heartofgoldnotifications.presentation.config.injection.ConfigModule
 import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
 
 
 class ConfigFragment : PreferenceFragmentCompat(), ConfigContract.View,
-    SharedPreferences.OnSharedPreferenceChangeListener, CoroutineScope {
+    SharedPreferences.OnSharedPreferenceChangeListener, Navigable, CoroutineScope {
 
     companion object {
         const val TAG = "rocks.teagantotally.heartofgoldnotifications.presentation.config.ConfigFragment"
@@ -32,37 +31,38 @@ class ConfigFragment : PreferenceFragmentCompat(), ConfigContract.View,
     @Inject
     override lateinit var coroutineContext: CoroutineContext
 
+    override val navigationMenuId: Int = R.id.menu_item_settings
     override var isValid: Boolean = false
         set(value) {
             field = value
             activity?.invalidateOptionsMenu()
         }
 
-    val brokerHostPreference: EditTextPreference?
+    private val brokerHostPreference: EditTextPreference?
         get() =
             findPreference(getString(R.string.pref_broker_host))
                 ?.let { it as? EditTextPreference }
-    val brokerPortPreference: EditTextPreference?
+    private val brokerPortPreference: EditTextPreference?
         get() =
             findPreference(getString(R.string.pref_broker_port))
                 ?.let { it as? EditTextPreference }
-    val usernamePreference: EditTextPreference?
+    private val usernamePreference: EditTextPreference?
         get() =
             findPreference(getString(R.string.pref_username))
                 ?.let { it as? EditTextPreference }
-    val passwordPreference: EditTextPreference?
+    private val passwordPreference: EditTextPreference?
         get() =
             findPreference(getString(R.string.pref_password))
                 ?.let { it as? EditTextPreference }
-    val clientIdPreference: EditTextPreference?
+    private val clientIdPreference: EditTextPreference?
         get() =
             findPreference(getString(R.string.pref_client_id))
                 ?.let { it as? EditTextPreference }
-    val reconnectPreference: SwitchPreference?
+    private val reconnectPreference: SwitchPreference?
         get() =
             findPreference(getString(R.string.pref_reconnect))
                 ?.let { it as? SwitchPreference }
-    val cleanSessionPreference: SwitchPreference?
+    private val cleanSessionPreference: SwitchPreference?
         get() =
             findPreference(getString(R.string.pref_clean_session))
                 ?.let { it as? SwitchPreference }
@@ -129,9 +129,9 @@ class ConfigFragment : PreferenceFragmentCompat(), ConfigContract.View,
     override fun onResume() {
         super.onResume()
         preferenceScreen.sharedPreferences
-            .let {
-                it.registerOnSharedPreferenceChangeListener(this)
-                it.all
+            .let { preferences ->
+                preferences.registerOnSharedPreferenceChangeListener(this)
+                preferences.all
                     .map { it.key }
                     .forEach { prefKey ->
                         setSummary(prefKey)
@@ -186,10 +186,10 @@ class ConfigFragment : PreferenceFragmentCompat(), ConfigContract.View,
     }
 
     override fun showError(message: String?) {
-        safeLet(message, view) { message, view ->
+        safeLet(message, view) { msg, view ->
             Snackbar.make(
                 view,
-                message,
+                msg,
                 Snackbar.LENGTH_SHORT
             ).show()
         }
