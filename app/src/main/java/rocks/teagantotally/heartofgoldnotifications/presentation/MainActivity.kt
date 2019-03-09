@@ -1,6 +1,5 @@
 package rocks.teagantotally.heartofgoldnotifications.presentation
 
-import android.app.Activity
 import android.os.Bundle
 import android.support.v4.view.GravityCompat
 import android.support.v7.app.AppCompatActivity
@@ -11,21 +10,15 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
-import org.eclipse.paho.android.service.MqttAndroidClient
 import rocks.teagantotally.heartofgoldnotifications.R
 import rocks.teagantotally.heartofgoldnotifications.app.HeartOfGoldNotificationsApplication
-import rocks.teagantotally.heartofgoldnotifications.app.injection.qualifiers.Event
-import rocks.teagantotally.heartofgoldnotifications.app.injection.qualifiers.Message
-import rocks.teagantotally.heartofgoldnotifications.data.common.BrokerUriBuilder
 import rocks.teagantotally.heartofgoldnotifications.data.common.ConnectionConfigProvider
-import rocks.teagantotally.heartofgoldnotifications.data.local.TestConnectionConfigProvider
 import rocks.teagantotally.heartofgoldnotifications.domain.clients.Client
-import rocks.teagantotally.heartofgoldnotifications.domain.clients.MqttClient
 import rocks.teagantotally.heartofgoldnotifications.domain.clients.injection.ClientModule
 import rocks.teagantotally.heartofgoldnotifications.domain.models.ClientEvent
 import rocks.teagantotally.heartofgoldnotifications.domain.models.ClientEventType
-import rocks.teagantotally.heartofgoldnotifications.domain.models.ConnectionConfiguration
 import rocks.teagantotally.heartofgoldnotifications.domain.models.MessageEvent
+import rocks.teagantotally.heartofgoldnotifications.presentation.config.ConfigFragment
 import timber.log.Timber
 import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
@@ -34,7 +27,8 @@ object CompatMainScoped : CoroutineScope {
     override var coroutineContext: CoroutineContext = Dispatchers.Main
 }
 
-class MainActivity : AppCompatActivity(), CoroutineScope by CompatMainScoped {
+class MainActivity : AppCompatActivity(),
+    CoroutineScope by CompatMainScoped {
     @Inject
     lateinit var client: Client
 
@@ -60,6 +54,20 @@ class MainActivity : AppCompatActivity(), CoroutineScope by CompatMainScoped {
             .clientModule(ClientModule(this, this, eventChannel, messageChannel))
             .build()
             .inject(this)
+
+        navigation_drawer.setNavigationItemSelectedListener {
+            when (it.itemId) {
+                R.id.menu_item_settings ->
+                    supportFragmentManager.beginTransaction()
+                        .replace(R.id.main_container, ConfigFragment())
+                        .setCustomAnimations(R.anim.slide_in_right, R.anim.slide_out_left)
+                        .commit()
+                        .run { it.isChecked = true }
+                        .run { true }
+
+                else -> false
+            }.also { drawer_container.closeDrawers() }
+        }
 
         client.connect(configProvider.getConnectionConfiguration())
     }
@@ -96,13 +104,11 @@ class MainActivity : AppCompatActivity(), CoroutineScope by CompatMainScoped {
         }
     }
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            android.R.id.home -> {
+    override fun onOptionsItemSelected(item: MenuItem): Boolean =
+        when (item.itemId) {
+            android.R.id.home ->
                 drawer_container.openDrawer(GravityCompat.START)
-                true
-            }
+                    .run { true }
             else -> super.onOptionsItemSelected(item)
         }
-    }
 }
