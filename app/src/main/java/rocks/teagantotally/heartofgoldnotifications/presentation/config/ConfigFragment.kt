@@ -5,6 +5,9 @@ import android.os.Bundle
 import android.support.v7.preference.EditTextPreference
 import android.support.v7.preference.PreferenceFragmentCompat
 import android.support.v7.preference.SwitchPreferenceCompat
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import kotlinx.coroutines.CoroutineScope
 import rocks.teagantotally.heartofgoldnotifications.R
 import rocks.teagantotally.heartofgoldnotifications.presentation.MainActivity
@@ -27,10 +30,23 @@ class ConfigFragment : PreferenceFragmentCompat(), ConfigContract.View,
             .build()
             .inject(this)
 
+        setHasOptionsMenu(true)
+
         setPreferencesFromResource(R.xml.connection_configuration, rootKey)
 
         presenter.onViewCreated()
     }
+
+    override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
+        inflater?.inflate(R.menu.menu_save, menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem?): Boolean =
+        when (item?.itemId) {
+            R.id.menu_item_save ->
+                true
+            else -> false
+        }
 
     override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
         findPreference(key)
