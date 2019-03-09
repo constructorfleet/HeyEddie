@@ -2,12 +2,15 @@ package rocks.teagantotally.heartofgoldnotifications.presentation
 
 import android.app.Activity
 import android.os.Bundle
+import android.support.v7.app.AppCompatActivity
 import android.widget.Toast
+import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import org.eclipse.paho.android.service.MqttAndroidClient
+import rocks.teagantotally.heartofgoldnotifications.R
 import rocks.teagantotally.heartofgoldnotifications.app.HeartOfGoldNotificationsApplication
 import rocks.teagantotally.heartofgoldnotifications.app.injection.qualifiers.Event
 import rocks.teagantotally.heartofgoldnotifications.app.injection.qualifiers.Message
@@ -29,7 +32,7 @@ object CompatMainScoped : CoroutineScope {
     override var coroutineContext: CoroutineContext = Dispatchers.Main
 }
 
-class MainActivity : Activity(), CoroutineScope by CompatMainScoped {
+class MainActivity : AppCompatActivity(), CoroutineScope by CompatMainScoped {
     @Inject
     lateinit var client: Client
 
@@ -42,6 +45,13 @@ class MainActivity : Activity(), CoroutineScope by CompatMainScoped {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        setContentView(R.layout.activity_main)
+        setSupportActionBar(toolbar)
+        supportActionBar?.apply {
+            setDisplayHomeAsUpEnabled(true)
+            setHomeAsUpIndicator(R.drawable.ic_menu)
+        }
 
         HeartOfGoldNotificationsApplication.applicationComponent
             .clientComponentBuilder()
