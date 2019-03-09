@@ -9,6 +9,7 @@ import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.launch
 import org.eclipse.paho.client.mqttv3.*
 import rocks.teagantotally.heartofgoldnotifications.domain.models.*
+import kotlin.coroutines.CoroutineContext
 
 @ObsoleteCoroutinesApi
 @ExperimentalCoroutinesApi
@@ -16,14 +17,14 @@ class MqttClient(
     private val client: IMqttAsyncClient,
     private val clientEventChannel: SendChannel<ClientEvent>,
     private val messageChannel: Channel<MessageEvent>,
-    coroutineScope: CoroutineScope
-) : Client, CoroutineScope by coroutineScope {
+    override val coroutineContext: CoroutineContext
+) : Client, CoroutineScope {
 
     private var connectionToken: IMqttToken? = null
     private var isListening: Boolean = false
 
     private val connectionListener: IMqttActionListener =
-        object : IMqttActionListener, CoroutineScope by coroutineScope {
+        object : IMqttActionListener, CoroutineScope by this@MqttClient {
 
             override fun onSuccess(token: IMqttToken?) {
                 Timber.d { "Connected $token" }
@@ -56,7 +57,7 @@ class MqttClient(
         }
 
     private val subscribeListener: IMqttActionListener =
-        object : IMqttActionListener, CoroutineScope by coroutineScope {
+        object : IMqttActionListener, CoroutineScope by this@MqttClient {
             override fun onSuccess(token: IMqttToken?) {
                 Timber.d { "Subscribe $token" }
                 launch {
@@ -88,7 +89,7 @@ class MqttClient(
         }
 
     private val unsubscribeListener: IMqttActionListener =
-        object : IMqttActionListener, CoroutineScope by coroutineScope {
+        object : IMqttActionListener, CoroutineScope by this@MqttClient {
             override fun onSuccess(token: IMqttToken?) {
                 Timber.d { "Unsubscribe $token" }
                 launch {

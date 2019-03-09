@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.support.v4.view.GravityCompat
 import android.support.v7.app.AppCompatActivity
 import android.view.MenuItem
+import android.view.View
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.CoroutineScope
@@ -12,6 +13,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import rocks.teagantotally.heartofgoldnotifications.R
 import rocks.teagantotally.heartofgoldnotifications.app.HeartOfGoldNotificationsApplication
+import rocks.teagantotally.heartofgoldnotifications.app.injection.qualifiers.MainDispatcher
 import rocks.teagantotally.heartofgoldnotifications.data.common.ConnectionConfigProvider
 import rocks.teagantotally.heartofgoldnotifications.domain.clients.Client
 import rocks.teagantotally.heartofgoldnotifications.domain.clients.injection.ClientModule
@@ -19,25 +21,35 @@ import rocks.teagantotally.heartofgoldnotifications.domain.models.ClientEvent
 import rocks.teagantotally.heartofgoldnotifications.domain.models.ClientEventType
 import rocks.teagantotally.heartofgoldnotifications.domain.models.MessageEvent
 import rocks.teagantotally.heartofgoldnotifications.presentation.config.ConfigFragment
+import rocks.teagantotally.heartofgoldnotifications.presentation.injection.MainActivityComponent
+import rocks.teagantotally.heartofgoldnotifications.presentation.injection.MainActivityModule
 import timber.log.Timber
 import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
 
-object CompatMainScoped : CoroutineScope {
-    override var coroutineContext: CoroutineContext = Dispatchers.Main
-}
-
 class MainActivity : AppCompatActivity(),
-    CoroutineScope by CompatMainScoped {
-    @Inject
-    lateinit var client: Client
+    MainActivityContract.View,
+    CoroutineScope {
+
+    companion object {
+        lateinit var mainActivityComponent: MainActivityComponent
+    }
+//    @Inject
+//    lateinit var client: Client
+//
+//    @Inject
+//    lateinit var configProvider: ConnectionConfigProvider
+//
+//    val eventChannel = Channel<ClientEvent>()
+//
+//    var messageChannel = Channel<MessageEvent>()
 
     @Inject
-    lateinit var configProvider: ConnectionConfigProvider
+    @MainDispatcher
+    override lateinit var coroutineContext: CoroutineContext
 
-    val eventChannel = Channel<ClientEvent>()
-
-    var messageChannel = Channel<MessageEvent>()
+    @Inject
+    override lateinit var presenter: MainActivityContract.Presenter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,18 +62,18 @@ class MainActivity : AppCompatActivity(),
         }
 
         HeartOfGoldNotificationsApplication.applicationComponent
-            .clientComponentBuilder()
-            .clientModule(ClientModule(this, this, eventChannel, messageChannel))
+            .mainActivityComponentBuilder()
+            .module(MainActivityModule(this, this))
             .build()
+            .also {
+                mainActivityComponent = it
+            }
             .inject(this)
 
         navigation_drawer.setNavigationItemSelectedListener {
             when (it.itemId) {
                 R.id.menu_item_settings ->
-                    supportFragmentManager.beginTransaction()
-                        .replace(R.id.main_container, ConfigFragment())
-                        .setCustomAnimations(R.anim.slide_in_right, R.anim.slide_out_left)
-                        .commit()
+                    presenter.onNavigateToConfigSettings()
                         .run { it.isChecked = true }
                         .run { true }
 
@@ -69,40 +81,40 @@ class MainActivity : AppCompatActivity(),
             }.also { drawer_container.closeDrawers() }
         }
 
-        client.connect(configProvider.getConnectionConfiguration())
+//        client.connect(configProvider.getConnectionConfiguration())
     }
 
-    override fun onResume() {
-        super.onResume()
-        launch {
-            while (!eventChannel.isClosedForReceive) {
-                eventChannel.receiveOrNull()
-                    ?.let {
-                        when (it.type) {
-                            is ClientEventType.Connection ->
-                                client.subscribe("/test", 0)
-                        }
-                    }
-            }
-        }
-
-        launch {
-            while (!messageChannel.isClosedForReceive) {
-                messageChannel.receiveOrNull()
-                    ?.let {
-                        when (it) {
-                            is MessageEvent.Received.Success -> Toast.makeText(
-                                this@MainActivity,
-                                String(it.message.payload),
-                                Toast.LENGTH_LONG
-                            ).show()
-                            is MessageEvent.Received.Failure -> Timber.d("{${it.throwable}")
-                            else -> return@let
-                        }
-                    }
-            }
-        }
-    }
+//    override fun onResume() {
+//        super.onResume()
+//        launch {
+//            while (!eventChannel.isClosedForReceive) {
+//                eventChannel.receiveOrNull()
+//                    ?.let {
+//                        when (it.type) {
+//                            is ClientEventType.Connection ->
+//                                client.subscribe("/test", 0)
+//                        }
+//                    }
+//            }
+//        }
+//
+//        launch {
+//            while (!messageChannel.isClosedForReceive) {
+//                messageChannel.receiveOrNull()
+//                    ?.let {
+//                        when (it) {
+//                            is MessageEvent.Received.Success -> Toast.makeText(
+//                                this@MainActivity,
+//                                String(it.message.payload),
+//                                Toast.LENGTH_LONG
+//                            ).show()
+//                            is MessageEvent.Received.Failure -> Timber.d("{${it.throwable}")
+//                            else -> return@let
+//                        }
+//                    }
+//            }
+//        }
+//    }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean =
         when (item.itemId) {
@@ -111,4 +123,23 @@ class MainActivity : AppCompatActivity(),
                     .run { true }
             else -> super.onOptionsItemSelected(item)
         }
+
+    override fun showConfigSettings() {
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.main_container, ConfigFragment())
+            .setCustomAnimations(R.anim.slide_in_right, R.anim.slide_out_left)
+            .commit()
+    }
+
+    override fun showLoading(loading: Boolean) {
+        loading_indicator.visibility =
+            when (loading) {
+                true -> View.VISIBLE
+                false -> View.GONE
+            }
+    }
+
+    override fun showError() {
+        // TODO
+    }
 }

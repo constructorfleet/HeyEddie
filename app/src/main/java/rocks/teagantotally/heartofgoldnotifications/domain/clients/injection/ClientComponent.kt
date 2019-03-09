@@ -16,7 +16,7 @@ import rocks.teagantotally.heartofgoldnotifications.presentation.MainActivity
     modules = [ClientModule::class]
 )
 interface ClientComponent {
-    fun inject(activity: MainActivity)
+//    fun inject(activity: MainActivity)
 
     @Subcomponent.Builder
     interface Builder {

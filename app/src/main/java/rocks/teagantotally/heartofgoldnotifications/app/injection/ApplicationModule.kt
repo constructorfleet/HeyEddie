@@ -12,7 +12,6 @@ import rocks.teagantotally.heartofgoldnotifications.data.local.SharedPreferenceC
 import rocks.teagantotally.heartofgoldnotifications.data.local.TestConnectionConfigProvider
 import rocks.teagantotally.heartofgoldnotifications.domain.clients.injection.ClientComponent
 import rocks.teagantotally.heartofgoldnotifications.domain.clients.injection.ClientModule
-import rocks.teagantotally.heartofgoldnotifications.presentation.CompatMainScoped
 import javax.inject.Singleton
 
 @Module
