@@ -3,8 +3,7 @@ package rocks.teagantotally.heartofgoldnotifications.presentation.base
 import kotlinx.coroutines.CoroutineScope
 import kotlin.coroutines.CoroutineContext
 
-interface BaseView<PresenterType: BasePresenter>: CoroutineScope {
-    override var coroutineContext: CoroutineContext
+interface BaseView<PresenterType: BasePresenter>: Scoped {
     var presenter: PresenterType
     fun showLoading(loading: Boolean = true)
     fun showError(message: String?)

@@ -4,6 +4,7 @@ import android.app.Application
 import rocks.teagantotally.heartofgoldnotifications.app.injection.ApplicationComponent
 import rocks.teagantotally.heartofgoldnotifications.app.injection.ApplicationModule
 import rocks.teagantotally.heartofgoldnotifications.app.injection.DaggerApplicationComponent
+import rocks.teagantotally.heartofgoldnotifications.app.managers.ActivityJobManager
 import timber.log.Timber
 
 class HeartOfGoldNotificationsApplication : Application() {
@@ -22,5 +23,8 @@ class HeartOfGoldNotificationsApplication : Application() {
             .applicationModule(ApplicationModule(this))
             .build()
             .let { applicationComponent = it }
+
+        registerActivityLifecycleCallbacks(ActivityJobManager)
+
     }
 }

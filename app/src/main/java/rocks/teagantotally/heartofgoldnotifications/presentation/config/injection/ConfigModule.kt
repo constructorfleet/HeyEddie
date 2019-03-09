@@ -20,6 +20,11 @@ class ConfigModule(
 
     @Provides
     @FragmentScope
+    fun provideCoroutineScope(): CoroutineScope =
+        view
+
+    @Provides
+    @FragmentScope
     fun providePresenter(
         view: ConfigContract.View,
         connectionConfigProvider: ConnectionConfigProvider,

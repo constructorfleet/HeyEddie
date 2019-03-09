@@ -10,26 +10,30 @@ import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import rocks.teagantotally.heartofgoldnotifications.R
 import rocks.teagantotally.heartofgoldnotifications.common.extensions.safeLet
 import rocks.teagantotally.heartofgoldnotifications.presentation.MainActivity
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.Navigable
+import rocks.teagantotally.heartofgoldnotifications.presentation.base.Scoped
 import rocks.teagantotally.heartofgoldnotifications.presentation.config.injection.ConfigModule
 import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
 
 
 class ConfigFragment : PreferenceFragmentCompat(), ConfigContract.View,
-    SharedPreferences.OnSharedPreferenceChangeListener, Navigable, CoroutineScope {
+    SharedPreferences.OnSharedPreferenceChangeListener, Navigable, Scoped {
 
     companion object {
         const val TAG = "rocks.teagantotally.heartofgoldnotifications.presentation.config.ConfigFragment"
     }
 
+    override lateinit var job: Job
+    override val coroutineContext: CoroutineContext by lazy { job.plus(Dispatchers.Main) }
+
     @Inject
     override lateinit var presenter: ConfigContract.Presenter
-    @Inject
-    override lateinit var coroutineContext: CoroutineContext
 
     override val navigationMenuId: Int = R.id.menu_item_settings
     override var isValid: Boolean = false

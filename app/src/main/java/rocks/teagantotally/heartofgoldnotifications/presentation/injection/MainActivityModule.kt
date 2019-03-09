@@ -13,23 +13,12 @@ import kotlin.coroutines.CoroutineContext
 
 @Module
 class MainActivityModule(
-    private val view: MainActivityContract.View,
-    private val coroutineScope: CoroutineScope
+    private val view: MainActivityContract.View
 ) {
     @Provides
     @ActivityScope
     fun provideView(): MainActivityContract.View =
         view
-
-    @Provides
-    @ActivityScope
-    fun provideCoroutineContext(): CoroutineContext =
-        Dispatchers.Main + Job()
-
-    @Provides
-    @ActivityScope
-    fun provideCoroutineScope(): CoroutineScope =
-        coroutineScope
 
     @Provides
     @ActivityScope

@@ -4,27 +4,23 @@ import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v4.app.FragmentManager
 import android.support.v4.view.GravityCompat
-import android.support.v7.app.AppCompatActivity
 import android.view.MenuItem
 import android.view.View
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.coroutines.CoroutineScope
 import rocks.teagantotally.heartofgoldnotifications.R
 import rocks.teagantotally.heartofgoldnotifications.app.HeartOfGoldNotificationsApplication
-import rocks.teagantotally.heartofgoldnotifications.app.injection.qualifiers.MainDispatcher
+import rocks.teagantotally.heartofgoldnotifications.presentation.base.BaseActivity
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.Navigable
 import rocks.teagantotally.heartofgoldnotifications.presentation.config.ConfigFragment
 import rocks.teagantotally.heartofgoldnotifications.presentation.injection.MainActivityComponent
 import rocks.teagantotally.heartofgoldnotifications.presentation.injection.MainActivityModule
 import rocks.teagantotally.heartofgoldnotifications.presentation.status.StatusFragment
 import javax.inject.Inject
-import kotlin.coroutines.CoroutineContext
 
 
-class MainActivity : AppCompatActivity(),
+class MainActivity : BaseActivity(),
     MainActivityContract.View,
-    FragmentManager.OnBackStackChangedListener,
-    CoroutineScope {
+    FragmentManager.OnBackStackChangedListener {
 
     companion object {
         lateinit var mainActivityComponent: MainActivityComponent
@@ -38,10 +34,6 @@ class MainActivity : AppCompatActivity(),
 //    val eventChannel = Channel<ClientEvent>()
 //
 //    var messageChannel = Channel<MessageEvent>()
-
-    @Inject
-    @MainDispatcher
-    override lateinit var coroutineContext: CoroutineContext
 
     @Inject
     override lateinit var presenter: MainActivityContract.Presenter
@@ -63,7 +55,7 @@ class MainActivity : AppCompatActivity(),
 
         HeartOfGoldNotificationsApplication.applicationComponent
             .mainActivityComponentBuilder()
-            .module(MainActivityModule(this, this))
+            .module(MainActivityModule(this))
             .build()
             .also {
                 mainActivityComponent = it

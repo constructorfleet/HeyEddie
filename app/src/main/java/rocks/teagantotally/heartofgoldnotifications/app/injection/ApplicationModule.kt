@@ -9,9 +9,6 @@ import dagger.Module
 import dagger.Provides
 import rocks.teagantotally.heartofgoldnotifications.data.common.ConnectionConfigProvider
 import rocks.teagantotally.heartofgoldnotifications.data.local.SharedPreferenceConnectionConfigProvider
-import rocks.teagantotally.heartofgoldnotifications.data.local.TestConnectionConfigProvider
-import rocks.teagantotally.heartofgoldnotifications.domain.clients.injection.ClientComponent
-import rocks.teagantotally.heartofgoldnotifications.domain.clients.injection.ClientModule
 import javax.inject.Singleton
 
 @Module
@@ -40,7 +37,6 @@ class ApplicationModule(
         sharedPreferences: SharedPreferences,
         gson: Gson
     ): ConnectionConfigProvider =
-//        TestConnectionConfigProvider()
         SharedPreferenceConnectionConfigProvider(
             sharedPreferences,
             gson
