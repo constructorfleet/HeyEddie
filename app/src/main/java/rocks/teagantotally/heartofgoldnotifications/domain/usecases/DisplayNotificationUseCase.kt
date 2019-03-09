@@ -2,14 +2,14 @@ package rocks.teagantotally.heartofgoldnotifications.domain.usecases
 
 import android.app.Notification
 import rocks.teagantotally.heartofgoldnotifications.data.common.Notifier
-import rocks.teagantotally.heartofgoldnotifications.domain.models.ReceivedMessage
+import rocks.teagantotally.heartofgoldnotifications.domain.models.Message
 
 class DisplayNotificationUseCase(
     private val convertToNotificationMessageUseCase: ConvertToNotificationMessageUseCase,
     private val notifier: Notifier,
     private val notificationBuilder: Notification.Builder
-) : UseCase<ReceivedMessage, Unit?>() {
-    override suspend fun invoke(params: ReceivedMessage) =
+) : UseCase<Message, Unit?>() {
+    override suspend fun invoke(params: Message) =
         convertToNotificationMessageUseCase(params)
             ?.let {
                 notificationBuilder

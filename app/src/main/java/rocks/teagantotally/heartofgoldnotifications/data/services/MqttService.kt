@@ -18,30 +18,15 @@ import rocks.teagantotally.heartofgoldnotifications.app.managers.ChannelManager
 import rocks.teagantotally.heartofgoldnotifications.data.common.ConnectionConfigProvider
 import rocks.teagantotally.heartofgoldnotifications.domain.clients.Client
 import rocks.teagantotally.heartofgoldnotifications.domain.clients.injection.ClientModule
-import rocks.teagantotally.heartofgoldnotifications.domain.models.*
+import rocks.teagantotally.heartofgoldnotifications.domain.models.events.*
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.Scoped
 import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
 
-class MqttService : Service(), Scoped {
+class MqttService : Service() {
 
     @Inject
     lateinit var client: Client
-
-    @Inject
-    lateinit var configProvider: ConnectionConfigProvider
-
-    @Inject
-    lateinit var channelManager: ChannelManager
-
-    override var job: Job = Job()
-    override val coroutineContext: CoroutineContext =
-        job.plus(Dispatchers.IO)
-
-    private val eventChannel: BroadcastChannel<ClientEvent> by lazy { channelManager.eventChannel }
-    private val messageChannel: BroadcastChannel<MessageEvent> by lazy { channelManager.messageChannel }
-    private val connectChannel: Channel<ConnectEvent> by lazy { channelManager.connectChannel }
-    private val notifyChannel: Channel<String> by lazy { channelManager.notifyChannel }
 
     override fun onBind(intent: Intent?): IBinder? =
         null
@@ -55,7 +40,7 @@ class MqttService : Service(), Scoped {
                         HeyEddieApplication.setClient(ClientModule(this))
                 }.let { it.inject(this) }
             }
-            .run { listenForEvents() }
+            .run { client.connect() }
             .run { START_STICKY }
 
     override fun onDestroy() {
@@ -65,43 +50,6 @@ class MqttService : Service(), Scoped {
                 RestartReceiver::class.java
             )
         )
-    }
-
-    private fun listenForEvents() {
-        launch {
-            while (!connectChannel.isClosedForReceive) {
-                connectChannel.receiveOrNull().let {
-                    when (it) {
-                        is ConnectEvent.Connect -> client.connect(configProvider.getConnectionConfiguration())
-                        is ConnectEvent.Disconnect -> client.disconnect()
-                    }
-                }
-            }
-        }
-        launch {
-            while (true) {
-                eventChannel.consumeEach {
-                    when (it.type) {
-                        is ClientEventType.Connection -> {
-//                            notifyChannel.send("CONNECTED")
-                            client.subscribe("/test", 0)
-                        }
-                    }
-                }
-            }
-        }
-
-        launch {
-            while (true) {
-                messageChannel.consumeEach {
-                    when (it) {
-                        is MessageEvent.Received.Success -> notifyChannel.send(String(it.message.payload))
-                        is MessageEvent.Received.Failure -> Timber.d(it.throwable)
-                        else -> return@consumeEach
-                    }
-                }
-            }
-        }
     }
 
     class RestartReceiver : BroadcastReceiver() {

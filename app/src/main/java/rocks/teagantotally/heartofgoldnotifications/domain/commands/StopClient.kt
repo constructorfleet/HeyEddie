@@ -8,17 +8,17 @@ import rocks.teagantotally.heartofgoldnotifications.domain.models.events.Command
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.Scoped
 import kotlin.coroutines.CoroutineContext
 
-class StartClient(
+class StopClient(
     private val channelManager: ChannelManager,
     override var job: Job,
     override val coroutineContext: CoroutineContext
 ) : BaseCommand<CommandEvent>(), Scoped {
-    private val commandChannel: Channel<CommandEvent> by lazy { channelManager.commandChannel }
+    private val connectChannel: Channel<CommandEvent> by lazy { channelManager.commandChannel }
 
     override fun invoke(command: CommandEvent) {
         launch {
-            if (!commandChannel.isClosedForSend) {
-                commandChannel.send(CommandEvent.Connect)
+            if (!connectChannel.isClosedForSend) {
+                connectChannel.send(CommandEvent.Disconnect)
             }
         }
     }

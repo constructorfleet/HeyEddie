@@ -3,7 +3,7 @@ package rocks.teagantotally.heartofgoldnotifications.domain.models
 import android.app.NotificationManager
 import java.io.Serializable
 
-class ReceivedMessage(
+class Message(
     val topic: String,
     val payload: ByteArray,
     val qos: Int,

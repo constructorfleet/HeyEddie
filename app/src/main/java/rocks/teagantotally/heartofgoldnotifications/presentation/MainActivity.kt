@@ -1,6 +1,7 @@
 package rocks.teagantotally.heartofgoldnotifications.presentation
 
 import android.os.Bundle
+import android.support.design.widget.Snackbar
 import android.support.v4.app.Fragment
 import android.support.v4.app.FragmentManager
 import android.support.v4.view.GravityCompat
@@ -63,45 +64,8 @@ class MainActivity : BaseActivity(),
             }.also { drawer_container.closeDrawers() }
         }
 
-        supportFragmentManager.beginTransaction()
-            .replace(R.id.main_container, StatusFragment())
-            .setCustomAnimations(R.anim.slide_in_right, R.anim.slide_out_left)
-            .commit()
-
-//        client.connect(configProvider.getConnectionConfiguration())
+        presenter.onViewCreated()
     }
-
-//    override fun onResume() {
-//        super.onResume()
-//        launch {
-//            while (!eventChannel.isClosedForReceive) {
-//                eventChannel.receiveOrNull()
-//                    ?.let {
-//                        when (it.type) {
-//                            is ClientEventType.Connection ->
-//                                client.subscribe("/test", 0)
-//                        }
-//                    }
-//            }
-//        }
-//
-//        launch {
-//            while (!messageChannel.isClosedForReceive) {
-//                messageChannel.receiveOrNull()
-//                    ?.let {
-//                        when (it) {
-//                            is MessageEvent.Received.Success -> Toast.makeText(
-//                                this@MainActivity,
-//                                String(it.message.payload),
-//                                Toast.LENGTH_LONG
-//                            ).show()
-//                            is MessageEvent.Received.Failure -> Timber.d("{${it.throwable}")
-//                            else -> return@let
-//                        }
-//                    }
-//            }
-//        }
-//    }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean =
         when (item.itemId) {
@@ -121,11 +85,11 @@ class MainActivity : BaseActivity(),
     }
 
     override fun showConfigSettings() {
-        supportFragmentManager.beginTransaction()
-            .replace(R.id.main_container, ConfigFragment(), ConfigFragment.TAG)
-            .setCustomAnimations(R.anim.slide_in_right, R.anim.slide_out_left)
-            .addToBackStack(ConfigFragment.TAG)
-            .commit()
+        setFragment(ConfigFragment(), true)
+    }
+
+    override fun showStatus() {
+        setFragment(StatusFragment(), true)
     }
 
     override fun showLoading(loading: Boolean) {
@@ -137,14 +101,20 @@ class MainActivity : BaseActivity(),
     }
 
     override fun showError(message: String?) {
-        // TODO
+        message?.let {
+            Snackbar.make(
+                coordinator,
+                it,
+                Snackbar.LENGTH_SHORT
+            ).show()
+        }
     }
 
     private fun uncheckNavigationItems() {
         navigation_drawer
             .menu
             .let {
-                for (i in 0..it.size()) {
+                for (i in 0..(it.size()-1)) {
                     it.getItem(i).isChecked = false
                 }
             }

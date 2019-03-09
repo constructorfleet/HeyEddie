@@ -38,12 +38,13 @@ class ClientModule(
     @SessionScope
     fun provideClient(
         mqttAsyncClient: IMqttAsyncClient,
+        connectionConfigProvider: ConnectionConfigProvider,
         channelManager: ChannelManager
     ): Client =
         MqttClient(
             mqttAsyncClient,
+            connectionConfigProvider,
             channelManager.eventChannel,
-            channelManager.messageChannel,
-            channelManager.notifyChannel
+            channelManager.commandChannel
         )
 }
