@@ -2,7 +2,6 @@ package rocks.teagantotally.heartofgoldnotifications.app.injection
 
 import dagger.Component
 import rocks.teagantotally.heartofgoldnotifications.domain.clients.injection.ClientComponent
-import rocks.teagantotally.heartofgoldnotifications.presentation.MainActivity
 import rocks.teagantotally.heartofgoldnotifications.presentation.injection.MainActivityComponent
 import javax.inject.Singleton
 

@@ -6,7 +6,6 @@ import android.os.Bundle
 import com.github.ajalt.timberkt.Timber
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.cancelChildren
-import rocks.teagantotally.heartofgoldnotifications.presentation.base.BaseActivity
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.Scoped
 
 object ActivityJobManager : Application.ActivityLifecycleCallbacks {

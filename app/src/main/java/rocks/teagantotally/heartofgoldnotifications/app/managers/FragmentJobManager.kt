@@ -5,7 +5,6 @@ import android.support.v4.app.Fragment
 import android.support.v4.app.FragmentManager
 import com.github.ajalt.timberkt.Timber
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelChildren
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.Scoped
@@ -13,7 +12,7 @@ import rocks.teagantotally.heartofgoldnotifications.presentation.base.Scoped
 object FragmentJobManager : FragmentManager.FragmentLifecycleCallbacks() {
     override fun onFragmentAttached(fragmentManager: FragmentManager, fragment: Fragment, context: Context) {
         (fragment as? Scoped)
-            ?.let {scopedFragment ->
+            ?.let { scopedFragment ->
                 (fragment.activity as? Scoped)
                     ?.let { it.job }
                     .let {

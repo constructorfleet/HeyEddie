@@ -1,14 +1,12 @@
 package rocks.teagantotally.heartofgoldnotifications.domain.clients
 
 import com.github.ajalt.timberkt.Timber
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.ObsoleteCoroutinesApi
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.SendChannel
-import kotlinx.coroutines.launch
 import org.eclipse.paho.client.mqttv3.*
 import rocks.teagantotally.heartofgoldnotifications.domain.models.*
+import rocks.teagantotally.heartofgoldnotifications.presentation.base.Scoped
 import kotlin.coroutines.CoroutineContext
 
 @ObsoleteCoroutinesApi
@@ -16,9 +14,12 @@ import kotlin.coroutines.CoroutineContext
 class MqttClient(
     private val client: IMqttAsyncClient,
     private val clientEventChannel: SendChannel<ClientEvent>,
-    private val messageChannel: Channel<MessageEvent>,
-    override val coroutineContext: CoroutineContext
-) : Client, CoroutineScope {
+    private val messageChannel: Channel<MessageEvent>
+) : Client, Scoped {
+
+    override var job: Job = Job()
+    override val coroutineContext: CoroutineContext =
+        job.plus(Dispatchers.IO)
 
     private var connectionToken: IMqttToken? = null
     private var isListening: Boolean = false

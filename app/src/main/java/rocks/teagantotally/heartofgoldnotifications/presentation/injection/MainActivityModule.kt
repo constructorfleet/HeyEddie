@@ -2,14 +2,9 @@ package rocks.teagantotally.heartofgoldnotifications.presentation.injection
 
 import dagger.Module
 import dagger.Provides
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import rocks.teagantotally.heartofgoldnotifications.app.injection.qualifiers.MainDispatcher
 import rocks.teagantotally.heartofgoldnotifications.app.injection.scopes.ActivityScope
 import rocks.teagantotally.heartofgoldnotifications.presentation.MainActivityContract
 import rocks.teagantotally.heartofgoldnotifications.presentation.MainActivityPresenter
-import kotlin.coroutines.CoroutineContext
 
 @Module
 class MainActivityModule(

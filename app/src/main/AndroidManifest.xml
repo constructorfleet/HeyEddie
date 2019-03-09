@@ -34,5 +34,7 @@
             android:name=".data.services.MqttService"
             android:exported="false" />
 
+        <receiver android:name=".data.services.MqttService$RestartReceiver"/>
+
     </application>
 </manifest>

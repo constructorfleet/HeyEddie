@@ -7,7 +7,6 @@ import rocks.teagantotally.heartofgoldnotifications.app.injection.scopes.Fragmen
 import rocks.teagantotally.heartofgoldnotifications.data.common.ConnectionConfigProvider
 import rocks.teagantotally.heartofgoldnotifications.presentation.config.ConfigContract
 import rocks.teagantotally.heartofgoldnotifications.presentation.config.ConfigPresenter
-import kotlin.coroutines.CoroutineContext
 
 @Module
 class ConfigModule(

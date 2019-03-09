@@ -28,6 +28,7 @@ class ApplicationModule(
         PreferenceManager.getDefaultSharedPreferences(context)
 
     @Provides
+    @Singleton
     fun provideGson(): Gson =
         GsonBuilder().create()
 

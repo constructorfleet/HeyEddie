@@ -25,15 +25,6 @@ class MainActivity : BaseActivity(),
     companion object {
         lateinit var mainActivityComponent: MainActivityComponent
     }
-//    @Inject
-//    lateinit var client: Client
-//
-//    @Inject
-//    lateinit var configProvider: ConnectionConfigProvider
-//
-//    val eventChannel = Channel<ClientEvent>()
-//
-//    var messageChannel = Channel<MessageEvent>()
 
     @Inject
     override lateinit var presenter: MainActivityContract.Presenter

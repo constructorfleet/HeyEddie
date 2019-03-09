@@ -9,7 +9,6 @@ import android.support.v7.preference.PreferenceFragmentCompat
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import rocks.teagantotally.heartofgoldnotifications.R

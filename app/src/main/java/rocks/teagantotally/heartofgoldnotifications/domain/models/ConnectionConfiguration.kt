@@ -3,7 +3,6 @@ package rocks.teagantotally.heartofgoldnotifications.domain.models
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions
 import rocks.teagantotally.heartofgoldnotifications.common.Transform
 import java.io.Serializable
-import java.net.InetAddress
 
 data class ConnectionConfiguration(
     val brokerHost: String,
