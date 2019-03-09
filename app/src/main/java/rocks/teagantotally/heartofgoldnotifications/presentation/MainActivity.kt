@@ -1,35 +1,28 @@
 package rocks.teagantotally.heartofgoldnotifications.presentation
 
 import android.os.Bundle
+import android.support.v4.app.Fragment
+import android.support.v4.app.FragmentManager
 import android.support.v4.view.GravityCompat
 import android.support.v7.app.AppCompatActivity
 import android.view.MenuItem
 import android.view.View
-import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.launch
 import rocks.teagantotally.heartofgoldnotifications.R
 import rocks.teagantotally.heartofgoldnotifications.app.HeartOfGoldNotificationsApplication
 import rocks.teagantotally.heartofgoldnotifications.app.injection.qualifiers.MainDispatcher
-import rocks.teagantotally.heartofgoldnotifications.data.common.ConnectionConfigProvider
-import rocks.teagantotally.heartofgoldnotifications.domain.clients.Client
-import rocks.teagantotally.heartofgoldnotifications.domain.clients.injection.ClientModule
-import rocks.teagantotally.heartofgoldnotifications.domain.models.ClientEvent
-import rocks.teagantotally.heartofgoldnotifications.domain.models.ClientEventType
-import rocks.teagantotally.heartofgoldnotifications.domain.models.MessageEvent
 import rocks.teagantotally.heartofgoldnotifications.presentation.config.ConfigFragment
 import rocks.teagantotally.heartofgoldnotifications.presentation.injection.MainActivityComponent
 import rocks.teagantotally.heartofgoldnotifications.presentation.injection.MainActivityModule
 import rocks.teagantotally.heartofgoldnotifications.presentation.status.StatusFragment
-import timber.log.Timber
 import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
 
+
 class MainActivity : AppCompatActivity(),
     MainActivityContract.View,
+    FragmentManager.OnBackStackChangedListener,
     CoroutineScope {
 
     companion object {
@@ -52,6 +45,9 @@ class MainActivity : AppCompatActivity(),
     @Inject
     override lateinit var presenter: MainActivityContract.Presenter
 
+    private val currentFragment: Fragment?
+        get() = supportFragmentManager.findFragmentById(R.id.main_container)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -61,6 +57,8 @@ class MainActivity : AppCompatActivity(),
             setDisplayHomeAsUpEnabled(true)
             setHomeAsUpIndicator(R.drawable.ic_menu)
         }
+
+        supportFragmentManager.addOnBackStackChangedListener(this)
 
         HeartOfGoldNotificationsApplication.applicationComponent
             .mainActivityComponentBuilder()
@@ -75,7 +73,6 @@ class MainActivity : AppCompatActivity(),
             when (it.itemId) {
                 R.id.menu_item_settings ->
                     presenter.onNavigateToConfigSettings()
-                        .run { it.isChecked = true }
                         .run { true }
 
                 else -> false
@@ -130,6 +127,20 @@ class MainActivity : AppCompatActivity(),
             else -> false
         }
 
+    override fun onBackStackChanged() {
+        currentFragment
+            ?.tag
+            ?.let {
+                when (it) {
+                    ConfigFragment.TAG ->
+                        navigation_drawer.menu.findItem(R.id.menu_item_settings)
+                    else -> null
+                }
+            }
+            ?.run { isChecked = true }
+            ?: uncheckNavigationItems()
+    }
+
     override fun showConfigSettings() {
         supportFragmentManager.beginTransaction()
             .replace(R.id.main_container, ConfigFragment(), ConfigFragment.TAG)
@@ -148,5 +159,15 @@ class MainActivity : AppCompatActivity(),
 
     override fun showError(message: String?) {
         // TODO
+    }
+
+    private fun uncheckNavigationItems() {
+        navigation_drawer
+            .menu
+            .let {
+                for (i in 0..it.size()) {
+                    it.getItem(i).isChecked = false
+                }
+            }
     }
 }

@@ -26,6 +26,7 @@ class ConfigFragment : PreferenceFragmentCompat(), ConfigContract.View,
     companion object {
         const val TAG = "rocks.teagantotally.heartofgoldnotifications.presentation.config.ConfigFragment"
     }
+
     @Inject
     override lateinit var presenter: ConfigContract.Presenter
     @Inject
