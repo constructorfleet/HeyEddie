@@ -2,7 +2,9 @@ package rocks.teagantotally.heartofgoldnotifications.presentation
 
 import android.app.Activity
 import android.os.Bundle
+import android.support.v4.view.GravityCompat
 import android.support.v7.app.AppCompatActivity
+import android.view.MenuItem
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.CoroutineScope
@@ -91,6 +93,16 @@ class MainActivity : AppCompatActivity(), CoroutineScope by CompatMainScoped {
                         }
                     }
             }
+        }
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            android.R.id.home -> {
+                drawer_container.openDrawer(GravityCompat.START)
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
         }
     }
 }
