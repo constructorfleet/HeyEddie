@@ -2,13 +2,16 @@ package rocks.teagantotally.heartofgoldnotifications.domain.clients.injection
 
 import dagger.Subcomponent
 import rocks.teagantotally.heartofgoldnotifications.app.injection.scopes.SessionScope
+import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService
+import rocks.teagantotally.heartofgoldnotifications.presentation.status.StatusFragment
 
 @SessionScope
 @Subcomponent(
     modules = [ClientModule::class]
 )
 interface ClientComponent {
-//    fun inject(activity: MainActivity)
+    fun inject(service: MqttService)
+    fun inject(fragment: StatusFragment)
 
     @Subcomponent.Builder
     interface Builder {

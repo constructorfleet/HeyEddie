@@ -7,6 +7,8 @@ import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import dagger.Module
 import dagger.Provides
+import rocks.teagantotally.heartofgoldnotifications.app.injection.scopes.SessionScope
+import rocks.teagantotally.heartofgoldnotifications.app.managers.ChannelManager
 import rocks.teagantotally.heartofgoldnotifications.data.common.ConnectionConfigProvider
 import rocks.teagantotally.heartofgoldnotifications.data.local.SharedPreferenceConnectionConfigProvider
 import javax.inject.Singleton
@@ -31,6 +33,11 @@ class ApplicationModule(
     @Singleton
     fun provideGson(): Gson =
         GsonBuilder().create()
+
+    @Provides
+    @Singleton
+    fun provideChannelManager(): ChannelManager =
+        ChannelManager()
 
     @Provides
     @Singleton

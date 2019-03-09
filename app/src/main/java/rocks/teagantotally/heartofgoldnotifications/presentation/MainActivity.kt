@@ -8,7 +8,7 @@ import android.view.MenuItem
 import android.view.View
 import kotlinx.android.synthetic.main.activity_main.*
 import rocks.teagantotally.heartofgoldnotifications.R
-import rocks.teagantotally.heartofgoldnotifications.app.HeartOfGoldNotificationsApplication
+import rocks.teagantotally.heartofgoldnotifications.app.HeyEddieApplication
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.BaseActivity
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.Navigable
 import rocks.teagantotally.heartofgoldnotifications.presentation.config.ConfigFragment
@@ -44,7 +44,7 @@ class MainActivity : BaseActivity(),
 
         supportFragmentManager.addOnBackStackChangedListener(this)
 
-        HeartOfGoldNotificationsApplication.applicationComponent
+        HeyEddieApplication.applicationComponent
             .mainActivityComponentBuilder()
             .module(MainActivityModule(this))
             .build()

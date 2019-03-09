@@ -32,11 +32,6 @@ class ClientModule(
                 )
             }
 
-    @Provides
-    @SessionScope
-    fun provideChannelManager(): ChannelManager =
-        ChannelManager()
-
     @ExperimentalCoroutinesApi
     @ObsoleteCoroutinesApi
     @Provides
@@ -48,6 +43,7 @@ class ClientModule(
         MqttClient(
             mqttAsyncClient,
             channelManager.eventChannel,
-            channelManager.messageChannel
+            channelManager.messageChannel,
+            channelManager.notifyChannel
         )
 }

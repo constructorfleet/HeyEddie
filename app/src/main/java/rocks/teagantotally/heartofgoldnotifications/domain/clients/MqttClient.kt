@@ -2,8 +2,10 @@ package rocks.teagantotally.heartofgoldnotifications.domain.clients
 
 import com.github.ajalt.timberkt.Timber
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.BroadcastChannel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.SendChannel
+import kotlinx.coroutines.channels.consumeEach
 import org.eclipse.paho.client.mqttv3.*
 import rocks.teagantotally.heartofgoldnotifications.domain.models.*
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.Scoped
@@ -14,7 +16,8 @@ import kotlin.coroutines.CoroutineContext
 class MqttClient(
     private val client: IMqttAsyncClient,
     private val clientEventChannel: SendChannel<ClientEvent>,
-    private val messageChannel: Channel<MessageEvent>
+    private val messageChannel: BroadcastChannel<MessageEvent>,
+    private val notifyChannel: Channel<String>
 ) : Client, Scoped {
 
     override var job: Job = Job()
@@ -206,14 +209,13 @@ class MqttClient(
         }
 
         launch {
-            while (messageChannel.isClosedForReceive && client.isConnected) {
+            while (client.isConnected) {
                 isListening = true
-                messageChannel.receiveOrNull()
-                    ?.let {
-                        when (it) {
-                            is MessageEvent.Publish -> publish(it.message)
-                        }
+                messageChannel.consumeEach {
+                    when (it) {
+                        is MessageEvent.Publish -> publish(it.message)
                     }
+                }
             }
 
             isListening = false
