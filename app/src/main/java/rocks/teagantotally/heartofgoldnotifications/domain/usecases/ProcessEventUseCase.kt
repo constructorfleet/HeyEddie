@@ -2,8 +2,6 @@ package rocks.teagantotally.heartofgoldnotifications.domain.usecases
 
 import com.github.ajalt.timberkt.Timber
 import com.google.gson.Gson
-import kotlinx.android.parcel.Parceler
-import rocks.teagantotally.heartofgoldnotifications.domain.models.Message
 import rocks.teagantotally.heartofgoldnotifications.domain.models.NotificationMessage
 import rocks.teagantotally.heartofgoldnotifications.domain.models.events.ClientEvent
 import rocks.teagantotally.heartofgoldnotifications.domain.models.events.ClientMessageReceive
@@ -26,7 +24,7 @@ class ProcessEventUseCase(
                 } catch (t: Throwable) {
                     Timber.e(t)
                 }
-                else -> return
+            else -> return
         }
     }
 }

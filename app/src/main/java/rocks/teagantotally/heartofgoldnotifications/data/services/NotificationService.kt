@@ -1,21 +1,14 @@
 package rocks.teagantotally.heartofgoldnotifications.data.services
 
-import android.app.*
-import android.content.BroadcastReceiver
+import android.app.IntentService
 import android.content.Intent
-import android.os.IBinder
 import com.github.ajalt.timberkt.Timber
-import com.google.gson.Gson
-import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.consumeEach
-import rocks.teagantotally.heartofgoldnotifications.R
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.launch
 import rocks.teagantotally.heartofgoldnotifications.app.HeyEddieApplication
-import rocks.teagantotally.heartofgoldnotifications.app.managers.ChannelManager
-import rocks.teagantotally.heartofgoldnotifications.common.extensions.ifApply
-import rocks.teagantotally.heartofgoldnotifications.common.extensions.ifTrue
-import rocks.teagantotally.heartofgoldnotifications.domain.clients.MqttClient
-import rocks.teagantotally.heartofgoldnotifications.domain.models.*
+import rocks.teagantotally.heartofgoldnotifications.domain.models.NotificationMessage
 import rocks.teagantotally.heartofgoldnotifications.domain.processors.notifications.Notifier
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.Scoped
 import javax.inject.Inject

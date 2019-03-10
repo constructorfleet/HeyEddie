@@ -5,7 +5,6 @@ import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.launch
 import rocks.teagantotally.heartofgoldnotifications.app.managers.ChannelManager
-import rocks.teagantotally.heartofgoldnotifications.data.common.ConnectionConfigProvider
 import rocks.teagantotally.heartofgoldnotifications.domain.models.events.*
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.ScopedPresenter
 
@@ -31,11 +30,11 @@ class StatusPresenter(
             }
         }
         launch {
-            while(!eventChannel.isClosedForReceive) {
+            while (!eventChannel.isClosedForReceive) {
                 eventChannel.consumeEach {
-                    when(it) {
+                    when (it) {
                         is ClientStatus ->
-                            when(it.isConnected) {
+                            when (it.isConnected) {
                                 true -> CONNECTED
                                 false -> DISCONNECTED
                             }

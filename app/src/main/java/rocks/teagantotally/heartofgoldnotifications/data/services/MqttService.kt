@@ -6,16 +6,13 @@ import android.content.Context
 import android.content.Intent
 import android.os.IBinder
 import com.github.ajalt.timberkt.Timber
-import com.google.gson.Gson
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.BroadcastChannel
 import kotlinx.coroutines.channels.Channel
 import rocks.teagantotally.heartofgoldnotifications.app.HeyEddieApplication
 import rocks.teagantotally.heartofgoldnotifications.app.injection.SubComponent
-import rocks.teagantotally.heartofgoldnotifications.app.injection.qualifiers.IODispatcher
 import rocks.teagantotally.heartofgoldnotifications.app.managers.ChannelManager
 import rocks.teagantotally.heartofgoldnotifications.common.extensions.ifTrue
-import rocks.teagantotally.heartofgoldnotifications.common.extensions.safeLet
 import rocks.teagantotally.heartofgoldnotifications.data.services.helpers.LongRunningServiceConnection
 import rocks.teagantotally.heartofgoldnotifications.data.services.helpers.ServiceBinder
 import rocks.teagantotally.heartofgoldnotifications.domain.clients.Client
@@ -25,7 +22,6 @@ import rocks.teagantotally.heartofgoldnotifications.domain.models.events.ClientE
 import rocks.teagantotally.heartofgoldnotifications.domain.models.events.ClientMessagePublish
 import rocks.teagantotally.heartofgoldnotifications.domain.models.events.CommandEvent
 import rocks.teagantotally.heartofgoldnotifications.domain.processors.notifications.Notifier
-import rocks.teagantotally.heartofgoldnotifications.domain.usecases.ProcessEventUseCase
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.Scoped
 import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
@@ -102,7 +98,7 @@ class MqttService : Service(), Scoped {
             intent
                 ?.apply {
                     getIntExtra(KEY_NOTIFICATION_ID, 0)
-                        .ifTrue({it != 0}) {
+                        .ifTrue({ it != 0 }) {
                             notifier.dismiss(it)
                         }
                     getParcelableExtra<Message>(KEY_MESSAGE)

@@ -6,7 +6,6 @@ import android.content.Intent
 import android.os.IBinder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.channels.BroadcastChannel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.launch
@@ -61,11 +60,11 @@ class EventService : Service(), Scoped {
             .run { START_STICKY }
 
     override fun onBind(intent: Intent?): IBinder? =
-            null
+        null
 
     private fun listen() {
         launch {
-            if(!eventChannel.isClosedForReceive) {
+            if (!eventChannel.isClosedForReceive) {
                 eventChannel.consumeEach {
                     eventProcessor(it)
                 }

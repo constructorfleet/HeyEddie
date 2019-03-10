@@ -8,10 +8,8 @@ import android.support.v4.view.GravityCompat
 import android.view.MenuItem
 import android.view.View
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.coroutines.channels.Channel
 import rocks.teagantotally.heartofgoldnotifications.R
 import rocks.teagantotally.heartofgoldnotifications.app.HeyEddieApplication
-import rocks.teagantotally.heartofgoldnotifications.domain.processors.notifications.Notifier
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.BaseActivity
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.Navigable
 import rocks.teagantotally.heartofgoldnotifications.presentation.config.ConfigFragment
@@ -116,7 +114,7 @@ class MainActivity : BaseActivity(),
         navigation_drawer
             .menu
             .let {
-                for (i in 0..(it.size()-1)) {
+                for (i in 0..(it.size() - 1)) {
                     it.getItem(i).isChecked = false
                 }
             }

@@ -6,7 +6,6 @@ import android.os.Parcelable
 import android.support.annotation.ColorRes
 import kotlinx.android.parcel.Parcelize
 import java.io.Serializable
-import kotlin.random.Random
 
 @Parcelize
 class Message(

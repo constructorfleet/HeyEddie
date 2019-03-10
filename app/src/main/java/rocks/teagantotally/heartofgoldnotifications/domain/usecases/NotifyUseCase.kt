@@ -1,9 +1,8 @@
 package rocks.teagantotally.heartofgoldnotifications.domain.usecases
 
-import rocks.teagantotally.heartofgoldnotifications.domain.processors.notifications.Notifier
 import rocks.teagantotally.heartofgoldnotifications.domain.models.Message
 import rocks.teagantotally.heartofgoldnotifications.domain.models.NotificationMessage
-import kotlin.random.Random
+import rocks.teagantotally.heartofgoldnotifications.domain.processors.notifications.Notifier
 
 class Notify(
     private val notifier: Notifier,

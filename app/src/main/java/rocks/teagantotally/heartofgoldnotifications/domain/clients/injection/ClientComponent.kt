@@ -4,7 +4,6 @@ import dagger.Subcomponent
 import rocks.teagantotally.heartofgoldnotifications.app.injection.scopes.SessionScope
 import rocks.teagantotally.heartofgoldnotifications.data.services.EventService
 import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService
-import rocks.teagantotally.heartofgoldnotifications.presentation.status.StatusFragment
 
 @SessionScope
 @Subcomponent(

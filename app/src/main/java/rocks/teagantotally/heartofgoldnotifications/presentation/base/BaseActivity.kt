@@ -1,6 +1,5 @@
 package rocks.teagantotally.heartofgoldnotifications.presentation.base
 
-import android.app.NotificationManager
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v7.app.AppCompatActivity
@@ -8,7 +7,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import rocks.teagantotally.heartofgoldnotifications.R
 import rocks.teagantotally.heartofgoldnotifications.app.managers.FragmentJobManager
-import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
 
 abstract class BaseActivity : AppCompatActivity(), Scoped {

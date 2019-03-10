@@ -70,7 +70,8 @@ class SystemNotifier(
                                         ) as Parcelable
                                     )
                                 }
-                            val pendingIntent = PendingIntent.getBroadcast(context, id, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+                            val pendingIntent =
+                                PendingIntent.getBroadcast(context, id, intent, PendingIntent.FLAG_UPDATE_CURRENT)
                             Notification.Action.Builder(0, it.text, pendingIntent)
                                 .build()
                                 .let { builder.addAction(it) }

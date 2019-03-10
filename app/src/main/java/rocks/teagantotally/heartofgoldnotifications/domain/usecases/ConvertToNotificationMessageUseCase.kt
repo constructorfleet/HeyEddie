@@ -3,8 +3,8 @@ package rocks.teagantotally.heartofgoldnotifications.domain.usecases
 import com.github.ajalt.timberkt.Timber
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
-import rocks.teagantotally.heartofgoldnotifications.domain.models.NotificationMessage
 import rocks.teagantotally.heartofgoldnotifications.domain.models.Message
+import rocks.teagantotally.heartofgoldnotifications.domain.models.NotificationMessage
 
 class ConvertToNotificationMessageUseCase(
     private val gson: Gson
