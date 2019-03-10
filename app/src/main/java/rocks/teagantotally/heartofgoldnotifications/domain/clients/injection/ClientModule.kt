@@ -14,7 +14,10 @@ import rocks.teagantotally.heartofgoldnotifications.data.common.BrokerUriBuilder
 import rocks.teagantotally.heartofgoldnotifications.data.common.ConnectionConfigProvider
 import rocks.teagantotally.heartofgoldnotifications.domain.clients.Client
 import rocks.teagantotally.heartofgoldnotifications.domain.clients.MqttClient
-import rocks.teagantotally.heartofgoldnotifications.domain.processors.notifications.Notifier
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.Notifier
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.ConvertToNotificationMessageUseCase
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.FinishNotifyUseCase
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.NotifyUseCase
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.ProcessEventUseCase
 
 @Module
@@ -37,13 +40,38 @@ class ClientModule(
 
     @Provides
     @SessionScope
-    fun provideEventProcessor(
-        gson: Gson,
+    fun provideConvertNotificationUseCase(
+        gson: Gson
+    ): ConvertToNotificationMessageUseCase =
+        ConvertToNotificationMessageUseCase(gson)
+
+    @Provides
+    @SessionScope
+    fun provideNotifyUseCase(
+        convertNotificationUseCase: ConvertToNotificationMessageUseCase,
         notifier: Notifier
+    ): NotifyUseCase =
+        NotifyUseCase(
+            convertNotificationUseCase,
+            notifier
+        )
+
+    @Provides
+    @SessionScope
+    fun provideFinishNotifyUseCase(
+        notifier: Notifier
+    ): FinishNotifyUseCase =
+        FinishNotifyUseCase(notifier)
+
+    @Provides
+    @SessionScope
+    fun provideEventProcessor(
+        notifyUseCase: NotifyUseCase,
+        finishNotifyUseCase: FinishNotifyUseCase
     ): ProcessEventUseCase =
         ProcessEventUseCase(
-            notifier,
-            gson
+            notifyUseCase,
+            finishNotifyUseCase
         )
 
     @ExperimentalCoroutinesApi

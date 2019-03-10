@@ -11,8 +11,8 @@ import dagger.Provides
 import rocks.teagantotally.heartofgoldnotifications.app.managers.ChannelManager
 import rocks.teagantotally.heartofgoldnotifications.data.common.ConnectionConfigProvider
 import rocks.teagantotally.heartofgoldnotifications.data.local.SharedPreferenceConnectionConfigProvider
-import rocks.teagantotally.heartofgoldnotifications.domain.processors.notifications.Notifier
-import rocks.teagantotally.heartofgoldnotifications.domain.processors.notifications.SystemNotifier
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.Notifier
+import rocks.teagantotally.heartofgoldnotifications.data.managers.SystemNotifier
 import javax.inject.Singleton
 
 @Module

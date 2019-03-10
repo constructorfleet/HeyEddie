@@ -1,4 +1,4 @@
-package rocks.teagantotally.heartofgoldnotifications.domain.processors.notifications
+package rocks.teagantotally.heartofgoldnotifications.data.managers
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -12,6 +12,7 @@ import kotlinx.coroutines.Job
 import rocks.teagantotally.heartofgoldnotifications.R
 import rocks.teagantotally.heartofgoldnotifications.common.extensions.ifAlso
 import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.Notifier
 import rocks.teagantotally.heartofgoldnotifications.domain.models.Message
 import rocks.teagantotally.heartofgoldnotifications.domain.models.NotificationMessage
 import rocks.teagantotally.heartofgoldnotifications.domain.models.NotificationMessageChannel

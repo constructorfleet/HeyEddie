@@ -1,30 +1,24 @@
 package rocks.teagantotally.heartofgoldnotifications.domain.usecases
 
-import com.github.ajalt.timberkt.Timber
-import com.google.gson.Gson
-import rocks.teagantotally.heartofgoldnotifications.domain.models.NotificationMessage
-import rocks.teagantotally.heartofgoldnotifications.domain.models.events.ClientEvent
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.UseCase
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.UseCaseResult
 import rocks.teagantotally.heartofgoldnotifications.domain.models.events.ClientMessageReceive
-import rocks.teagantotally.heartofgoldnotifications.domain.processors.notifications.Notifier
+import rocks.teagantotally.heartofgoldnotifications.domain.models.events.Event
+import rocks.teagantotally.heartofgoldnotifications.domain.models.events.NotificationActivated
 
 class ProcessEventUseCase(
-    private val notifier: Notifier,
-    private val gson: Gson
-) : UseCase<ClientEvent, Unit>() {
-    override suspend fun invoke(params: ClientEvent) {
-        when (params) {
+    private val notify: NotifyUseCase,
+    private val finishNotify: FinishNotifyUseCase
+) : UseCase<Event, Event> {
+    override suspend fun invoke(parameter: Event): UseCaseResult<Event> =
+        when (parameter) {
             is ClientMessageReceive.Successful ->
-                try {
-                    gson.fromJson(
-                        params.message.payload,
-                        NotificationMessage::class.java
-                    ).let {
-                        notifier.notify(it)
-                    }
-                } catch (t: Throwable) {
-                    Timber.e(t)
-                }
-            else -> return
-        }
-    }
+                notify(parameter.message)
+                    .takeIf { it is UseCaseResult.Success }
+                    ?.let { UseCaseResult.Success(parameter as Event) }
+            is NotificationActivated ->
+                finishNotify(parameter)
+                    .let { UseCaseResult.Success(parameter as Event) }
+            else -> null
+        } ?: UseCaseResult.Failure(IllegalStateException("Unable to Process event"))
 }

@@ -9,7 +9,7 @@ import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.launch
 import rocks.teagantotally.heartofgoldnotifications.app.HeyEddieApplication
 import rocks.teagantotally.heartofgoldnotifications.domain.models.NotificationMessage
-import rocks.teagantotally.heartofgoldnotifications.domain.processors.notifications.Notifier
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.Notifier
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.Scoped
 import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext

@@ -17,7 +17,7 @@ import kotlin.coroutines.CoroutineContext
 class MqttClient(
     private val client: IMqttAsyncClient,
     private val connectionConfigProvider: ConnectionConfigProvider,
-    private val clientEventChannel: SendChannel<ClientEvent>,
+    private val eventChannel: SendChannel<Event>,
     private val commandChannel: Channel<CommandEvent>
 ) : Client, Scoped {
 
@@ -33,8 +33,8 @@ class MqttClient(
 
             override fun onSuccess(token: IMqttToken?) {
                 launch {
-                    if (!clientEventChannel.isClosedForSend) {
-                        clientEventChannel.send(
+                    if (!eventChannel.isClosedForSend) {
+                        eventChannel.send(
                             ClientConnection.Successful(
                                 token
                             )
@@ -45,8 +45,8 @@ class MqttClient(
 
             override fun onFailure(token: IMqttToken?, throwable: Throwable?) {
                 launch {
-                    if (!clientEventChannel.isClosedForSend) {
-                        clientEventChannel.send(
+                    if (!eventChannel.isClosedForSend) {
+                        eventChannel.send(
                             ClientConnection.Failed(
                                 token,
                                 throwable ?: Throwable("Unable to connect to broker")
@@ -62,9 +62,9 @@ class MqttClient(
             val topic: String = topic
             override fun onSuccess(token: IMqttToken?) {
                 launch {
-                    if (!clientEventChannel.isClosedForSend) {
-                        clientEventChannel.send(
-                            ClientUnsubscription.Successful(
+                    if (!eventChannel.isClosedForSend) {
+                        eventChannel.send(
+                            ClientUnsubscribe.Successful(
                                 token,
                                 topic
                             )
@@ -75,9 +75,9 @@ class MqttClient(
 
             override fun onFailure(token: IMqttToken?, throwable: Throwable?) {
                 launch {
-                    if (!clientEventChannel.isClosedForSend) {
-                        clientEventChannel.send(
-                            ClientUnsubscription.Failed(
+                    if (!eventChannel.isClosedForSend) {
+                        eventChannel.send(
+                            ClientUnsubscribe.Failed(
                                 token,
                                 topic,
                                 throwable ?: Throwable("Unable to subscribe to $topic")
@@ -95,8 +95,8 @@ class MqttClient(
 
             override fun onSuccess(token: IMqttToken?) {
                 launch {
-                    if (!clientEventChannel.isClosedForSend) {
-                        clientEventChannel.send(
+                    if (!eventChannel.isClosedForSend) {
+                        eventChannel.send(
                             ClientSubscription.Successful(
                                 token,
                                 topic
@@ -108,8 +108,8 @@ class MqttClient(
 
             override fun onFailure(token: IMqttToken?, throwable: Throwable?) {
                 launch {
-                    if (!clientEventChannel.isClosedForSend) {
-                        clientEventChannel.send(
+                    if (!eventChannel.isClosedForSend) {
+                        eventChannel.send(
                             ClientSubscription.Failed(
                                 token,
                                 topic,
@@ -125,8 +125,8 @@ class MqttClient(
         object : IMqttActionListener, CoroutineScope by this@MqttClient {
             override fun onSuccess(token: IMqttToken?) {
                 launch {
-                    if (!clientEventChannel.isClosedForSend) {
-                        clientEventChannel.send(
+                    if (!eventChannel.isClosedForSend) {
+                        eventChannel.send(
                             ClientDisconnection.Successful(token)
                         )
                     }
@@ -135,8 +135,8 @@ class MqttClient(
 
             override fun onFailure(token: IMqttToken?, throwable: Throwable?) {
                 launch {
-                    if (!clientEventChannel.isClosedForSend) {
-                        clientEventChannel.send(
+                    if (!eventChannel.isClosedForSend) {
+                        eventChannel.send(
                             ClientDisconnection.Failed(
                                 token,
                                 throwable ?: Throwable("Unable to disconnect")
@@ -181,7 +181,7 @@ class MqttClient(
                     message.qos,
                     message.retain
                 ).let {
-                    clientEventChannel.send(
+                    eventChannel.send(
                         ClientMessagePublish.Successful(
                             it,
                             message
@@ -189,7 +189,7 @@ class MqttClient(
                     )
                 }
             } catch (t: Throwable) {
-                clientEventChannel.send(
+                eventChannel.send(
                     ClientMessagePublish.Failed(
                         null,
                         message,
@@ -211,7 +211,7 @@ class MqttClient(
     override fun messageArrived(topic: String?, message: MqttMessage?) {
         launch {
             Timber.d { "Received Message" }
-            clientEventChannel.send(
+            eventChannel.send(
                 topic?.let { validTopic ->
                     message?.let { validMessage ->
                         ClientMessageReceive.Successful(
@@ -230,7 +230,7 @@ class MqttClient(
 
     override fun connectionLost(throwable: Throwable?) {
         launch {
-            clientEventChannel.send(
+            eventChannel.send(
                 ClientConnection.Failed(
                     null,
                     throwable ?: Throwable("Connection lost")
@@ -257,8 +257,8 @@ class MqttClient(
                         CommandEvent.Disconnect -> disconnect()
                         CommandEvent.Connect -> connect()
                         CommandEvent.GetStatus ->
-                            if (!clientEventChannel.isClosedForSend) {
-                                clientEventChannel.send(
+                            if (!eventChannel.isClosedForSend) {
+                                eventChannel.send(
                                     ClientStatus(client.isConnected)
                                 )
                             }

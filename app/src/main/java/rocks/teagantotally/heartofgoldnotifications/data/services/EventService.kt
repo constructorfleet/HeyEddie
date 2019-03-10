@@ -15,7 +15,7 @@ import rocks.teagantotally.heartofgoldnotifications.app.managers.ChannelManager
 import rocks.teagantotally.heartofgoldnotifications.data.services.helpers.LongRunningServiceConnection
 import rocks.teagantotally.heartofgoldnotifications.data.services.helpers.ServiceBinder
 import rocks.teagantotally.heartofgoldnotifications.domain.clients.injection.ClientModule
-import rocks.teagantotally.heartofgoldnotifications.domain.models.events.ClientEvent
+import rocks.teagantotally.heartofgoldnotifications.domain.models.events.Event
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.ProcessEventUseCase
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.Scoped
 import javax.inject.Inject
@@ -37,7 +37,7 @@ class EventService : Service(), Scoped {
     @Inject
     lateinit var eventProcessor: ProcessEventUseCase
 
-    private val eventChannel: ReceiveChannel<ClientEvent> by lazy { channelManager.eventChannel.openSubscription() }
+    private val eventChannel: ReceiveChannel<Event> by lazy { channelManager.eventChannel.openSubscription() }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int =
         HeyEddieApplication.clientComponent

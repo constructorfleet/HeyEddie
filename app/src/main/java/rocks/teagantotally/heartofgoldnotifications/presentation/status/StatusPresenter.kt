@@ -19,7 +19,7 @@ class StatusPresenter(
         const val ERROR = "ERROR %s"
     }
 
-    private val eventChannel: ReceiveChannel<ClientEvent> by lazy { channelManager.eventChannel.openSubscription() }
+    private val eventChannel: ReceiveChannel<Event> by lazy { channelManager.eventChannel.openSubscription() }
     private val commandChannel: Channel<CommandEvent> by lazy { channelManager.commandChannel }
 
     override fun onViewCreated() {

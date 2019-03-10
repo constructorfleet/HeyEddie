@@ -18,10 +18,11 @@ import rocks.teagantotally.heartofgoldnotifications.data.services.helpers.Servic
 import rocks.teagantotally.heartofgoldnotifications.domain.clients.Client
 import rocks.teagantotally.heartofgoldnotifications.domain.clients.injection.ClientModule
 import rocks.teagantotally.heartofgoldnotifications.domain.models.Message
-import rocks.teagantotally.heartofgoldnotifications.domain.models.events.ClientEvent
+import rocks.teagantotally.heartofgoldnotifications.domain.models.events.Event
 import rocks.teagantotally.heartofgoldnotifications.domain.models.events.ClientMessagePublish
 import rocks.teagantotally.heartofgoldnotifications.domain.models.events.CommandEvent
-import rocks.teagantotally.heartofgoldnotifications.domain.processors.notifications.Notifier
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.Notifier
+import rocks.teagantotally.heartofgoldnotifications.domain.models.events.NotificationActivated
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.Scoped
 import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
@@ -91,19 +92,22 @@ class MqttService : Service(), Scoped {
         override val coroutineContext: CoroutineContext = Job().plus(Dispatchers.IO)
 
         private val commandChannel: Channel<CommandEvent> by lazy { channelManager.commandChannel }
-        private val eventChannel: BroadcastChannel<ClientEvent> by lazy { channelManager.eventChannel }
+        private val eventChannel: BroadcastChannel<Event> by lazy { channelManager.eventChannel }
 
         override fun onReceive(context: Context?, intent: Intent?) {
             HeyEddieApplication.applicationComponent.inject(this)
             intent
                 ?.apply {
-                    getIntExtra(KEY_NOTIFICATION_ID, 0)
-                        .ifTrue({ it != 0 }) {
-                            notifier.dismiss(it)
-                        }
-                    getParcelableExtra<Message>(KEY_MESSAGE)
-                        ?.let {
-                            launch {
+                    launch {
+                        getIntExtra(KEY_NOTIFICATION_ID, 0)
+                            .ifTrue({ it != 0 }) {
+                                if (!eventChannel.isClosedForSend) {
+                                    eventChannel.send(NotificationActivated(it))
+                                }
+                            }
+                        getParcelableExtra<Message>(KEY_MESSAGE)
+                            ?.let {
+
                                 if (!commandChannel.isClosedForSend) {
                                     commandChannel.send(
                                         CommandEvent.Publish(
@@ -122,7 +126,8 @@ class MqttService : Service(), Scoped {
                                     Timber.w { "Cannot process publish command" }
                                 }
                             }
-                        }
+
+                    }
                 }
         }
     }

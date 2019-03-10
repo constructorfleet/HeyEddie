@@ -1,4 +1,4 @@
-package rocks.teagantotally.heartofgoldnotifications.domain.processors.notifications
+package rocks.teagantotally.heartofgoldnotifications.domain.framework
 
 import rocks.teagantotally.heartofgoldnotifications.domain.models.NotificationMessage
 
