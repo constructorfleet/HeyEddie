@@ -17,7 +17,7 @@ class StatusPresenter(
     companion object {
         const val CONNECTED = "CONNECTED"
         const val DISCONNECTED = "DISCONNECTED"
-        const val ERROR = "ERROR"
+        const val ERROR = "ERROR %s"
     }
 
     private val eventChannel: ReceiveChannel<ClientEvent> by lazy { channelManager.eventChannel.openSubscription() }
@@ -40,9 +40,9 @@ class StatusPresenter(
                                 false -> DISCONNECTED
                             }
                         is ClientConnection.Successful -> CONNECTED
-                        is ClientConnection.Failed -> ERROR
+                        is ClientConnection.Failed -> ERROR.format(it.throwable.message)
                         is ClientDisconnection.Successful -> DISCONNECTED
-                        is ClientDisconnection.Failed -> ERROR
+                        is ClientDisconnection.Failed -> ERROR.format(it.throwable.message)
                         is ClientMessageReceive.Successful ->
                             view.logMessage(it.message)
                                 .run { null }

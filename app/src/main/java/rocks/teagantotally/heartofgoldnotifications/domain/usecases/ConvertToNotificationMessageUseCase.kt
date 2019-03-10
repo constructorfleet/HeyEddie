@@ -11,7 +11,7 @@ class ConvertToNotificationMessageUseCase(
 ) : UseCase<Message, NotificationMessage?>() {
     override suspend fun invoke(params: Message): NotificationMessage? =
         try {
-            gson.fromJson<NotificationMessage>(String(params.payload), NotificationMessage::class.java)
+            gson.fromJson<NotificationMessage>(params.payload, NotificationMessage::class.java)
         } catch (e: JsonSyntaxException) {
             Timber.e(e)
             null

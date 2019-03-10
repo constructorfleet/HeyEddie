@@ -1,17 +1,20 @@
 package rocks.teagantotally.heartofgoldnotifications.domain.clients
 
 import com.github.ajalt.timberkt.Timber
+import com.google.gson.GsonBuilder
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.BroadcastChannel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.channels.consumeEach
 import org.eclipse.paho.client.mqttv3.*
 import rocks.teagantotally.heartofgoldnotifications.data.common.ConnectionConfigProvider
-import rocks.teagantotally.heartofgoldnotifications.domain.models.*
+import rocks.teagantotally.heartofgoldnotifications.data.services.NotificationService
+import rocks.teagantotally.heartofgoldnotifications.domain.models.Message
+import rocks.teagantotally.heartofgoldnotifications.domain.models.NotificationMessage
 import rocks.teagantotally.heartofgoldnotifications.domain.models.events.*
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.Scoped
 import kotlin.coroutines.CoroutineContext
+import kotlin.random.Random
 
 @ObsoleteCoroutinesApi
 @ExperimentalCoroutinesApi
@@ -153,6 +156,10 @@ class MqttClient(
     }
 
     override fun connect() {
+        if (client.isConnected) {
+            return
+        }
+
         isListening = false
         client.connect(
             connectionConfigProvider.getConnectionConfiguration().transform(),
@@ -174,7 +181,7 @@ class MqttClient(
             try {
                 client.publish(
                     message.topic,
-                    message.payload,
+                    message.payload.toByteArray(),
                     message.qos,
                     message.retain
                 ).let {
@@ -211,11 +218,10 @@ class MqttClient(
             clientEventChannel.send(
                 topic?.let { validTopic ->
                     message?.let { validMessage ->
-
                         ClientMessageReceive.Successful(
                             Message(
                                 validTopic,
-                                validMessage.payload,
+                                String(validMessage.payload),
                                 validMessage.qos,
                                 validMessage.isRetained
                             )
@@ -260,6 +266,7 @@ class MqttClient(
                                     ClientStatus(client.isConnected)
                                 )
                             }
+                        is CommandEvent.Publish -> publish(it.message)
                         is CommandEvent.Subscribe -> subscribe(it.topic, it.maxQoS)
                         is CommandEvent.Unsubscribe -> unsubscribe(it.topic)
                     }

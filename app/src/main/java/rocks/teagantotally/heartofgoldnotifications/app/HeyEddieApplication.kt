@@ -39,6 +39,5 @@ class HeyEddieApplication : Application() {
             .let { applicationComponent = it }
 
         registerActivityLifecycleCallbacks(ActivityJobManager)
-
     }
 }

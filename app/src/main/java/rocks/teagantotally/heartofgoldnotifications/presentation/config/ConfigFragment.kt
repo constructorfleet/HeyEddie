@@ -9,9 +9,11 @@ import android.support.v7.preference.PreferenceFragmentCompat
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import rocks.teagantotally.heartofgoldnotifications.R
+import rocks.teagantotally.heartofgoldnotifications.app.injection.qualifiers.MainDispatcher
 import rocks.teagantotally.heartofgoldnotifications.common.extensions.safeLet
 import rocks.teagantotally.heartofgoldnotifications.presentation.MainActivity
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.Navigable

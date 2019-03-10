@@ -1,32 +1,56 @@
 package rocks.teagantotally.heartofgoldnotifications.domain.models
 
+import android.app.Notification
 import android.app.NotificationManager
+import android.os.Parcelable
+import android.support.annotation.ColorRes
+import kotlinx.android.parcel.Parcelize
 import java.io.Serializable
+import kotlin.random.Random
 
+@Parcelize
 class Message(
     val topic: String,
-    val payload: ByteArray,
+    val payload: String,
     val qos: Int,
     val retain: Boolean
-) : Serializable
+) : Parcelable, Serializable
 
-class NotificationChannel(
+enum class NotificationVisibility(val systemValue: Int) {
+    PUBLIC(Notification.VISIBILITY_PUBLIC),
+    PRIVATE(Notification.VISIBILITY_PRIVATE),
+    SECRET(Notification.VISIBILITY_SECRET);
+}
+
+@Parcelize
+class NotificationMessageChannel(
     val id: String = android.app.NotificationChannel.DEFAULT_CHANNEL_ID,
     val name: String,
     val description: String,
+    val enableLights: Boolean = false,
+    @ColorRes val lightColor: Int = 0,
+    val visibility: String = NotificationVisibility.PRIVATE.name,
+    val vibrationPattern: LongArray? = null,
     val importance: Int = NotificationManager.IMPORTANCE_LOW
-) : Serializable
+) : Parcelable
 
-class NotificationAction(
+@Parcelize
+class NotificationMessageAction(
     val text: String,
     val topic: String,
-    val payload: Serializable
-) : Serializable
+    val payload: String,
+    val qos: Int = 0,
+    val retain: Boolean = false
+) : Parcelable
 
+@Parcelize
 class NotificationMessage(
-    val channel: NotificationChannel,
+    val channel: NotificationMessageChannel,
+    val id: Int,
     val title: String,
     val body: String,
+    val onGoing: Boolean = false,
+    val autoCancel: Boolean = true,
     val priority: Int = NotificationManager.IMPORTANCE_DEFAULT,
-    val actions: List<NotificationAction> = listOf()
-) : Serializable
+    val actions: List<NotificationMessageAction> = listOf()
+) : Parcelable

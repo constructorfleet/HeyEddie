@@ -1,6 +1,7 @@
 package rocks.teagantotally.heartofgoldnotifications.domain.clients.injection
 
 import android.content.Context
+import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -13,6 +14,8 @@ import rocks.teagantotally.heartofgoldnotifications.data.common.BrokerUriBuilder
 import rocks.teagantotally.heartofgoldnotifications.data.common.ConnectionConfigProvider
 import rocks.teagantotally.heartofgoldnotifications.domain.clients.Client
 import rocks.teagantotally.heartofgoldnotifications.domain.clients.MqttClient
+import rocks.teagantotally.heartofgoldnotifications.domain.processors.notifications.Notifier
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.ProcessEventUseCase
 
 @Module
 class ClientModule(
@@ -31,6 +34,17 @@ class ClientModule(
                     it.clientId
                 )
             }
+
+    @Provides
+    @SessionScope
+    fun provideEventProcessor(
+        gson: Gson,
+        notifier: Notifier
+    ): ProcessEventUseCase =
+        ProcessEventUseCase(
+            notifier,
+            gson
+        )
 
     @ExperimentalCoroutinesApi
     @ObsoleteCoroutinesApi

@@ -4,6 +4,7 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
     <application
         android:name=".app.HeyEddieApplication"
@@ -14,7 +15,10 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
-        <activity android:name=".presentation.MainActivity">
+        <activity
+            android:name=".presentation.MainActivity"
+            android:launchMode="singleTop"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -30,11 +34,21 @@
         <service
             android:name="org.eclipse.paho.android.service.MqttService"
             android:exported="false" />
+
+        <service
+            android:name=".data.services.NotificationService"
+            android:exported="false" />
+
         <service
             android:name=".data.services.MqttService"
             android:exported="false" />
 
-        <receiver android:name=".data.services.MqttService$RestartReceiver"/>
+        <service
+            android:name=".data.services.EventService"
+            android:exported="false" />
 
+        <receiver android:name=".data.services.MqttService$PublishReceiver" />
+
+        <receiver android:name=".data.services.MqttService$RestartReceiver" />
     </application>
 </manifest>
