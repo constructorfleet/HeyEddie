@@ -1,14 +1,19 @@
 package rocks.teagantotally.heartofgoldnotifications.presentation.config
 
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.launch
 import rocks.teagantotally.heartofgoldnotifications.common.extensions.safeLet
 import rocks.teagantotally.heartofgoldnotifications.data.common.ConnectionConfigProvider
 import rocks.teagantotally.heartofgoldnotifications.domain.models.ConnectionConfiguration
+import rocks.teagantotally.heartofgoldnotifications.domain.models.events.CommandEvent
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.StartClientUseCase
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.ScopedPresenter
 
 class ConfigPresenter(
     view: ConfigContract.View,
     private val connectionConfigProvider: ConnectionConfigProvider,
+    private val startClientUseCase: StartClientUseCase,
     coroutineScope: CoroutineScope
 ) : ScopedPresenter<ConfigContract.View, ConfigContract.Presenter>(view, coroutineScope), ConfigContract.Presenter {
     override fun saveConfig(
@@ -30,7 +35,9 @@ class ConfigPresenter(
                 reconnect,
                 cleanSession
             )
-        ).run { view.close() }
+        )
+            .run { launch { startClientUseCase(CommandEvent.Connect) } }
+            .run { view.close() }
     }
 
     override fun onViewCreated() {

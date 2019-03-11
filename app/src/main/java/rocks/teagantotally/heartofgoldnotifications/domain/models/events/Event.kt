@@ -17,14 +17,15 @@ interface Failure : Event {
 
 interface ClientMessageEvent : Event
 
-class ClientStatus(val isConnected: Boolean) : Event
+open class ClientStatus(val isConnected: Boolean) : Event
 
-sealed class ClientConnection(override val token: IMqttToken?) : TokenizedClientEvent {
-    class Successful(token: IMqttToken?) : ClientConnection(token), Success
-    class Failed(token: IMqttToken?, override val throwable: Throwable) : ClientConnection(token), Failure
+sealed class ClientConnection(isConnected: Boolean, override val token: IMqttToken?) : ClientStatus(isConnected),
+    TokenizedClientEvent {
+    class Successful(token: IMqttToken?) : ClientConnection(true, token), Success
+    class Failed(token: IMqttToken?, override val throwable: Throwable) : ClientConnection(false, token), Failure
 }
 
-sealed class ClientDisconnection(override val token: IMqttToken?) : TokenizedClientEvent {
+sealed class ClientDisconnection(override val token: IMqttToken?) : ClientStatus(false), TokenizedClientEvent {
     class Successful(token: IMqttToken?) : ClientDisconnection(token), Success
     class Failed(token: IMqttToken?, override val throwable: Throwable) : ClientDisconnection(token), Failure
 }

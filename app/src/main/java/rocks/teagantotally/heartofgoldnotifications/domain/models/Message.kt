@@ -5,6 +5,7 @@ import android.app.NotificationManager
 import android.os.Parcelable
 import android.support.annotation.ColorRes
 import kotlinx.android.parcel.Parcelize
+import rocks.teagantotally.heartofgoldnotifications.domain.models.events.Event
 import java.io.Serializable
 
 @Parcelize
@@ -13,7 +14,7 @@ class Message(
     val payload: String,
     val qos: Int,
     val retain: Boolean
-) : Parcelable, Serializable
+) : Parcelable, Serializable, Event
 
 enum class NotificationVisibility(val systemValue: Int) {
     PUBLIC(Notification.VISIBILITY_PUBLIC),

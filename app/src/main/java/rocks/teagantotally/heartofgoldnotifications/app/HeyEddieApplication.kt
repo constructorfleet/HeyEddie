@@ -1,11 +1,14 @@
 package rocks.teagantotally.heartofgoldnotifications.app
 
 import android.app.Application
+import android.content.Intent
 import rocks.teagantotally.heartofgoldnotifications.app.injection.ApplicationComponent
 import rocks.teagantotally.heartofgoldnotifications.app.injection.ApplicationModule
 import rocks.teagantotally.heartofgoldnotifications.app.injection.DaggerApplicationComponent
 import rocks.teagantotally.heartofgoldnotifications.app.injection.SubComponent
 import rocks.teagantotally.heartofgoldnotifications.app.managers.ActivityJobManager
+import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService
+import rocks.teagantotally.heartofgoldnotifications.domain.clients.Client
 import rocks.teagantotally.heartofgoldnotifications.domain.clients.injection.ClientComponent
 import rocks.teagantotally.heartofgoldnotifications.domain.clients.injection.ClientModule
 import timber.log.Timber
@@ -30,6 +33,7 @@ class HeyEddieApplication : Application() {
         super.onCreate()
         Timber.plant(Timber.DebugTree())
         setupGraph()
+        startForegroundService(Intent(this, MqttService::class.java))
     }
 
     private fun setupGraph() {

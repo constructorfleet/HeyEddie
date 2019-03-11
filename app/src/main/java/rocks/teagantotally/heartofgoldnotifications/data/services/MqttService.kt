@@ -9,20 +9,25 @@ import com.github.ajalt.timberkt.Timber
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.BroadcastChannel
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.channels.consumeEach
 import rocks.teagantotally.heartofgoldnotifications.app.HeyEddieApplication
 import rocks.teagantotally.heartofgoldnotifications.app.injection.SubComponent
 import rocks.teagantotally.heartofgoldnotifications.app.managers.ChannelManager
 import rocks.teagantotally.heartofgoldnotifications.common.extensions.ifTrue
+import rocks.teagantotally.heartofgoldnotifications.data.managers.transform
 import rocks.teagantotally.heartofgoldnotifications.data.services.helpers.LongRunningServiceConnection
 import rocks.teagantotally.heartofgoldnotifications.data.services.helpers.ServiceBinder
 import rocks.teagantotally.heartofgoldnotifications.domain.clients.Client
 import rocks.teagantotally.heartofgoldnotifications.domain.clients.injection.ClientModule
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.Notifier
 import rocks.teagantotally.heartofgoldnotifications.domain.models.Message
-import rocks.teagantotally.heartofgoldnotifications.domain.models.events.Event
 import rocks.teagantotally.heartofgoldnotifications.domain.models.events.ClientMessagePublish
 import rocks.teagantotally.heartofgoldnotifications.domain.models.events.CommandEvent
-import rocks.teagantotally.heartofgoldnotifications.domain.framework.Notifier
+import rocks.teagantotally.heartofgoldnotifications.domain.models.events.Event
 import rocks.teagantotally.heartofgoldnotifications.domain.models.events.NotificationActivated
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.ProcessEventUseCase
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.UpdatePersistentNotificationUseCase
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.Scoped
 import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
@@ -30,17 +35,28 @@ import kotlin.coroutines.CoroutineContext
 class MqttService : Service(), Scoped {
 
     companion object {
+        const val ACTION_START = "rocks.teagantotally.heartofgoldnotifications.data.services.MqttService.start"
+
         lateinit var serviceBinder: ServiceBinder<MqttService>
         val longRunningServiceConnection: LongRunningServiceConnection<MqttService> =
             LongRunningServiceConnection()
-        const val KEY_TOPIC = "topic"
-        const val KEY_PAYLOAD = "payload"
     }
 
     override var job: Job = Job()
     override val coroutineContext: CoroutineContext = job.plus(Dispatchers.IO)
+
     @Inject
-    lateinit var client: Client
+    lateinit var channelManager: ChannelManager
+
+    @Inject
+    lateinit var notifier: Notifier
+
+    @Inject
+    lateinit var eventProcessor: ProcessEventUseCase
+
+    private val eventChannel: ReceiveChannel<Event> by lazy { channelManager.eventChannel.openSubscription() }
+    private val commandChannel: ReceiveChannel<CommandEvent> by lazy { channelManager.commandChannel.openSubscription() }
+    private lateinit var client: Client
 
     override fun onBind(intent: Intent?): IBinder? =
         null
@@ -62,19 +78,52 @@ class MqttService : Service(), Scoped {
                     Context.BIND_AUTO_CREATE
                 )
             }
-            .run { client.connect() }
-            .run { startService(Intent(this@MqttService, EventService::class.java)) }
+            .run {
+                UpdatePersistentNotificationUseCase
+                    .getPersistentNotification(false)
+                    .let {
+                        notifier.notify(it)
+                        launch {
+                            it.transform(this@MqttService)
+                                .let {
+                                    startForeground(it.first, it.second)
+                                }
+                        }
+                    }
+            }
+            .run { listen() }
             .run { START_STICKY }
 
     override fun onDestroy() {
         super.onDestroy()
+        job.cancelChildren()
         sendBroadcast(
             Intent(
                 this,
-                RestartReceiver::class.java
-            )
+                StartServiceReceiver::class.java
+            ).apply { action = ACTION_START }
         )
-        job.cancelChildren()
+    }
+
+    private fun listen() {
+        launch {
+            while (!commandChannel.isClosedForReceive) {
+                commandChannel.consumeEach {
+                    if (it == CommandEvent.Connect && !this@MqttService::client.isInitialized) {
+                        (HeyEddieApplication.getClient() as? SubComponent.Initialized)
+                            ?.let { client = it.component.provideClient() }
+                            ?.let { client.connect() }
+                    }
+                }
+            }
+        }
+        launch {
+            while (!eventChannel.isClosedForReceive) {
+                eventChannel.consumeEach {
+                    eventProcessor(it)
+                }
+            }
+        }
     }
 
     class PublishReceiver : BroadcastReceiver(), CoroutineScope {
@@ -91,7 +140,7 @@ class MqttService : Service(), Scoped {
 
         override val coroutineContext: CoroutineContext = Job().plus(Dispatchers.IO)
 
-        private val commandChannel: Channel<CommandEvent> by lazy { channelManager.commandChannel }
+        private val commandChannel: BroadcastChannel<CommandEvent> by lazy { channelManager.commandChannel }
         private val eventChannel: BroadcastChannel<Event> by lazy { channelManager.eventChannel }
 
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -132,20 +181,20 @@ class MqttService : Service(), Scoped {
         }
     }
 
-    class RestartReceiver : BroadcastReceiver() {
+    class StartServiceReceiver : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
-//            try {
-//                context?.let {
-//                    it.startService(
-//                        Intent(
-//                            it,
-//                            MqttService::class.java
-//                        )
-//                    )
-//                }
-//            } catch (t: Throwable) {
-//                Timber.e(t)
-//            }
+            try {
+                context?.let {
+                    it.startService(
+                        Intent(
+                            it,
+                            MqttService::class.java
+                        )
+                    )
+                }
+            } catch (t: Throwable) {
+                Timber.e(t)
+            }
         }
     }
 }

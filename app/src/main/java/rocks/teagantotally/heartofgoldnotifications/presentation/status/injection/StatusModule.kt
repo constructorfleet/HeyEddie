@@ -4,6 +4,7 @@ import dagger.Module
 import dagger.Provides
 import rocks.teagantotally.heartofgoldnotifications.app.injection.scopes.FragmentScope
 import rocks.teagantotally.heartofgoldnotifications.app.managers.ChannelManager
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.StartClientUseCase
 import rocks.teagantotally.heartofgoldnotifications.presentation.status.StatusContract
 import rocks.teagantotally.heartofgoldnotifications.presentation.status.StatusPresenter
 
@@ -18,10 +19,12 @@ class StatusModule(
     @Provides
     @FragmentScope
     fun providePresenter(
-        channelManager: ChannelManager
+        channelManager: ChannelManager,
+        startClientUseCase: StartClientUseCase
     ): StatusContract.Presenter =
         StatusPresenter(
             view,
-            channelManager
+            channelManager,
+            startClientUseCase
         )
 }

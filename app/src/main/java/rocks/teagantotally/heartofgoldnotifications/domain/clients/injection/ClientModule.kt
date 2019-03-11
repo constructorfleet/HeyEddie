@@ -14,11 +14,10 @@ import rocks.teagantotally.heartofgoldnotifications.data.common.BrokerUriBuilder
 import rocks.teagantotally.heartofgoldnotifications.data.common.ConnectionConfigProvider
 import rocks.teagantotally.heartofgoldnotifications.domain.clients.Client
 import rocks.teagantotally.heartofgoldnotifications.domain.clients.MqttClient
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.EventProcessingUseCase
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.Notifier
-import rocks.teagantotally.heartofgoldnotifications.domain.usecases.ConvertToNotificationMessageUseCase
-import rocks.teagantotally.heartofgoldnotifications.domain.usecases.FinishNotifyUseCase
-import rocks.teagantotally.heartofgoldnotifications.domain.usecases.NotifyUseCase
-import rocks.teagantotally.heartofgoldnotifications.domain.usecases.ProcessEventUseCase
+import rocks.teagantotally.heartofgoldnotifications.domain.models.events.Event
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.*
 
 @Module
 class ClientModule(
@@ -37,42 +36,6 @@ class ClientModule(
                     it.clientId
                 )
             }
-
-    @Provides
-    @SessionScope
-    fun provideConvertNotificationUseCase(
-        gson: Gson
-    ): ConvertToNotificationMessageUseCase =
-        ConvertToNotificationMessageUseCase(gson)
-
-    @Provides
-    @SessionScope
-    fun provideNotifyUseCase(
-        convertNotificationUseCase: ConvertToNotificationMessageUseCase,
-        notifier: Notifier
-    ): NotifyUseCase =
-        NotifyUseCase(
-            convertNotificationUseCase,
-            notifier
-        )
-
-    @Provides
-    @SessionScope
-    fun provideFinishNotifyUseCase(
-        notifier: Notifier
-    ): FinishNotifyUseCase =
-        FinishNotifyUseCase(notifier)
-
-    @Provides
-    @SessionScope
-    fun provideEventProcessor(
-        notifyUseCase: NotifyUseCase,
-        finishNotifyUseCase: FinishNotifyUseCase
-    ): ProcessEventUseCase =
-        ProcessEventUseCase(
-            notifyUseCase,
-            finishNotifyUseCase
-        )
 
     @ExperimentalCoroutinesApi
     @ObsoleteCoroutinesApi

@@ -8,5 +8,5 @@ import rocks.teagantotally.heartofgoldnotifications.domain.models.events.Command
 class ChannelManager {
     val eventChannel = BroadcastChannel<Event>(Channel.CONFLATED)
 
-    var commandChannel = Channel<CommandEvent>(Channel.CONFLATED)
+    var commandChannel = BroadcastChannel<CommandEvent>(Channel.CONFLATED)
 }

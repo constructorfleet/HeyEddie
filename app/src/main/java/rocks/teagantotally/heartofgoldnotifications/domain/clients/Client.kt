@@ -4,6 +4,8 @@ import org.eclipse.paho.client.mqttv3.MqttCallbackExtended
 import rocks.teagantotally.heartofgoldnotifications.domain.models.Message
 
 interface Client : MqttCallbackExtended {
+    fun initialize()
+
     fun connect()
 
     fun disconnect()

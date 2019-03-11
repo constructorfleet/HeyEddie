@@ -2,6 +2,7 @@ package rocks.teagantotally.heartofgoldnotifications.domain.clients
 
 import com.github.ajalt.timberkt.Timber
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.BroadcastChannel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.channels.consumeEach
@@ -18,7 +19,7 @@ class MqttClient(
     private val client: IMqttAsyncClient,
     private val connectionConfigProvider: ConnectionConfigProvider,
     private val eventChannel: SendChannel<Event>,
-    private val commandChannel: Channel<CommandEvent>
+    private val commandChannel: BroadcastChannel<CommandEvent>
 ) : Client, Scoped {
 
     override var job: Job = Job()
@@ -151,30 +152,40 @@ class MqttClient(
         client.setCallback(this)
     }
 
+    override fun initialize() {
+        listenForMessages()
+    }
+
     override fun connect() {
-        if (client.isConnected) {
+        if (client.isConnected || !connectionConfigProvider.hasConnectionConfiguration()) {
             return
         }
 
-        isListening = false
-        client.connect(
-            connectionConfigProvider.getConnectionConfiguration().transform(),
-            null,
-            connectionListener
-        )
+        launch {
+            client.connect(
+                connectionConfigProvider.getConnectionConfiguration().transform(),
+                null,
+                connectionListener
+            )
+        }
     }
 
     override fun disconnect() {
-        client.disconnect(null, disconnectListener)
+        launch {
+            client.disconnect(null, disconnectListener)
+        }
     }
 
     override fun connectComplete(reconnect: Boolean, brokerUri: String?) {
-        listenForMessages()
+        // no-op
     }
 
     override fun publish(message: Message) {
         launch {
             try {
+                if (!client.isConnected) {
+                    throw IllegalStateException("Client is not connected")
+                }
                 client.publish(
                     message.topic,
                     message.payload.toByteArray(),
@@ -201,11 +212,35 @@ class MqttClient(
     }
 
     override fun subscribe(topic: String, qosMax: Int) {
-        client.subscribe(topic, qosMax, null, getSubscribeListener(topic, qosMax))
+        launch {
+            if (!client.isConnected) {
+                eventChannel.send(
+                    ClientSubscription.Failed(
+                        null,
+                        topic,
+                        IllegalStateException("Client is not connected")
+                    )
+                )
+            } else {
+                client.subscribe(topic, qosMax, null, getSubscribeListener(topic, qosMax))
+            }
+        }
     }
 
     override fun unsubscribe(topic: String) {
-        client.unsubscribe(topic, null, getUnsubscribeListener(topic))
+        launch {
+            if (!client.isConnected) {
+                eventChannel.send(
+                    ClientUnsubscribe.Failed(
+                        null,
+                        topic,
+                        IllegalStateException("Client is not connected")
+                    )
+                )
+            } else {
+                client.unsubscribe(topic, null, getUnsubscribeListener(topic))
+            }
+        }
     }
 
     override fun messageArrived(topic: String?, message: MqttMessage?) {

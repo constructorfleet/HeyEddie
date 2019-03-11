@@ -11,8 +11,11 @@ import dagger.Provides
 import rocks.teagantotally.heartofgoldnotifications.app.managers.ChannelManager
 import rocks.teagantotally.heartofgoldnotifications.data.common.ConnectionConfigProvider
 import rocks.teagantotally.heartofgoldnotifications.data.local.SharedPreferenceConnectionConfigProvider
-import rocks.teagantotally.heartofgoldnotifications.domain.framework.Notifier
 import rocks.teagantotally.heartofgoldnotifications.data.managers.SystemNotifier
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.EventProcessingUseCase
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.Notifier
+import rocks.teagantotally.heartofgoldnotifications.domain.models.events.Event
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.*
 import javax.inject.Singleton
 
 @Module
@@ -57,6 +60,70 @@ class ApplicationModule(
         SystemNotifier(
             context,
             notificationManager
+        )
+
+    @Provides
+    @Singleton
+    fun providePersistentNotificationUpdater(
+        notifier: Notifier
+    ): UpdatePersistentNotificationUseCase =
+        UpdatePersistentNotificationUseCase(notifier)
+
+    @Provides
+    @Singleton
+    fun provideConvertNotificationUseCase(
+        gson: Gson
+    ): ConvertToNotificationMessageUseCase =
+        ConvertToNotificationMessageUseCase(gson)
+
+    @Provides
+    @Singleton
+    fun provideNotifyUseCase(
+        convertNotificationUseCase: ConvertToNotificationMessageUseCase,
+        notifier: Notifier
+    ): NotifyUseCase =
+        NotifyUseCase(
+            convertNotificationUseCase,
+            notifier
+        )
+
+    @Provides
+    @Singleton
+    fun provideFinishNotifyUseCase(
+        notifier: Notifier
+    ): FinishNotifyUseCase =
+        FinishNotifyUseCase(notifier)
+
+    @Provides
+    @Singleton
+    fun provideStartClientUseCase(
+        channelManager: ChannelManager
+    ): StartClientUseCase =
+        StartClientUseCase(channelManager)
+
+    @Provides
+    @Singleton
+    fun provideStopClientUseCase(
+        channelManager: ChannelManager
+    ): StopClientUseCase =
+        StopClientUseCase(channelManager)
+
+    @Provides
+    @Singleton
+    @Suppress("UNCHECKED_CAST")
+    fun provideEventProcessor(
+        notifyUseCase: NotifyUseCase,
+        finishNotifyUseCase: FinishNotifyUseCase,
+        startClientUseCase: StartClientUseCase,
+        stopClientUseCase: StopClientUseCase,
+        updatePersistentNotificationUseCase: UpdatePersistentNotificationUseCase
+    ): ProcessEventUseCase =
+        ProcessEventUseCase(
+            notifyUseCase as EventProcessingUseCase<Event, Event>,
+            finishNotifyUseCase as EventProcessingUseCase<Event, Event>,
+            startClientUseCase as EventProcessingUseCase<Event, Event>,
+            stopClientUseCase as EventProcessingUseCase<Event, Event>,
+            updatePersistentNotificationUseCase as EventProcessingUseCase<Event, Event>
         )
 
     @Provides

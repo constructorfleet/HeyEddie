@@ -2,7 +2,7 @@ package rocks.teagantotally.heartofgoldnotifications.domain.models.events
 
 import rocks.teagantotally.heartofgoldnotifications.domain.models.Message
 
-sealed class CommandEvent {
+sealed class CommandEvent : Event {
     object Connect : CommandEvent()
     object Disconnect : CommandEvent()
     object GetStatus : CommandEvent()
