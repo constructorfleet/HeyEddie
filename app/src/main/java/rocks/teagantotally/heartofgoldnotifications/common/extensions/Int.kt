@@ -1,4 +1,6 @@
 package rocks.teagantotally.heartofgoldnotifications.common.extensions
 
+import kotlin.random.Random
+
 fun Int.Companion.unique() =
-    (System.currentTimeMillis() / 1000L % Int.MAX_VALUE).toInt()
+    (Random(System.currentTimeMillis()).nextInt() / 1000L % Int.MAX_VALUE).toInt()
