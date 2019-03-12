@@ -1,0 +1,3 @@
+package rocks.teagantotally.heartofgoldnotifications.domain.models.commands
+
+interface Command

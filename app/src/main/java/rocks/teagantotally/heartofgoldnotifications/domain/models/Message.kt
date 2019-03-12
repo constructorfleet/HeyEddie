@@ -5,6 +5,7 @@ import android.app.NotificationManager
 import android.os.Parcelable
 import android.support.annotation.ColorRes
 import kotlinx.android.parcel.Parcelize
+import rocks.teagantotally.heartofgoldnotifications.common.extensions.unique
 import rocks.teagantotally.heartofgoldnotifications.domain.models.events.Event
 import java.io.Serializable
 
@@ -46,11 +47,14 @@ class NotificationMessageAction(
 @Parcelize
 class NotificationMessage(
     val channel: NotificationMessageChannel,
-    val id: Int,
+    var id: Int? = null,
     val title: String,
     val body: String,
     val onGoing: Boolean = false,
     val autoCancel: Boolean = true,
     val priority: Int = NotificationManager.IMPORTANCE_DEFAULT,
     val actions: List<NotificationMessageAction> = listOf()
-) : Parcelable
+) : Parcelable {
+    val notificationId: Int
+        get() = id ?: Int.unique().also { id = it }
+}

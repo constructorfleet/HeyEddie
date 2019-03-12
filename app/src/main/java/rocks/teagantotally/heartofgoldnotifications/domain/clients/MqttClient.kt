@@ -2,10 +2,7 @@ package rocks.teagantotally.heartofgoldnotifications.domain.clients
 
 import com.github.ajalt.timberkt.Timber
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.BroadcastChannel
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.SendChannel
-import kotlinx.coroutines.channels.consumeEach
+import kotlinx.coroutines.channels.*
 import org.eclipse.paho.client.mqttv3.*
 import rocks.teagantotally.heartofgoldnotifications.data.common.ConnectionConfigProvider
 import rocks.teagantotally.heartofgoldnotifications.domain.models.Message
@@ -19,15 +16,12 @@ class MqttClient(
     private val client: IMqttAsyncClient,
     private val connectionConfigProvider: ConnectionConfigProvider,
     private val eventChannel: SendChannel<Event>,
-    private val commandChannel: BroadcastChannel<CommandEvent>
+    private val commandChannel: ReceiveChannel<CommandEvent>
 ) : Client, Scoped {
 
     override var job: Job = Job()
     override val coroutineContext: CoroutineContext =
         job.plus(Dispatchers.IO)
-
-    private var connectionToken: IMqttToken? = null
-    private var isListening: Boolean = false
 
     private val connectionListener: IMqttActionListener =
         object : IMqttActionListener {
@@ -35,6 +29,7 @@ class MqttClient(
             override fun onSuccess(token: IMqttToken?) {
                 launch {
                     if (!eventChannel.isClosedForSend) {
+                        listenForMessages()
                         eventChannel.send(
                             ClientConnection.Successful(
                                 token
@@ -148,12 +143,39 @@ class MqttClient(
             }
         }
 
+    private fun getPublishListener(message: Message): IMqttActionListener =
+        object : IMqttActionListener, CoroutineScope by this@MqttClient {
+
+            override fun onSuccess(token: IMqttToken?) {
+                launch {
+                    if (!eventChannel.isClosedForSend) {
+                        eventChannel.send(
+                            ClientMessagePublish.Successful(
+                                token,
+                                message
+                            )
+                        )
+                    }
+                }
+            }
+
+            override fun onFailure(token: IMqttToken?, throwable: Throwable?) {
+                launch {
+                    if (!eventChannel.isClosedForSend) {
+                        eventChannel.send(
+                            ClientMessagePublish.Failed(
+                                token,
+                                message,
+                                throwable ?: Throwable("Unable to unsubscribe from ${message.topic}")
+                            )
+                        )
+                    }
+                }
+            }
+        }
+
     init {
         client.setCallback(this)
-    }
-
-    override fun initialize() {
-        listenForMessages()
     }
 
     override fun connect() {
@@ -177,7 +199,7 @@ class MqttClient(
     }
 
     override fun connectComplete(reconnect: Boolean, brokerUri: String?) {
-        // no-op
+        subscribe("/test", 0)
     }
 
     override fun publish(message: Message) {
@@ -188,17 +210,14 @@ class MqttClient(
                 }
                 client.publish(
                     message.topic,
-                    message.payload.toByteArray(),
-                    message.qos,
-                    message.retain
-                ).let {
-                    eventChannel.send(
-                        ClientMessagePublish.Successful(
-                            it,
-                            message
-                        )
-                    )
-                }
+                    MqttMessage(message.payload.toByteArray())
+                        .apply {
+                            isRetained = message.retain
+                            qos = message.qos
+                        },
+                    null,
+                    getPublishListener(message)
+                )
             } catch (t: Throwable) {
                 eventChannel.send(
                     ClientMessagePublish.Failed(
@@ -280,13 +299,8 @@ class MqttClient(
 
     @ObsoleteCoroutinesApi
     private fun listenForMessages() {
-        if (isListening) {
-            return
-        }
-
         launch {
-            isListening = true
-            while (client.isConnected && isListening) {
+            while (client.isConnected) {
                 commandChannel.consumeEach {
                     when (it) {
                         CommandEvent.Disconnect -> disconnect()
@@ -303,8 +317,6 @@ class MqttClient(
                     }
                 }
             }
-
-            isListening = false
         }
     }
 }

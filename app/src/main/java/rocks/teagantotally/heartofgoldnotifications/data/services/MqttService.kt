@@ -8,7 +8,6 @@ import android.os.IBinder
 import com.github.ajalt.timberkt.Timber
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.BroadcastChannel
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.consumeEach
 import rocks.teagantotally.heartofgoldnotifications.app.HeyEddieApplication
@@ -100,7 +99,7 @@ class MqttService : Service(), Scoped {
         sendBroadcast(
             Intent(
                 this,
-                StartServiceReceiver::class.java
+                CommandReceiver::class.java
             ).apply { action = ACTION_START }
         )
     }
@@ -181,11 +180,11 @@ class MqttService : Service(), Scoped {
         }
     }
 
-    class StartServiceReceiver : BroadcastReceiver() {
+    class CommandReceiver : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             try {
                 context?.let {
-                    it.startService(
+                    it.startForegroundService(
                         Intent(
                             it,
                             MqttService::class.java

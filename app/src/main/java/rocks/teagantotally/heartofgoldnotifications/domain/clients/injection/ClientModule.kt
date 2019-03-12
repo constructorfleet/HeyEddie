@@ -50,6 +50,6 @@ class ClientModule(
             mqttAsyncClient,
             connectionConfigProvider,
             channelManager.eventChannel,
-            channelManager.commandChannel
+            channelManager.commandChannel.openSubscription()
         )
 }

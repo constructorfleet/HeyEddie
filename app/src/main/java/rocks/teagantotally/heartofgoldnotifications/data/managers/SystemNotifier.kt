@@ -11,6 +11,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import rocks.teagantotally.heartofgoldnotifications.R
 import rocks.teagantotally.heartofgoldnotifications.common.extensions.ifAlso
+import rocks.teagantotally.heartofgoldnotifications.common.extensions.unique
 import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.Notifier
 import rocks.teagantotally.heartofgoldnotifications.domain.models.Message
@@ -71,7 +72,7 @@ class SystemNotifier(
 
 fun NotificationMessage.transform(context: Context): Pair<Int, Notification> =
     Pair(
-        id,
+        notificationId,
         Notification.Builder(context, channel.id)
             .setContentTitle(title)
             .setContentText(body)
@@ -83,26 +84,26 @@ fun NotificationMessage.transform(context: Context): Pair<Int, Notification> =
             .setWhen(System.currentTimeMillis())
             .ifAlso({ !actions.isNullOrEmpty() }) { builder ->
                 actions
-                    .forEach {
+                    .forEachIndexed { index, action ->
                         val intent = Intent(context, MqttService.PublishReceiver::class.java)
                             .apply {
                                 putExtra(
                                     MqttService.PublishReceiver.KEY_NOTIFICATION_ID,
-                                    id
+                                    notificationId
                                 )
                                 putExtra(
                                     MqttService.PublishReceiver.KEY_MESSAGE,
                                     Message(
-                                        it.topic,
-                                        it.payload,
-                                        it.qos,
-                                        it.retain
+                                        action.topic,
+                                        action.payload,
+                                        action.qos,
+                                        action.retain
                                     ) as Parcelable
                                 )
                             }
                         val pendingIntent =
-                            PendingIntent.getBroadcast(context, id, intent, PendingIntent.FLAG_UPDATE_CURRENT)
-                        Notification.Action.Builder(0, it.text, pendingIntent)
+                            PendingIntent.getBroadcast(context, Int.unique(), intent, PendingIntent.FLAG_ONE_SHOT)
+                        Notification.Action.Builder(0, action.text, pendingIntent)
                             .build()
                             .let { builder.addAction(it) }
                     }
