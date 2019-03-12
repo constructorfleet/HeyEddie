@@ -1,18 +1,17 @@
 package rocks.teagantotally.heartofgoldnotifications.presentation.status
 
-import kotlinx.coroutines.channels.BroadcastChannel
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.launch
-import rocks.teagantotally.heartofgoldnotifications.app.managers.ChannelManager
 import rocks.teagantotally.heartofgoldnotifications.domain.models.events.*
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.StartClientUseCase
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.ScopedPresenter
 
 class StatusPresenter(
     view: StatusContract.View,
-    private val channelManager: ChannelManager,
+    private val commandChannel: SendChannel<CommandEvent>,
+    private val eventChannel: ReceiveChannel<Event>,
     private val startClientUseCase: StartClientUseCase
 ) : StatusContract.Presenter, ScopedPresenter<StatusContract.View, StatusContract.Presenter>(view) {
 
@@ -22,16 +21,10 @@ class StatusPresenter(
         const val ERROR = "ERROR %s"
     }
 
-    private val eventChannel: ReceiveChannel<Event> by lazy { channelManager.eventChannel.openSubscription() }
-    private val commandChannel: BroadcastChannel<CommandEvent> by lazy { channelManager.commandChannel }
-
     override fun onViewCreated() {
         launch {
             view.showLoading(true)
             startClientUseCase(CommandEvent.Connect)
-            if (!commandChannel.isClosedForSend) {
-                commandChannel.send(CommandEvent.GetStatus)
-            }
         }
         launch {
             while (!eventChannel.isClosedForReceive) {

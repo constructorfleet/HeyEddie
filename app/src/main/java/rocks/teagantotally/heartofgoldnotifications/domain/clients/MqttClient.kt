@@ -199,7 +199,7 @@ class MqttClient(
     }
 
     override fun connectComplete(reconnect: Boolean, brokerUri: String?) {
-        subscribe("/test", 0)
+//        subscribe("/test", 0)
     }
 
     override fun publish(message: Message) {

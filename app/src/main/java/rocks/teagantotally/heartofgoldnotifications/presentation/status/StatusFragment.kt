@@ -32,15 +32,6 @@ class StatusFragment : BaseFragment(), StatusContract.View, Scoped {
             .build()
             .inject(this)
 
-        activity?.let {
-            it.startService(
-                Intent(
-                    context,
-                    MqttService::class.java
-                )
-            )
-        }
-
         presenter.onViewCreated()
     }
 
