@@ -84,8 +84,8 @@ fun NotificationMessage.transform(context: Context): Pair<Int, Notification> =
             .setWhen(System.currentTimeMillis())
             .ifAlso({ !actions.isNullOrEmpty() }) { builder ->
                 actions
-                    .forEachIndexed { index, action ->
-                        val intent = Intent(context, MqttService.PublishReceiver::class.java)
+                    .forEach { action ->
+                        Intent(context, MqttService.PublishReceiver::class.java)
                             .apply {
                                 putExtra(
                                     MqttService.PublishReceiver.KEY_NOTIFICATION_ID,
@@ -101,10 +101,13 @@ fun NotificationMessage.transform(context: Context): Pair<Int, Notification> =
                                     ) as Parcelable
                                 )
                             }
-                        val pendingIntent =
-                            PendingIntent.getBroadcast(context, Int.unique(), intent, PendingIntent.FLAG_ONE_SHOT)
-                        Notification.Action.Builder(0, action.text, pendingIntent)
-                            .build()
+                            .let {
+                                PendingIntent.getBroadcast(context, Int.unique(), it, PendingIntent.FLAG_UPDATE_CURRENT)
+                            }
+                            .let {
+                                Notification.Action.Builder(0, action.text, it)
+                                    .build()
+                            }
                             .let { builder.addAction(it) }
                     }
             }
