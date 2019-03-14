@@ -1,3 +1,3 @@
 package rocks.teagantotally.heartofgoldnotifications.common.extensions
 
-fun String.empty() = ""
+fun String.Companion.empty() = ""

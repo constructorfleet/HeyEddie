@@ -1,17 +1,18 @@
 package rocks.teagantotally.heartofgoldnotifications.presentation.status
 
 import kotlinx.coroutines.channels.ReceiveChannel
-import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.launch
-import rocks.teagantotally.heartofgoldnotifications.domain.models.events.*
+import rocks.teagantotally.heartofgoldnotifications.domain.models.commands.ConnectionCommand
+import rocks.teagantotally.heartofgoldnotifications.domain.models.events.ConnectionEvent
+import rocks.teagantotally.heartofgoldnotifications.domain.models.events.MessageEvent
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.StartClientUseCase
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.ScopedPresenter
 
 class StatusPresenter(
     view: StatusContract.View,
-    private val commandChannel: SendChannel<CommandEvent>,
-    private val eventChannel: ReceiveChannel<Event>,
+    private val connectionEventChannel: ReceiveChannel<ConnectionEvent>,
+    private val messageEventChannel: ReceiveChannel<MessageEvent>,
     private val startClientUseCase: StartClientUseCase
 ) : StatusContract.Presenter, ScopedPresenter<StatusContract.View, StatusContract.Presenter>(view) {
 
@@ -24,26 +25,22 @@ class StatusPresenter(
     override fun onViewCreated() {
         launch {
             view.showLoading(true)
-            startClientUseCase(CommandEvent.Connect)
+            startClientUseCase(ConnectionCommand.Connect)
         }
         launch {
-            while (!eventChannel.isClosedForReceive) {
-                eventChannel.consumeEach {
-                    when (it) {
-                        is ClientStatus ->
-                            when (it.isConnected) {
-                                true -> CONNECTED
-                                false -> DISCONNECTED
-                            }
-                        is ClientConnection.Successful -> CONNECTED
-                        is ClientConnection.Failed -> ERROR.format(it.throwable.message)
-                        is ClientDisconnection.Successful -> DISCONNECTED
-                        is ClientDisconnection.Failed -> ERROR.format(it.throwable.message)
-                        is ClientMessageReceive.Successful ->
-                            view.logMessage(it.message)
-                                .run { null }
-                        else -> null
-                    }?.let { view.showStatus(it) }
+            while (!connectionEventChannel.isClosedForReceive) {
+                connectionEventChannel.consumeEach {
+                    when (it.isConnected) {
+                        true -> CONNECTED
+                        false -> DISCONNECTED
+                    }.let { view.showStatus(it) }
+                }
+            }
+        }
+        launch {
+            while (!messageEventChannel.isClosedForReceive) {
+                messageEventChannel.consumeEach {
+                    view.logMessage(it.message)
                 }
             }
         }

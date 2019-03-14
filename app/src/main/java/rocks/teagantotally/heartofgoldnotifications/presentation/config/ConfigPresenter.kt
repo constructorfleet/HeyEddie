@@ -1,12 +1,11 @@
 package rocks.teagantotally.heartofgoldnotifications.presentation.config
 
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import rocks.teagantotally.heartofgoldnotifications.common.extensions.safeLet
-import rocks.teagantotally.heartofgoldnotifications.data.common.ConnectionConfigProvider
-import rocks.teagantotally.heartofgoldnotifications.domain.models.ConnectionConfiguration
-import rocks.teagantotally.heartofgoldnotifications.domain.models.events.CommandEvent
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.ConnectionConfigProvider
+import rocks.teagantotally.heartofgoldnotifications.domain.models.commands.ConnectionCommand
+import rocks.teagantotally.heartofgoldnotifications.domain.models.configs.ConnectionConfiguration
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.StartClientUseCase
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.ScopedPresenter
 
@@ -36,7 +35,7 @@ class ConfigPresenter(
                 cleanSession
             )
         )
-            .run { launch { startClientUseCase(CommandEvent.Connect) } }
+            .run { launch { startClientUseCase(ConnectionCommand.Connect) } }
             .run { view.close() }
     }
 

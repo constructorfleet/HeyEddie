@@ -14,10 +14,9 @@ import rocks.teagantotally.heartofgoldnotifications.common.extensions.ifAlso
 import rocks.teagantotally.heartofgoldnotifications.common.extensions.unique
 import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.Notifier
-import rocks.teagantotally.heartofgoldnotifications.domain.models.Message
-import rocks.teagantotally.heartofgoldnotifications.domain.models.NotificationMessage
-import rocks.teagantotally.heartofgoldnotifications.domain.models.NotificationMessageChannel
-import rocks.teagantotally.heartofgoldnotifications.domain.models.NotificationVisibility
+import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.Message
+import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.NotificationMessage
+import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.NotificationMessageChannel
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.Scoped
 import kotlin.coroutines.CoroutineContext
 
@@ -45,7 +44,7 @@ class SystemNotifier(
     }
 
     private fun NotificationMessageChannel.transform(): NotificationChannel =
-        NotificationChannel(id, name, importance)
+        NotificationChannel(id, name, importance.systemValue)
             .also { channel ->
 
                 channel.enableLights(enableLights)
@@ -55,18 +54,10 @@ class SystemNotifier(
                 vibrationPattern?.let {
                     channel.vibrationPattern = vibrationPattern
                 }
-                visibility
-                    .let {
-                        if (it.isNullOrEmpty()) {
-                            NotificationVisibility.PRIVATE.systemValue
-                        } else {
-                            NotificationVisibility.valueOf(it).systemValue
-                        }
-                    }
-                    .let { channel.lockscreenVisibility = it }
+                channel.lockscreenVisibility = visibility.systemValue
                 channel.description = description
                 channel.name = name
-                channel.importance = importance
+                channel.importance = importance.systemValue
             }
 }
 

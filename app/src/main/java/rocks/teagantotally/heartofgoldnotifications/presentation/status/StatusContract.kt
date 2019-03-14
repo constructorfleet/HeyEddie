@@ -1,6 +1,6 @@
 package rocks.teagantotally.heartofgoldnotifications.presentation.status
 
-import rocks.teagantotally.heartofgoldnotifications.domain.models.Message
+import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.Message
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.BasePresenter
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.BaseView
 

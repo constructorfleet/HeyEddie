@@ -1,23 +1,13 @@
 package rocks.teagantotally.heartofgoldnotifications.domain.usecases
 
-import kotlinx.coroutines.channels.BroadcastChannel
-import kotlinx.coroutines.channels.Channel
-import rocks.teagantotally.heartofgoldnotifications.app.managers.ChannelManager
-import rocks.teagantotally.heartofgoldnotifications.domain.framework.EventProcessingUseCase
+import kotlinx.coroutines.channels.SendChannel
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.UseCase
-import rocks.teagantotally.heartofgoldnotifications.domain.framework.UseCaseResult
-import rocks.teagantotally.heartofgoldnotifications.domain.models.events.CommandEvent
+import rocks.teagantotally.heartofgoldnotifications.domain.models.commands.ConnectionCommand
 
 class StopClientUseCase(
-    private val channelManager: ChannelManager
-) : EventProcessingUseCase<CommandEvent.Disconnect, Boolean>(CommandEvent.Disconnect::class) {
-    private val commandChannel: BroadcastChannel<CommandEvent> by lazy { channelManager.commandChannel }
-
-    override suspend fun handle(event: CommandEvent.Disconnect): UseCaseResult<Boolean> =
-        when (commandChannel.isClosedForSend) {
-            true -> UseCaseResult.Failure(IllegalStateException("Channel is closed"))
-            false ->
-                commandChannel.send(event)
-                    .let { UseCaseResult.Success(true) }
-        }
+    private val connectionCommandChannel: SendChannel<ConnectionCommand>
+) : UseCase<ConnectionCommand.Disconnect> {
+    override suspend fun invoke(parameter: ConnectionCommand.Disconnect) {
+        connectionCommandChannel.send(parameter)
+    }
 }

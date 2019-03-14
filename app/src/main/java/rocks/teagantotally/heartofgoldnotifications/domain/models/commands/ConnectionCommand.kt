@@ -1,9 +1,7 @@
 package rocks.teagantotally.heartofgoldnotifications.domain.models.commands
 
-import rocks.teagantotally.heartofgoldnotifications.domain.models.events.Event
-
-sealed class ConnectionCommand : Event {
+sealed class ConnectionCommand : Command {
     object Connect : ConnectionCommand()
     object Disconnect : ConnectionCommand()
-    object Status : ConnectionCommand()
+    object GetStatus : ConnectionCommand()
 }

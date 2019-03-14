@@ -1,33 +1,29 @@
 package rocks.teagantotally.heartofgoldnotifications.domain.usecases
 
-import kotlinx.coroutines.channels.BroadcastChannel
-import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.SendChannel
 import rocks.teagantotally.heartofgoldnotifications.app.HeyEddieApplication
 import rocks.teagantotally.heartofgoldnotifications.app.injection.SubComponent
-import rocks.teagantotally.heartofgoldnotifications.app.managers.ChannelManager
 import rocks.teagantotally.heartofgoldnotifications.common.extensions.ifTrue
 import rocks.teagantotally.heartofgoldnotifications.domain.clients.injection.ClientModule
-import rocks.teagantotally.heartofgoldnotifications.domain.framework.EventProcessingUseCase
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.UseCase
-import rocks.teagantotally.heartofgoldnotifications.domain.framework.UseCaseResult
-import rocks.teagantotally.heartofgoldnotifications.domain.models.events.CommandEvent
+import rocks.teagantotally.heartofgoldnotifications.domain.models.commands.ConnectionCommand
+import rocks.teagantotally.heartofgoldnotifications.domain.models.events.Failure
 
 class StartClientUseCase(
-    private val channelManager: ChannelManager
-) : EventProcessingUseCase<CommandEvent.Connect, Boolean>(CommandEvent.Connect::class) {
-    private val commandChannel: BroadcastChannel<CommandEvent> by lazy { channelManager.commandChannel }
+    private val connectionCommandChannel: SendChannel<ConnectionCommand.Connect>,
+    private val failureEventChannel: SendChannel<Failure<*>>
+) : UseCase<ConnectionCommand.Connect> {
 
-    override suspend fun handle(event: CommandEvent.Connect) : UseCaseResult<Boolean> =
+    override suspend fun invoke(parameter: ConnectionCommand.Connect) {
         (HeyEddieApplication.clientComponent is SubComponent.NotInitialized)
             .ifTrue {
                 HeyEddieApplication.setClient(ClientModule(HeyEddieApplication.applicationComponent.provideApplicationContext()))
             }
             .let {
-                when (commandChannel.isClosedForSend) {
-                    true -> UseCaseResult.Failure(IllegalStateException("Channel is closed"))
-                    false ->
-                        commandChannel.send(event)
-                            .let { UseCaseResult.Success(true) }
+                when (connectionCommandChannel.isClosedForSend) {
+                    true -> return
+                    false -> connectionCommandChannel.send(parameter)
                 }
             }
+    }
 }

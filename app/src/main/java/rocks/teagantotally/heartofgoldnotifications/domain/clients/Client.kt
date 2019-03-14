@@ -1,9 +1,11 @@
 package rocks.teagantotally.heartofgoldnotifications.domain.clients
 
 import org.eclipse.paho.client.mqttv3.MqttCallbackExtended
-import rocks.teagantotally.heartofgoldnotifications.domain.models.Message
+import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.Message
 
 interface Client : MqttCallbackExtended {
+    fun isConnected(): Boolean
+
     fun connect()
 
     fun disconnect()

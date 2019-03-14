@@ -7,8 +7,8 @@ import android.content.Intent
 import android.os.IBinder
 import com.github.ajalt.timberkt.Timber
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.BroadcastChannel
 import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.channels.consumeEach
 import rocks.teagantotally.heartofgoldnotifications.app.HeyEddieApplication
 import rocks.teagantotally.heartofgoldnotifications.app.injection.SubComponent
@@ -20,17 +20,20 @@ import rocks.teagantotally.heartofgoldnotifications.data.services.helpers.Servic
 import rocks.teagantotally.heartofgoldnotifications.domain.clients.Client
 import rocks.teagantotally.heartofgoldnotifications.domain.clients.injection.ClientModule
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.Notifier
-import rocks.teagantotally.heartofgoldnotifications.domain.models.Message
-import rocks.teagantotally.heartofgoldnotifications.domain.models.events.ClientMessagePublish
-import rocks.teagantotally.heartofgoldnotifications.domain.models.events.CommandEvent
-import rocks.teagantotally.heartofgoldnotifications.domain.models.events.Event
-import rocks.teagantotally.heartofgoldnotifications.domain.models.events.NotificationActivated
-import rocks.teagantotally.heartofgoldnotifications.domain.usecases.ProcessEventUseCase
+import rocks.teagantotally.heartofgoldnotifications.domain.models.commands.ClientCommand
+import rocks.teagantotally.heartofgoldnotifications.domain.models.commands.ConnectionCommand
+import rocks.teagantotally.heartofgoldnotifications.domain.models.commands.NotificationCommand
+import rocks.teagantotally.heartofgoldnotifications.domain.models.events.ConnectionEvent
+import rocks.teagantotally.heartofgoldnotifications.domain.models.events.MessageEvent
+import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.Message
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.ProcessMessage
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.UpdatePersistentNotificationUseCase
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.Scoped
 import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
 
+@ObsoleteCoroutinesApi
+@ExperimentalCoroutinesApi
 class MqttService : Service(), Scoped {
 
     companion object {
@@ -48,13 +51,14 @@ class MqttService : Service(), Scoped {
     lateinit var channelManager: ChannelManager
 
     @Inject
-    lateinit var notifier: Notifier
+    lateinit var processMessage: ProcessMessage
 
     @Inject
-    lateinit var eventProcessor: ProcessEventUseCase
+    lateinit var notifier: Notifier
 
-    private val eventChannel: ReceiveChannel<Event> by lazy { channelManager.eventChannel.openSubscription() }
-    private val commandChannel: ReceiveChannel<CommandEvent> by lazy { channelManager.commandChannel.openSubscription() }
+    private val connectionCommandChannel: ReceiveChannel<ConnectionCommand> by lazy { channelManager.connectionCommandChannel.openSubscription() }
+    private val connectionEventChannel: ReceiveChannel<ConnectionEvent> by lazy { channelManager.connectionEventChannel.openSubscription() }
+    private val messageEventChannel: ReceiveChannel<MessageEvent> by lazy { channelManager.messageEventChannel.openSubscription() }
     private lateinit var client: Client
 
     override fun onBind(intent: Intent?): IBinder? =
@@ -106,20 +110,30 @@ class MqttService : Service(), Scoped {
 
     private fun listen() {
         launch {
-            while (!commandChannel.isClosedForReceive) {
-                commandChannel.consumeEach {
-                    if (it == CommandEvent.Connect && !this@MqttService::client.isInitialized) {
+            while (!connectionCommandChannel.isClosedForReceive) {
+                connectionCommandChannel.consumeEach {
+                    if (it == ConnectionCommand.Connect && !this@MqttService::client.isInitialized) {
                         (HeyEddieApplication.getClient() as? SubComponent.Initialized)
                             ?.let { client = it.component.provideClient() }
                             ?.let { client.connect() }
+                        // TODO : Failure
                     }
                 }
             }
         }
         launch {
-            while (!eventChannel.isClosedForReceive) {
-                eventChannel.consumeEach {
-                    eventProcessor(it)
+            while (!connectionEventChannel.isClosedForReceive) {
+                connectionEventChannel.consumeEach {
+                    notifier.notify(UpdatePersistentNotificationUseCase.getPersistentNotification(it.isConnected))
+                }
+            }
+        }
+        launch {
+            while(!messageEventChannel.isClosedForReceive) {
+                messageEventChannel.consumeEach {
+                    if(it is MessageEvent.Received) {
+                        processMessage(it)
+                    }
                 }
             }
         }
@@ -139,8 +153,9 @@ class MqttService : Service(), Scoped {
 
         override val coroutineContext: CoroutineContext = Job().plus(Dispatchers.IO)
 
-        private val commandChannel: BroadcastChannel<CommandEvent> by lazy { channelManager.commandChannel }
-        private val eventChannel: BroadcastChannel<Event> by lazy { channelManager.eventChannel }
+        private val clientCommandChannel: SendChannel<ClientCommand> by lazy { channelManager.clientCommandChannel }
+        private val messageEventChannel: SendChannel<MessageEvent> by lazy { channelManager.messageEventChannel }
+        private val notificationCommandChannel: SendChannel<NotificationCommand> by lazy { channelManager.notificationCommandChannel }
 
         override fun onReceive(context: Context?, intent: Intent?) {
             HeyEddieApplication.applicationComponent.inject(this)
@@ -149,29 +164,29 @@ class MqttService : Service(), Scoped {
                     launch {
                         getIntExtra(KEY_NOTIFICATION_ID, 0)
                             .ifTrue({ it != 0 }) {
-                                if (!eventChannel.isClosedForSend) {
-                                    eventChannel.send(NotificationActivated(it))
+                                if (!notificationCommandChannel.isClosedForSend) {
+                                    notificationCommandChannel.send(NotificationCommand.Dismiss(it))
                                 }
                             }
                         getParcelableExtra<Message>(KEY_MESSAGE)
                             ?.let {
-
-                                if (!commandChannel.isClosedForSend) {
-                                    commandChannel.send(
-                                        CommandEvent.Publish(
-                                            it
+                                ClientCommand.Publish(
+                                    it
+                                ).let { command ->
+                                    if (!clientCommandChannel.isClosedForSend) {
+                                        clientCommandChannel.send(
+                                            command
                                         )
-                                    )
-                                } else if (!eventChannel.isClosedForSend) {
-                                    eventChannel.send(
-                                        ClientMessagePublish.Failed(
-                                            null,
-                                            it,
-                                            Throwable("Cannot communicate with client")
+                                    } else if (!messageEventChannel.isClosedForSend) {
+                                        messageEventChannel.send(
+                                            MessageEvent.Published.Failed(
+                                                command,
+                                                Throwable("Cannot communicate with client")
+                                            )
                                         )
-                                    )
-                                } else {
-                                    Timber.w { "Cannot process publish command" }
+                                    } else {
+                                        Timber.w { "Cannot process publish command" }
+                                    }
                                 }
                             }
 

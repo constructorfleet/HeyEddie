@@ -1,6 +1,6 @@
-package rocks.teagantotally.heartofgoldnotifications.data.common
+package rocks.teagantotally.heartofgoldnotifications.domain.framework
 
-import rocks.teagantotally.heartofgoldnotifications.domain.models.ConnectionConfiguration
+import rocks.teagantotally.heartofgoldnotifications.domain.models.configs.ConnectionConfiguration
 
 interface ConnectionConfigProvider {
     fun hasConnectionConfiguration(): Boolean

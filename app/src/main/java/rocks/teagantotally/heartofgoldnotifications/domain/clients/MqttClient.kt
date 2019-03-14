@@ -2,11 +2,18 @@ package rocks.teagantotally.heartofgoldnotifications.domain.clients
 
 import com.github.ajalt.timberkt.Timber
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.*
+import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.channels.SendChannel
+import kotlinx.coroutines.channels.consumeEach
 import org.eclipse.paho.client.mqttv3.*
-import rocks.teagantotally.heartofgoldnotifications.data.common.ConnectionConfigProvider
-import rocks.teagantotally.heartofgoldnotifications.domain.models.Message
-import rocks.teagantotally.heartofgoldnotifications.domain.models.events.*
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.ConnectionConfigProvider
+import rocks.teagantotally.heartofgoldnotifications.domain.models.commands.ClientCommand
+import rocks.teagantotally.heartofgoldnotifications.domain.models.commands.ConnectionCommand
+import rocks.teagantotally.heartofgoldnotifications.domain.models.events.ConnectionEvent
+import rocks.teagantotally.heartofgoldnotifications.domain.models.events.MessageEvent
+import rocks.teagantotally.heartofgoldnotifications.domain.models.events.SubscriptionEvent
+import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.EmptyMessage
+import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.Message
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.Scoped
 import kotlin.coroutines.CoroutineContext
 
@@ -15,25 +22,25 @@ import kotlin.coroutines.CoroutineContext
 class MqttClient(
     private val client: IMqttAsyncClient,
     private val connectionConfigProvider: ConnectionConfigProvider,
-    private val eventChannel: SendChannel<Event>,
-    private val commandChannel: ReceiveChannel<CommandEvent>
+    private val connectionEventChannel: SendChannel<ConnectionEvent>,
+    private val messageEventChannel: SendChannel<MessageEvent>,
+    private val subscriptionEventChannel: SendChannel<SubscriptionEvent>,
+    private val connectionCommandChannel: ReceiveChannel<ConnectionCommand>,
+    private val clientCommandChannel: ReceiveChannel<ClientCommand>
 ) : Client, Scoped {
 
     override var job: Job = Job()
     override val coroutineContext: CoroutineContext =
         job.plus(Dispatchers.IO)
 
-    private val connectionListener: IMqttActionListener =
+    private fun getConnectionListener(command: ConnectionCommand): IMqttActionListener =
         object : IMqttActionListener {
 
             override fun onSuccess(token: IMqttToken?) {
                 launch {
-                    if (!eventChannel.isClosedForSend) {
-                        listenForMessages()
-                        eventChannel.send(
-                            ClientConnection.Successful(
-                                token
-                            )
+                    if (!connectionEventChannel.isClosedForSend) {
+                        connectionEventChannel.send(
+                            ConnectionEvent.Connected
                         )
                     }
                 }
@@ -41,11 +48,11 @@ class MqttClient(
 
             override fun onFailure(token: IMqttToken?, throwable: Throwable?) {
                 launch {
-                    if (!eventChannel.isClosedForSend) {
-                        eventChannel.send(
-                            ClientConnection.Failed(
-                                token,
-                                throwable ?: Throwable("Unable to connect to broker")
+                    if (!connectionEventChannel.isClosedForSend) {
+                        connectionEventChannel.send(
+                            ConnectionEvent.Failed(
+                                command,
+                                throwable
                             )
                         )
                     }
@@ -53,17 +60,13 @@ class MqttClient(
             }
         }
 
-    private fun getUnsubscribeListener(topic: String): IMqttActionListener =
+    private fun getUnsubscribeListener(command: ClientCommand.Unsubscribe): IMqttActionListener =
         object : IMqttActionListener {
-            val topic: String = topic
             override fun onSuccess(token: IMqttToken?) {
                 launch {
-                    if (!eventChannel.isClosedForSend) {
-                        eventChannel.send(
-                            ClientUnsubscribe.Successful(
-                                token,
-                                topic
-                            )
+                    if (!subscriptionEventChannel.isClosedForSend) {
+                        subscriptionEventChannel.send(
+                            SubscriptionEvent.Unsubscribed(command.topic)
                         )
                     }
                 }
@@ -71,12 +74,11 @@ class MqttClient(
 
             override fun onFailure(token: IMqttToken?, throwable: Throwable?) {
                 launch {
-                    if (!eventChannel.isClosedForSend) {
-                        eventChannel.send(
-                            ClientUnsubscribe.Failed(
-                                token,
-                                topic,
-                                throwable ?: Throwable("Unable to subscribe to $topic")
+                    if (!subscriptionEventChannel.isClosedForSend) {
+                        subscriptionEventChannel.send(
+                            SubscriptionEvent.Unsubscribed.Failed(
+                                command,
+                                throwable
                             )
                         )
                     }
@@ -84,19 +86,14 @@ class MqttClient(
             }
         }
 
-    private fun getSubscribeListener(topic: String, maxQoS: Int): IMqttActionListener =
+    private fun getSubscribeListener(command: ClientCommand.SubscribeTo): IMqttActionListener =
         object : IMqttActionListener, CoroutineScope by this@MqttClient {
-            val topic: String = topic
-            val maxQoS: Int = maxQoS
 
             override fun onSuccess(token: IMqttToken?) {
                 launch {
-                    if (!eventChannel.isClosedForSend) {
-                        eventChannel.send(
-                            ClientSubscription.Successful(
-                                token,
-                                topic
-                            )
+                    if (!subscriptionEventChannel.isClosedForSend) {
+                        subscriptionEventChannel.send(
+                            SubscriptionEvent.Subscribed(command.topic)
                         )
                     }
                 }
@@ -104,12 +101,11 @@ class MqttClient(
 
             override fun onFailure(token: IMqttToken?, throwable: Throwable?) {
                 launch {
-                    if (!eventChannel.isClosedForSend) {
-                        eventChannel.send(
-                            ClientSubscription.Failed(
-                                token,
-                                topic,
-                                throwable ?: Throwable("Unable to unsubscribe from $topic")
+                    if (!subscriptionEventChannel.isClosedForSend) {
+                        subscriptionEventChannel.send(
+                            SubscriptionEvent.Subscribed.Failed(
+                                command,
+                                throwable
                             )
                         )
                     }
@@ -117,13 +113,13 @@ class MqttClient(
             }
         }
 
-    private val disconnectListener: IMqttActionListener =
+    private fun getDisconnectListener(command: ConnectionCommand.Disconnect): IMqttActionListener =
         object : IMqttActionListener, CoroutineScope by this@MqttClient {
             override fun onSuccess(token: IMqttToken?) {
                 launch {
-                    if (!eventChannel.isClosedForSend) {
-                        eventChannel.send(
-                            ClientDisconnection.Successful(token)
+                    if (!connectionEventChannel.isClosedForSend) {
+                        connectionEventChannel.send(
+                            ConnectionEvent.Disconnected
                         )
                     }
                 }
@@ -131,11 +127,11 @@ class MqttClient(
 
             override fun onFailure(token: IMqttToken?, throwable: Throwable?) {
                 launch {
-                    if (!eventChannel.isClosedForSend) {
-                        eventChannel.send(
-                            ClientDisconnection.Failed(
-                                token,
-                                throwable ?: Throwable("Unable to disconnect")
+                    if (!connectionEventChannel.isClosedForSend) {
+                        connectionEventChannel.send(
+                            ConnectionEvent.Failed(
+                                command,
+                                throwable
                             )
                         )
                     }
@@ -143,17 +139,14 @@ class MqttClient(
             }
         }
 
-    private fun getPublishListener(message: Message): IMqttActionListener =
+    private fun getPublishListener(command: ClientCommand.Publish): IMqttActionListener =
         object : IMqttActionListener, CoroutineScope by this@MqttClient {
 
             override fun onSuccess(token: IMqttToken?) {
                 launch {
-                    if (!eventChannel.isClosedForSend) {
-                        eventChannel.send(
-                            ClientMessagePublish.Successful(
-                                token,
-                                message
-                            )
+                    if (!messageEventChannel.isClosedForSend) {
+                        messageEventChannel.send(
+                            MessageEvent.Published(command.message)
                         )
                     }
                 }
@@ -161,12 +154,11 @@ class MqttClient(
 
             override fun onFailure(token: IMqttToken?, throwable: Throwable?) {
                 launch {
-                    if (!eventChannel.isClosedForSend) {
-                        eventChannel.send(
-                            ClientMessagePublish.Failed(
-                                token,
-                                message,
-                                throwable ?: Throwable("Unable to unsubscribe from ${message.topic}")
+                    if (!messageEventChannel.isClosedForSend) {
+                        messageEventChannel.send(
+                            MessageEvent.Published.Failed(
+                                command,
+                                throwable
                             )
                         )
                     }
@@ -178,6 +170,9 @@ class MqttClient(
         client.setCallback(this)
     }
 
+    override fun isConnected(): Boolean =
+        client.isConnected
+
     override fun connect() {
         if (client.isConnected || !connectionConfigProvider.hasConnectionConfiguration()) {
             return
@@ -187,19 +182,19 @@ class MqttClient(
             client.connect(
                 connectionConfigProvider.getConnectionConfiguration().transform(),
                 null,
-                connectionListener
+                getConnectionListener(ConnectionCommand.Connect)
             )
         }
     }
 
     override fun disconnect() {
         launch {
-            client.disconnect(null, disconnectListener)
+            client.disconnect(null, getDisconnectListener(ConnectionCommand.Disconnect))
         }
     }
 
     override fun connectComplete(reconnect: Boolean, brokerUri: String?) {
-//        subscribe("/test", 0)
+        listenForMessages()
     }
 
     override fun publish(message: Message) {
@@ -216,14 +211,15 @@ class MqttClient(
                             qos = message.qos
                         },
                     null,
-                    getPublishListener(message)
+                    getPublishListener(ClientCommand.Publish(message))
                 )
-            } catch (t: Throwable) {
-                eventChannel.send(
-                    ClientMessagePublish.Failed(
-                        null,
-                        message,
-                        t
+            } catch (throwable: Throwable) {
+                messageEventChannel.send(
+                    MessageEvent.Published.Failed(
+                        ClientCommand.Publish(
+                            message
+                        ),
+                        throwable
                     )
                 )
             }
@@ -232,43 +228,47 @@ class MqttClient(
 
     override fun subscribe(topic: String, qosMax: Int) {
         launch {
-            if (!client.isConnected) {
-                eventChannel.send(
-                    ClientSubscription.Failed(
-                        null,
-                        topic,
-                        IllegalStateException("Client is not connected")
-                    )
-                )
-            } else {
-                client.subscribe(topic, qosMax, null, getSubscribeListener(topic, qosMax))
-            }
+            ClientCommand.SubscribeTo(topic, qosMax)
+                .let { command ->
+                    if (!client.isConnected) {
+                        subscriptionEventChannel.send(
+                            SubscriptionEvent.Subscribed.Failed(
+                                command,
+                                Throwable("Client is not connected")
+                            )
+                        )
+                    } else {
+                        client.subscribe(topic, qosMax, null, getSubscribeListener(command))
+                    }
+                }
         }
     }
 
     override fun unsubscribe(topic: String) {
         launch {
-            if (!client.isConnected) {
-                eventChannel.send(
-                    ClientUnsubscribe.Failed(
-                        null,
-                        topic,
-                        IllegalStateException("Client is not connected")
-                    )
-                )
-            } else {
-                client.unsubscribe(topic, null, getUnsubscribeListener(topic))
-            }
+            ClientCommand.Unsubscribe(topic)
+                .let { command ->
+                    if (!client.isConnected) {
+                        subscriptionEventChannel.send(
+                            SubscriptionEvent.Unsubscribed.Failed(
+                                command,
+                                Throwable("Client is not connected")
+                            )
+                        )
+                    } else {
+                        client.unsubscribe(topic, null, getUnsubscribeListener(command))
+                    }
+                }
         }
     }
 
     override fun messageArrived(topic: String?, message: MqttMessage?) {
         launch {
             Timber.d { "Received Message" }
-            eventChannel.send(
+            messageEventChannel.send(
                 topic?.let { validTopic ->
                     message?.let { validMessage ->
-                        ClientMessageReceive.Successful(
+                        MessageEvent.Received(
                             Message(
                                 validTopic,
                                 String(validMessage.payload),
@@ -276,19 +276,16 @@ class MqttClient(
                                 validMessage.isRetained
                             )
                         )
-                    } ?: ClientMessageReceive.Failed(Throwable("Empty message"))
-                } ?: ClientMessageReceive.Failed(Throwable("Empty topic"))
+                    } ?: MessageEvent.Received.Failed(EmptyMessage, Throwable("Empty message"))
+                } ?: MessageEvent.Received.Failed(EmptyMessage, Throwable("Empty topic"))
             )
         }
     }
 
     override fun connectionLost(throwable: Throwable?) {
         launch {
-            eventChannel.send(
-                ClientConnection.Failed(
-                    null,
-                    throwable ?: Throwable("Connection lost")
-                )
+            connectionEventChannel.send(
+                ConnectionEvent.Disconnected
             )
         }
     }
@@ -300,23 +297,30 @@ class MqttClient(
     @ObsoleteCoroutinesApi
     private fun listenForMessages() {
         launch {
-            while (client.isConnected) {
-                commandChannel.consumeEach {
+            while (true) {
+                connectionCommandChannel.consumeEach {
                     when (it) {
-                        CommandEvent.Disconnect -> disconnect()
-                        CommandEvent.Connect -> connect()
-                        CommandEvent.GetStatus ->
-                            if (!eventChannel.isClosedForSend) {
-                                eventChannel.send(
-                                    ClientStatus(client.isConnected)
+                        ConnectionCommand.Disconnect -> disconnect()
+                        ConnectionCommand.Connect -> connect()
+                        ConnectionCommand.GetStatus ->
+                            if (!connectionEventChannel.isClosedForSend) {
+                                connectionEventChannel.send(
+                                    ConnectionEvent.Status(client.isConnected)
                                 )
                             }
-                        is CommandEvent.Publish -> publish(it.message)
-                        is CommandEvent.Subscribe -> subscribe(it.topic, it.maxQoS)
-                        is CommandEvent.Unsubscribe -> unsubscribe(it.topic)
                     }
                 }
             }
+        }
+        launch {
+            while (true)
+                clientCommandChannel.consumeEach {
+                    when (it) {
+                        is ClientCommand.Publish -> publish(it.message)
+                        is ClientCommand.SubscribeTo -> subscribe(it.topic, it.maxQoS)
+                        is ClientCommand.Unsubscribe -> unsubscribe(it.topic)
+                    }
+                }
         }
     }
 }

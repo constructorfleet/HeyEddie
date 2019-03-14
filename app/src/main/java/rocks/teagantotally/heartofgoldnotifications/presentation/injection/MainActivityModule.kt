@@ -3,7 +3,7 @@ package rocks.teagantotally.heartofgoldnotifications.presentation.injection
 import dagger.Module
 import dagger.Provides
 import rocks.teagantotally.heartofgoldnotifications.app.injection.scopes.ActivityScope
-import rocks.teagantotally.heartofgoldnotifications.data.common.ConnectionConfigProvider
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.ConnectionConfigProvider
 import rocks.teagantotally.heartofgoldnotifications.presentation.MainActivityContract
 import rocks.teagantotally.heartofgoldnotifications.presentation.MainActivityPresenter
 

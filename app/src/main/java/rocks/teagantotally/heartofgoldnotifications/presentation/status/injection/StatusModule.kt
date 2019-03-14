@@ -24,8 +24,8 @@ class StatusModule(
     ): StatusContract.Presenter =
         StatusPresenter(
             view,
-            channelManager.commandChannel,
-            channelManager.eventChannel.openSubscription(),
+            channelManager.connectionEventChannel.openSubscription(),
+            channelManager.messageEventChannel.openSubscription(),
             startClientUseCase
         )
 }

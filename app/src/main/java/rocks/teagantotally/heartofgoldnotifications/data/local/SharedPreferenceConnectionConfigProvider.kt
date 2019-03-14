@@ -2,8 +2,8 @@ package rocks.teagantotally.heartofgoldnotifications.data.local
 
 import android.content.SharedPreferences
 import com.google.gson.Gson
-import rocks.teagantotally.heartofgoldnotifications.data.common.ConnectionConfigProvider
-import rocks.teagantotally.heartofgoldnotifications.domain.models.ConnectionConfiguration
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.ConnectionConfigProvider
+import rocks.teagantotally.heartofgoldnotifications.domain.models.configs.ConnectionConfiguration
 
 class SharedPreferenceConnectionConfigProvider(
     private val sharedPreferences: SharedPreferences,

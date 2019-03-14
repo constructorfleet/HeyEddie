@@ -1,6 +1,6 @@
 package rocks.teagantotally.heartofgoldnotifications.presentation
 
-import rocks.teagantotally.heartofgoldnotifications.data.common.ConnectionConfigProvider
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.ConnectionConfigProvider
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.ScopedPresenter
 
 class MainActivityPresenter(

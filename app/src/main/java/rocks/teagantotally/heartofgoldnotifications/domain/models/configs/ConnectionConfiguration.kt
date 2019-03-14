@@ -1,4 +1,4 @@
-package rocks.teagantotally.heartofgoldnotifications.domain.models
+package rocks.teagantotally.heartofgoldnotifications.domain.models.configs
 
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions
 import rocks.teagantotally.heartofgoldnotifications.common.Transform

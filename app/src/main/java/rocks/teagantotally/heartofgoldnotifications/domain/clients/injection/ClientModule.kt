@@ -1,7 +1,6 @@
 package rocks.teagantotally.heartofgoldnotifications.domain.clients.injection
 
 import android.content.Context
-import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -11,13 +10,9 @@ import org.eclipse.paho.client.mqttv3.IMqttAsyncClient
 import rocks.teagantotally.heartofgoldnotifications.app.injection.scopes.SessionScope
 import rocks.teagantotally.heartofgoldnotifications.app.managers.ChannelManager
 import rocks.teagantotally.heartofgoldnotifications.data.common.BrokerUriBuilder
-import rocks.teagantotally.heartofgoldnotifications.data.common.ConnectionConfigProvider
 import rocks.teagantotally.heartofgoldnotifications.domain.clients.Client
 import rocks.teagantotally.heartofgoldnotifications.domain.clients.MqttClient
-import rocks.teagantotally.heartofgoldnotifications.domain.framework.EventProcessingUseCase
-import rocks.teagantotally.heartofgoldnotifications.domain.framework.Notifier
-import rocks.teagantotally.heartofgoldnotifications.domain.models.events.Event
-import rocks.teagantotally.heartofgoldnotifications.domain.usecases.*
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.ConnectionConfigProvider
 
 @Module
 class ClientModule(
@@ -49,7 +44,10 @@ class ClientModule(
         MqttClient(
             mqttAsyncClient,
             connectionConfigProvider,
-            channelManager.eventChannel,
-            channelManager.commandChannel.openSubscription()
+            channelManager.connectionEventChannel,
+            channelManager.messageEventChannel,
+            channelManager.subscriptionEventChannel,
+            channelManager.connectionCommandChannel.openSubscription(),
+            channelManager.clientCommandChannel.openSubscription()
         )
 }

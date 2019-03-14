@@ -4,7 +4,7 @@ import dagger.Module
 import dagger.Provides
 import kotlinx.coroutines.CoroutineScope
 import rocks.teagantotally.heartofgoldnotifications.app.injection.scopes.FragmentScope
-import rocks.teagantotally.heartofgoldnotifications.data.common.ConnectionConfigProvider
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.ConnectionConfigProvider
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.StartClientUseCase
 import rocks.teagantotally.heartofgoldnotifications.presentation.config.ConfigContract
 import rocks.teagantotally.heartofgoldnotifications.presentation.config.ConfigPresenter
