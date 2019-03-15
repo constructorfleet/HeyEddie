@@ -1,4 +1,4 @@
-package rocks.teagantotally.heartofgoldnotifications.presentation.status.injection
+package rocks.teagantotally.heartofgoldnotifications.presentation.history.injection
 
 import dagger.Module
 import dagger.Provides
@@ -6,16 +6,16 @@ import rocks.teagantotally.heartofgoldnotifications.app.injection.scopes.Fragmen
 import rocks.teagantotally.heartofgoldnotifications.app.managers.ChannelManager
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.ProcessMessage
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.StartClientUseCase
-import rocks.teagantotally.heartofgoldnotifications.presentation.status.StatusContract
-import rocks.teagantotally.heartofgoldnotifications.presentation.status.StatusPresenter
+import rocks.teagantotally.heartofgoldnotifications.presentation.history.HistoryContract
+import rocks.teagantotally.heartofgoldnotifications.presentation.history.HistoryPresenter
 
 @Module
-class StatusModule(
-    private val view: StatusContract.View
+class HistoryModule(
+    private val view: HistoryContract.View
 ) {
     @Provides
     @FragmentScope
-    fun provideView(): StatusContract.View = view
+    fun provideView(): HistoryContract.View = view
 
     @Provides
     @FragmentScope
@@ -23,8 +23,8 @@ class StatusModule(
         channelManager: ChannelManager,
         startClientUseCase: StartClientUseCase,
         processMessage: ProcessMessage
-    ): StatusContract.Presenter =
-        StatusPresenter(
+    ): HistoryContract.Presenter =
+        HistoryPresenter(
             view,
             channelManager.connectionEventChannel.openSubscription(),
             channelManager.messageEventChannel.openSubscription(),

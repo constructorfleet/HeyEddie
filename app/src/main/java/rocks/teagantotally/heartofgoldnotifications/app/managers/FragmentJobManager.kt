@@ -23,7 +23,7 @@ object FragmentJobManager : FragmentManager.FragmentLifecycleCallbacks() {
             }
     }
 
-    override fun onFragmentDetached(fragmentManager: FragmentManager, fragment: Fragment) {
+    override fun onFragmentDestroyed(fragmentManager: FragmentManager, fragment: Fragment) {
         (fragment as? Scoped)
             ?.job
             ?.also {

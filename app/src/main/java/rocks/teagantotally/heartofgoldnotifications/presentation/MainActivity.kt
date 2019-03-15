@@ -15,7 +15,7 @@ import rocks.teagantotally.heartofgoldnotifications.presentation.base.Navigable
 import rocks.teagantotally.heartofgoldnotifications.presentation.config.ConfigFragment
 import rocks.teagantotally.heartofgoldnotifications.presentation.injection.MainActivityComponent
 import rocks.teagantotally.heartofgoldnotifications.presentation.injection.MainActivityModule
-import rocks.teagantotally.heartofgoldnotifications.presentation.status.StatusFragment
+import rocks.teagantotally.heartofgoldnotifications.presentation.history.HistoryFragment
 import javax.inject.Inject
 
 
@@ -89,7 +89,7 @@ class MainActivity : BaseActivity(),
     }
 
     override fun showStatus() {
-        setFragment(StatusFragment(), true)
+        setFragment(HistoryFragment(), true)
     }
 
     override fun showLoading(loading: Boolean) {

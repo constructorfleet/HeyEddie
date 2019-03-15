@@ -1,4 +1,4 @@
-package rocks.teagantotally.heartofgoldnotifications.presentation.status
+package rocks.teagantotally.heartofgoldnotifications.presentation.history
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -10,12 +10,13 @@ import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.Messa
 import rocks.teagantotally.heartofgoldnotifications.presentation.MainActivity
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.BaseFragment
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.Scoped
-import rocks.teagantotally.heartofgoldnotifications.presentation.status.injection.StatusModule
+import rocks.teagantotally.heartofgoldnotifications.presentation.history.injection.HistoryModule
 import javax.inject.Inject
 
-class StatusFragment : BaseFragment(), StatusContract.View, Scoped {
+class HistoryFragment : BaseFragment(), HistoryContract.View, Scoped {
     @Inject
-    override lateinit var presenter: StatusContract.Presenter
+    override lateinit var presenter: HistoryContract.Presenter
+    override val navigationMenuId: Int = R.id.menu_item_history
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? =
         inflater.inflate(R.layout.fragment_status, container, false)
@@ -26,7 +27,7 @@ class StatusFragment : BaseFragment(), StatusContract.View, Scoped {
 
         MainActivity.mainActivityComponent
             .statusComponentBuilder()
-            .module(StatusModule(this))
+            .module(HistoryModule(this))
             .build()
             .inject(this)
 

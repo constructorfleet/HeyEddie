@@ -1,4 +1,4 @@
-package rocks.teagantotally.heartofgoldnotifications.presentation.status
+package rocks.teagantotally.heartofgoldnotifications.presentation.history
 
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.consumeEach
@@ -10,13 +10,13 @@ import rocks.teagantotally.heartofgoldnotifications.domain.usecases.ProcessMessa
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.StartClientUseCase
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.ScopedPresenter
 
-class StatusPresenter(
-    view: StatusContract.View,
+class HistoryPresenter(
+    view: HistoryContract.View,
     private val connectionEventChannel: ReceiveChannel<ConnectionEvent>,
     private val messageEventChannel: ReceiveChannel<MessageEvent>,
     private val startClientUseCase: StartClientUseCase,
     private val processMessage: ProcessMessage
-) : StatusContract.Presenter, ScopedPresenter<StatusContract.View, StatusContract.Presenter>(view) {
+) : HistoryContract.Presenter, ScopedPresenter<HistoryContract.View, HistoryContract.Presenter>(view) {
 
     companion object {
         const val CONNECTED = "CONNECTED"

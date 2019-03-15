@@ -4,7 +4,7 @@ import dagger.Subcomponent
 import rocks.teagantotally.heartofgoldnotifications.app.injection.scopes.ActivityScope
 import rocks.teagantotally.heartofgoldnotifications.presentation.MainActivity
 import rocks.teagantotally.heartofgoldnotifications.presentation.config.injection.ConfigComponent
-import rocks.teagantotally.heartofgoldnotifications.presentation.status.injection.StatusComponent
+import rocks.teagantotally.heartofgoldnotifications.presentation.history.injection.StatusComponent
 
 @ActivityScope
 @Subcomponent(modules = [MainActivityModule::class])

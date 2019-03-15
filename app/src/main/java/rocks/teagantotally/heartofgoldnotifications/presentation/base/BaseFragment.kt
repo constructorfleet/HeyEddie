@@ -5,7 +5,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlin.coroutines.CoroutineContext
 
-abstract class BaseFragment : Fragment(), Scoped {
+abstract class BaseFragment : Fragment(), Navigable, Scoped {
     override lateinit var job: Job
     override val coroutineContext: CoroutineContext by lazy { job.plus(Dispatchers.Main) }
 }
