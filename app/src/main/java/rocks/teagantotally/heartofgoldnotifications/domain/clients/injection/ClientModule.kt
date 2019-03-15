@@ -46,8 +46,6 @@ class ClientModule(
             connectionConfigProvider,
             channelManager.connectionEventChannel,
             channelManager.messageEventChannel,
-            channelManager.subscriptionEventChannel,
-            channelManager.connectionCommandChannel.openSubscription(),
-            channelManager.clientCommandChannel.openSubscription()
+            channelManager.subscriptionEventChannel
         )
 }
