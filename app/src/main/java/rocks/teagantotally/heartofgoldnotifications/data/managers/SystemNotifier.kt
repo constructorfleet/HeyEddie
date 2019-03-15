@@ -8,11 +8,16 @@ import android.content.Context
 import android.content.Intent
 import android.os.Parcelable
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.ObsoleteCoroutinesApi
 import rocks.teagantotally.heartofgoldnotifications.R
 import rocks.teagantotally.heartofgoldnotifications.common.extensions.ifAlso
 import rocks.teagantotally.heartofgoldnotifications.common.extensions.unique
 import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService
+import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService.Companion.ACTION_PUBLISH
+import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService.Companion.EXTRA_MESSAGE
+import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService.Companion.EXTRA_NOTIFICATION_ID
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.Notifier
 import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.Message
 import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.NotificationMessage
@@ -61,6 +66,8 @@ class SystemNotifier(
             }
 }
 
+@UseExperimental(ExperimentalCoroutinesApi::class)
+@ObsoleteCoroutinesApi
 fun NotificationMessage.transform(context: Context): Pair<Int, Notification> =
     Pair(
         notificationId,
@@ -76,24 +83,24 @@ fun NotificationMessage.transform(context: Context): Pair<Int, Notification> =
             .ifAlso({ !actions.isNullOrEmpty() }) { builder ->
                 actions
                     .forEach { action ->
-                        Intent(context, MqttService.PublishReceiver::class.java)
-                            .apply {
-                                putExtra(
-                                    MqttService.PublishReceiver.KEY_NOTIFICATION_ID,
-                                    notificationId
-                                )
-                                putExtra(
-                                    MqttService.PublishReceiver.KEY_MESSAGE,
-                                    Message(
-                                        action.topic,
-                                        action.payload,
-                                        action.qos,
-                                        action.retain
-                                    ) as Parcelable
-                                )
-                            }
+                        Intent(MqttService.ACTION_PUBLISH)
+                            .putExtra(EXTRA_NOTIFICATION_ID, notificationId)
+                            .putExtra(
+                                EXTRA_MESSAGE,
+                                Message(
+                                    action.topic,
+                                    action.payload,
+                                    action.qos,
+                                    action.retain
+                                ) as Parcelable
+                            )
                             .let {
-                                PendingIntent.getBroadcast(context, Int.unique(), it, PendingIntent.FLAG_UPDATE_CURRENT)
+                                PendingIntent.getBroadcast(
+                                    context,
+                                    Int.unique(),
+                                    it,
+                                    PendingIntent.FLAG_UPDATE_CURRENT
+                                )
                             }
                             .let {
                                 Notification.Action.Builder(0, action.text, it)
@@ -104,10 +111,6 @@ fun NotificationMessage.transform(context: Context): Pair<Int, Notification> =
             }
             .build()
             .also {
-                if (onGoing) {
-                    it.flags += Notification.FLAG_ONGOING_EVENT
-                } else {
-                    it.flags += Notification.FLAG_AUTO_CANCEL
-                }
+                it.flags += if (onGoing) Notification.FLAG_ONGOING_EVENT else Notification.FLAG_AUTO_CANCEL
             }
     )

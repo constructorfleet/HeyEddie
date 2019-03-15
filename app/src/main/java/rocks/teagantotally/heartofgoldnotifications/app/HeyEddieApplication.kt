@@ -16,17 +16,6 @@ import timber.log.Timber
 class HeyEddieApplication : Application() {
     companion object {
         lateinit var applicationComponent: ApplicationComponent
-        var clientComponent: SubComponent<ClientComponent> = SubComponent.NotInitialized()
-
-        fun setClient(module: ClientModule): ClientComponent =
-            applicationComponent
-                .clientComponentBuilder()
-                .clientModule(module)
-                .build()
-                .also { clientComponent = SubComponent.Initialized(it) }
-
-        fun getClient(): SubComponent<ClientComponent> =
-            clientComponent
     }
 
     override fun onCreate() {

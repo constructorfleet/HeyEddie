@@ -4,15 +4,11 @@ import android.app.Service
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.os.IBinder
 import com.github.ajalt.timberkt.Timber
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.ReceiveChannel
-import kotlinx.coroutines.channels.SendChannel
-import kotlinx.coroutines.channels.consumeEach
 import rocks.teagantotally.heartofgoldnotifications.app.HeyEddieApplication
-import rocks.teagantotally.heartofgoldnotifications.app.injection.SubComponent
-import rocks.teagantotally.heartofgoldnotifications.app.managers.ChannelManager
 import rocks.teagantotally.heartofgoldnotifications.common.extensions.ifTrue
 import rocks.teagantotally.heartofgoldnotifications.data.managers.transform
 import rocks.teagantotally.heartofgoldnotifications.data.services.helpers.LongRunningServiceConnection
@@ -20,13 +16,7 @@ import rocks.teagantotally.heartofgoldnotifications.data.services.helpers.Servic
 import rocks.teagantotally.heartofgoldnotifications.domain.clients.Client
 import rocks.teagantotally.heartofgoldnotifications.domain.clients.injection.ClientModule
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.Notifier
-import rocks.teagantotally.heartofgoldnotifications.domain.models.commands.ClientCommand
-import rocks.teagantotally.heartofgoldnotifications.domain.models.commands.ConnectionCommand
-import rocks.teagantotally.heartofgoldnotifications.domain.models.commands.NotificationCommand
-import rocks.teagantotally.heartofgoldnotifications.domain.models.events.ConnectionEvent
-import rocks.teagantotally.heartofgoldnotifications.domain.models.events.MessageEvent
 import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.Message
-import rocks.teagantotally.heartofgoldnotifications.domain.usecases.ProcessMessage
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.UpdatePersistentNotificationUseCase
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.Scoped
 import javax.inject.Inject
@@ -34,10 +24,31 @@ import kotlin.coroutines.CoroutineContext
 
 @ObsoleteCoroutinesApi
 @ExperimentalCoroutinesApi
-class MqttService : Service(), Scoped {
+class MqttService : Service(), Client.ConnectionListener, Scoped {
 
     companion object {
-        const val ACTION_START = "rocks.teagantotally.heartofgoldnotifications.data.services.MqttService.start"
+        private const val ACTION_BASE = "rocks.teagantotally.heartofgoldnotifications.data.services.MqttService"
+        const val ACTION_START = "$ACTION_BASE.start"
+        const val ACTION_CONNECT = "$ACTION_BASE.connect"
+        const val ACTION_DISCONNECT = "$ACTION_BASE.disconnect"
+        const val ACTION_PUBLISH = "$ACTION_BASE.publish"
+        const val ACTION_SUBSCRIBE = "$ACTION_BASE.subscribe"
+        const val ACTION_UNSUBSCRIBE = "$ACTION_BASE.unsubscribe"
+
+        private val COMMAND_ACTIONS =
+            listOf(
+                ACTION_START,
+                ACTION_CONNECT,
+                ACTION_DISCONNECT,
+                ACTION_PUBLISH,
+                ACTION_SUBSCRIBE,
+                ACTION_UNSUBSCRIBE
+            )
+
+        const val EXTRA_MESSAGE = "message"
+        const val EXTRA_NOTIFICATION_ID = "notification_id"
+        const val EXTRA_TOPIC = "topic"
+        const val EXTRA_QOS = "qos"
 
         lateinit var serviceBinder: ServiceBinder<MqttService>
         val longRunningServiceConnection: LongRunningServiceConnection<MqttService> =
@@ -48,31 +59,18 @@ class MqttService : Service(), Scoped {
     override val coroutineContext: CoroutineContext = job.plus(Dispatchers.IO)
 
     @Inject
-    lateinit var channelManager: ChannelManager
-
-    @Inject
-    lateinit var processMessage: ProcessMessage
-
-    @Inject
     lateinit var notifier: Notifier
+    @Inject
+    lateinit var updatePersistentNotification: UpdatePersistentNotificationUseCase
 
-    private val connectionCommandChannel: ReceiveChannel<ConnectionCommand> by lazy { channelManager.connectionCommandChannel.openSubscription() }
-    private val connectionEventChannel: ReceiveChannel<ConnectionEvent> by lazy { channelManager.connectionEventChannel.openSubscription() }
-    private val messageEventChannel: ReceiveChannel<MessageEvent> by lazy { channelManager.messageEventChannel.openSubscription() }
-    private lateinit var client: Client
+    private var client: Client? = null
+    private val commandReceiver: MqttService.CommandReceiver = MqttService.CommandReceiver(this)
 
     override fun onBind(intent: Intent?): IBinder? =
-        null
+        serviceBinder
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int =
-        HeyEddieApplication.clientComponent
-            .let {
-                when (it) {
-                    is SubComponent.Initialized -> it.component
-                    is SubComponent.NotInitialized ->
-                        HeyEddieApplication.setClient(ClientModule(this))
-                }.let { it.inject(this) }
-            }
+        HeyEddieApplication.applicationComponent.inject(this)
             .run { serviceBinder = ServiceBinder(this@MqttService) }
             .run {
                 bindService(
@@ -82,120 +80,128 @@ class MqttService : Service(), Scoped {
                 )
             }
             .run {
-                UpdatePersistentNotificationUseCase
-                    .getPersistentNotification(false)
-                    .let {
-                        notifier.notify(it)
-                        launch {
-                            it.transform(this@MqttService)
-                                .let {
-                                    startForeground(it.first, it.second)
-                                }
+                registerReceiver(
+                    commandReceiver,
+                    IntentFilter()
+                        .apply {
+                            COMMAND_ACTIONS
+                                .forEach { addAction(it) }
                         }
-                    }
+                )
             }
-            .run { listen() }
+            .run {
+                launch {
+                    updatePersistentNotification(Client.ConnectionState.Unknown)
+                }
+            }
+            .run {
+                UpdatePersistentNotificationUseCase.getPersistentNotification(Client.ConnectionState.Unknown)
+                    .transform(this@MqttService)
+                    .let { startForeground(it.first, it.second) }
+            }
             .run { START_STICKY }
 
     override fun onDestroy() {
         super.onDestroy()
+        client?.removeConnectionListener(this)
+        unregisterReceiver(commandReceiver)
         job.cancelChildren()
         sendBroadcast(
             Intent(
                 this,
-                CommandReceiver::class.java
+                StartReceiver::class.java
             ).apply { action = ACTION_START }
         )
     }
 
-    private fun listen() {
+    override fun onConnectionChange(state: Client.ConnectionState) {
         launch {
-            while (!connectionCommandChannel.isClosedForReceive) {
-                connectionCommandChannel.consumeEach {
-                    if (it == ConnectionCommand.Connect && !this@MqttService::client.isInitialized) {
-                        (HeyEddieApplication.getClient() as? SubComponent.Initialized)
-                            ?.let { client = it.component.provideClient() }
-                            ?.let { client.connect() }
-                        // TODO : Failure
-                    }
-                }
-            }
+            updatePersistentNotification(state)
         }
-        launch {
-            while (!connectionEventChannel.isClosedForReceive) {
-                connectionEventChannel.consumeEach {
-                    notifier.notify(UpdatePersistentNotificationUseCase.getPersistentNotification(it.isConnected))
-                }
-            }
-        }
-        launch {
-            while(!messageEventChannel.isClosedForReceive) {
-                messageEventChannel.consumeEach {
-                    if(it is MessageEvent.Received) {
-                        processMessage(it)
-                    }
-                }
+    }
+
+    internal fun connect() {
+        // Disconnect if already connected
+        client?.disconnect()
+
+        client =
+            HeyEddieApplication
+                .applicationComponent
+                .clientComponentBuilder()
+                .clientModule(ClientModule(this))
+                .build()
+                .provideClient()
+        client?.let {
+            it.addConnectionListener(this)
+            launch {
+                it.connect()
             }
         }
     }
 
-    class PublishReceiver : BroadcastReceiver(), CoroutineScope {
-        companion object {
-            const val KEY_MESSAGE = "message"
-            const val KEY_NOTIFICATION_ID = "notification_id"
+    internal fun disconnect() {
+        launch {
+            client?.disconnect()
         }
+    }
 
-        @Inject
-        lateinit var channelManager: ChannelManager
+    internal fun dismissNotification(notificationId: Int) {
+        launch {
+            notifier.dismiss(notificationId)
+        }
+    }
 
-        @Inject
-        lateinit var notifier: Notifier
+    internal fun publish(message: Message) {
+        launch {
+            client?.publish(message)
+        }
+    }
 
-        override val coroutineContext: CoroutineContext = Job().plus(Dispatchers.IO)
+    internal fun subscribe(topic: String, qos: Int) {
+        launch {
+            client?.subscribe(topic, qos)
+        }
+    }
 
-        private val clientCommandChannel: SendChannel<ClientCommand> by lazy { channelManager.clientCommandChannel }
-        private val messageEventChannel: SendChannel<MessageEvent> by lazy { channelManager.messageEventChannel }
-        private val notificationCommandChannel: SendChannel<NotificationCommand> by lazy { channelManager.notificationCommandChannel }
+    internal fun unsubscribe(topic: String) {
+        launch {
+            client?.unsubscribe(topic)
+        }
+    }
 
+    internal class CommandReceiver(private val service: MqttService) : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
-            HeyEddieApplication.applicationComponent.inject(this)
-            intent
-                ?.apply {
-                    launch {
-                        getIntExtra(KEY_NOTIFICATION_ID, 0)
-                            .ifTrue({ it != 0 }) {
-                                if (!notificationCommandChannel.isClosedForSend) {
-                                    notificationCommandChannel.send(NotificationCommand.Dismiss(it))
-                                }
-                            }
-                        getParcelableExtra<Message>(KEY_MESSAGE)
-                            ?.let {
-                                ClientCommand.Publish(
-                                    it
-                                ).let { command ->
-                                    if (!clientCommandChannel.isClosedForSend) {
-                                        clientCommandChannel.send(
-                                            command
-                                        )
-                                    } else if (!messageEventChannel.isClosedForSend) {
-                                        messageEventChannel.send(
-                                            MessageEvent.Published.Failed(
-                                                command,
-                                                Throwable("Cannot communicate with client")
-                                            )
-                                        )
-                                    } else {
-                                        Timber.w { "Cannot process publish command" }
-                                    }
-                                }
-                            }
+            try {
+                intent?.apply {
+                    when (action) {
+                        ACTION_CONNECT -> service.connect()
+                        ACTION_DISCONNECT -> service.disconnect()
+                        ACTION_PUBLISH -> {
+                            getIntExtra(EXTRA_NOTIFICATION_ID, 0)
+                                .ifTrue({ it > 0 }) { service.dismissNotification(it) }
 
-                    }
+                            getParcelableExtra<Message>(EXTRA_MESSAGE)
+                                ?.let { service.publish(it) }
+                        }
+                        ACTION_SUBSCRIBE ->
+                            service.subscribe(
+                                getStringExtra(EXTRA_TOPIC),
+                                getIntExtra(EXTRA_QOS, 0)
+                            )
+                        ACTION_UNSUBSCRIBE ->
+                            service.unsubscribe(
+                                getStringExtra(EXTRA_TOPIC)
+                            )
+                        else -> null
+                    } ?: throw IllegalArgumentException()
                 }
+            } catch (t: Throwable) {
+                Timber.e(t) { "Unable to process action ${intent?.action}" }
+            }
         }
     }
 
-    class CommandReceiver : BroadcastReceiver() {
+    class StartReceiver : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             try {
                 context?.let {

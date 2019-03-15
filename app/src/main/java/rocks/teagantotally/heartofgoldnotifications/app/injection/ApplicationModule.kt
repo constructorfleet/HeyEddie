@@ -8,10 +8,12 @@ import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import dagger.Module
 import dagger.Provides
-import rocks.teagantotally.heartofgoldnotifications.app.injection.scopes.SessionScope
+import kotlinx.coroutines.ObsoleteCoroutinesApi
 import rocks.teagantotally.heartofgoldnotifications.app.managers.ChannelManager
 import rocks.teagantotally.heartofgoldnotifications.data.local.SharedPreferenceConnectionConfigProvider
+import rocks.teagantotally.heartofgoldnotifications.data.managers.IntentCommandExecutor
 import rocks.teagantotally.heartofgoldnotifications.data.managers.SystemNotifier
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.CommandExecutor
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.ConnectionConfigProvider
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.Notifier
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.ProcessingUseCase
@@ -66,10 +68,10 @@ class ApplicationModule(
     @Provides
     @Singleton
     fun provideMessageProcessor(
-        notifyUseeCase: NotifyUseCase
-    ) : ProcessMessage =
+        notifyUseCase: NotifyUseCase
+    ): ProcessMessage =
         ProcessMessage(
-            notifyUseeCase as ProcessingUseCase<*, MessageEvent.Received>
+            notifyUseCase as ProcessingUseCase<*, MessageEvent.Received>
         )
 
     @Provides
@@ -89,19 +91,18 @@ class ApplicationModule(
     @Provides
     @Singleton
     fun provideStartClientUseCase(
-        channelManager: ChannelManager
+        commandExecutor: CommandExecutor
     ): StartClientUseCase =
         StartClientUseCase(
-            channelManager.connectionCommandChannel,
-            channelManager.failureEventChannel
+            commandExecutor
         )
 
     @Provides
     @Singleton
     fun provideStopClientUseCase(
-        channelManager: ChannelManager
+        commandExecutor: CommandExecutor
     ): StopClientUseCase =
-        StopClientUseCase(channelManager.connectionCommandChannel)
+        StopClientUseCase(commandExecutor)
 
     @Provides
     @Singleton
@@ -113,6 +114,14 @@ class ApplicationModule(
             gson,
             notifier
         )
+
+    @ObsoleteCoroutinesApi
+    @Provides
+    @Singleton
+    fun provideCommandExecutor(
+        context: Context
+    ): CommandExecutor =
+        IntentCommandExecutor(context)
 
 //    @Provides
 //    @Singleton

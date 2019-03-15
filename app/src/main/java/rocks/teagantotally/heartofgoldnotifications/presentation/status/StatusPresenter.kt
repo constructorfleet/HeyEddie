@@ -6,6 +6,7 @@ import kotlinx.coroutines.launch
 import rocks.teagantotally.heartofgoldnotifications.domain.models.commands.ConnectionCommand
 import rocks.teagantotally.heartofgoldnotifications.domain.models.events.ConnectionEvent
 import rocks.teagantotally.heartofgoldnotifications.domain.models.events.MessageEvent
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.ProcessMessage
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.StartClientUseCase
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.ScopedPresenter
 
@@ -13,7 +14,8 @@ class StatusPresenter(
     view: StatusContract.View,
     private val connectionEventChannel: ReceiveChannel<ConnectionEvent>,
     private val messageEventChannel: ReceiveChannel<MessageEvent>,
-    private val startClientUseCase: StartClientUseCase
+    private val startClientUseCase: StartClientUseCase,
+    private val processMessage: ProcessMessage
 ) : StatusContract.Presenter, ScopedPresenter<StatusContract.View, StatusContract.Presenter>(view) {
 
     companion object {
@@ -40,6 +42,8 @@ class StatusPresenter(
         launch {
             while (!messageEventChannel.isClosedForReceive) {
                 messageEventChannel.consumeEach {
+                    (it as? MessageEvent.Received)
+                        ?.let { processMessage(it) }
                     view.logMessage(it.message)
                 }
             }

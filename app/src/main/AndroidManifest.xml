@@ -45,10 +45,10 @@
             android:name=".data.services.MqttService"
             android:exported="false" />
 
-        <receiver android:name=".data.services.MqttService$PublishReceiver" />
+        <receiver android:name=".data.services.MqttService$CommandReceiver" />
 
         <receiver
-            android:name=".data.services.MqttService$CommandReceiver"
+            android:name=".data.services.MqttService$StartReceiver"
             android:enabled="true"
             android:exported="true">
 

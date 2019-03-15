@@ -24,19 +24,20 @@ class MqttClient(
     private val connectionConfigProvider: ConnectionConfigProvider,
     private val connectionEventChannel: SendChannel<ConnectionEvent>,
     private val messageEventChannel: SendChannel<MessageEvent>,
-    private val subscriptionEventChannel: SendChannel<SubscriptionEvent>,
-    private val connectionCommandChannel: ReceiveChannel<ConnectionCommand>,
-    private val clientCommandChannel: ReceiveChannel<ClientCommand>
+    private val subscriptionEventChannel: SendChannel<SubscriptionEvent>
 ) : Client, Scoped {
 
     override var job: Job = Job()
     override val coroutineContext: CoroutineContext =
         job.plus(Dispatchers.IO)
+    private val connectionListeners: MutableSet<Client.ConnectionListener> = mutableSetOf()
 
     private fun getConnectionListener(command: ConnectionCommand): IMqttActionListener =
         object : IMqttActionListener {
 
             override fun onSuccess(token: IMqttToken?) {
+                notifyListeners(Client.ConnectionState.Connected)
+
                 launch {
                     if (!connectionEventChannel.isClosedForSend) {
                         connectionEventChannel.send(
@@ -47,6 +48,8 @@ class MqttClient(
             }
 
             override fun onFailure(token: IMqttToken?, throwable: Throwable?) {
+                notifyListeners(Client.ConnectionState.Error(throwable?.message ?: "Error connecting to broker"))
+
                 launch {
                     if (!connectionEventChannel.isClosedForSend) {
                         connectionEventChannel.send(
@@ -116,6 +119,8 @@ class MqttClient(
     private fun getDisconnectListener(command: ConnectionCommand.Disconnect): IMqttActionListener =
         object : IMqttActionListener, CoroutineScope by this@MqttClient {
             override fun onSuccess(token: IMqttToken?) {
+                notifyListeners(Client.ConnectionState.Disconnected)
+
                 launch {
                     if (!connectionEventChannel.isClosedForSend) {
                         connectionEventChannel.send(
@@ -126,6 +131,8 @@ class MqttClient(
             }
 
             override fun onFailure(token: IMqttToken?, throwable: Throwable?) {
+                notifyListeners(Client.ConnectionState.Error(throwable?.message ?: "Error disconnecting from broker"))
+
                 launch {
                     if (!connectionEventChannel.isClosedForSend) {
                         connectionEventChannel.send(
@@ -170,6 +177,14 @@ class MqttClient(
         client.setCallback(this)
     }
 
+    override fun addConnectionListener(listener: Client.ConnectionListener) {
+        connectionListeners.add(listener)
+    }
+
+    override fun removeConnectionListener(listener: Client.ConnectionListener) {
+        connectionListeners.remove(listener)
+    }
+
     override fun isConnected(): Boolean =
         client.isConnected
 
@@ -194,7 +209,7 @@ class MqttClient(
     }
 
     override fun connectComplete(reconnect: Boolean, brokerUri: String?) {
-        listenForMessages()
+
     }
 
     override fun publish(message: Message) {
@@ -294,33 +309,8 @@ class MqttClient(
         // no-op
     }
 
-    @ObsoleteCoroutinesApi
-    private fun listenForMessages() {
-        launch {
-            while (true) {
-                connectionCommandChannel.consumeEach {
-                    when (it) {
-                        ConnectionCommand.Disconnect -> disconnect()
-                        ConnectionCommand.Connect -> connect()
-                        ConnectionCommand.GetStatus ->
-                            if (!connectionEventChannel.isClosedForSend) {
-                                connectionEventChannel.send(
-                                    ConnectionEvent.Status(client.isConnected)
-                                )
-                            }
-                    }
-                }
-            }
-        }
-        launch {
-            while (true)
-                clientCommandChannel.consumeEach {
-                    when (it) {
-                        is ClientCommand.Publish -> publish(it.message)
-                        is ClientCommand.SubscribeTo -> subscribe(it.topic, it.maxQoS)
-                        is ClientCommand.Unsubscribe -> unsubscribe(it.topic)
-                    }
-                }
-        }
+    private fun notifyListeners(state: Client.ConnectionState) {
+        connectionListeners
+            .forEach { it.onConnectionChange(state) }
     }
 }

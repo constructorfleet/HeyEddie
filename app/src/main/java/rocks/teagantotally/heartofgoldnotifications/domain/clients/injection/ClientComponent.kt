@@ -10,8 +10,6 @@ import rocks.teagantotally.heartofgoldnotifications.domain.clients.Client
     modules = [ClientModule::class]
 )
 interface ClientComponent {
-    fun inject(service: MqttService)
-
     fun provideClient(): Client
 
     @Subcomponent.Builder
