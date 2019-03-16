@@ -14,7 +14,6 @@ import kotlinx.coroutines.ObsoleteCoroutinesApi
 import rocks.teagantotally.heartofgoldnotifications.R
 import rocks.teagantotally.heartofgoldnotifications.common.extensions.ifAlso
 import rocks.teagantotally.heartofgoldnotifications.common.extensions.unique
-import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService
 import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService.Companion.ACTION_PUBLISH
 import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService.Companion.EXTRA_MESSAGE
 import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService.Companion.EXTRA_NOTIFICATION_ID
@@ -45,7 +44,11 @@ class SystemNotifier(
         notificationManager.cancel(notificationId)
 
     private fun createChannel(notificationChannel: NotificationMessageChannel) {
-        notificationManager.createNotificationChannel(notificationChannel.transform())
+        try {
+            notificationManager.getNotificationChannel(notificationChannel.id)
+        } catch (_ : Throwable) {
+            null
+        } ?: notificationManager.createNotificationChannel(notificationChannel.transform())
     }
 
     private fun NotificationMessageChannel.transform(): NotificationChannel =
@@ -63,6 +66,7 @@ class SystemNotifier(
                 channel.description = description
                 channel.name = name
                 channel.importance = importance.systemValue
+                channel.setSound(null, null)
             }
 }
 
@@ -83,7 +87,7 @@ fun NotificationMessage.transform(context: Context): Pair<Int, Notification> =
             .ifAlso({ !actions.isNullOrEmpty() }) { builder ->
                 actions
                     .forEach { action ->
-                        Intent(MqttService.ACTION_PUBLISH)
+                        Intent(ACTION_PUBLISH)
                             .putExtra(EXTRA_NOTIFICATION_ID, notificationId)
                             .putExtra(
                                 EXTRA_MESSAGE,

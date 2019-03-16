@@ -15,7 +15,12 @@ class SharedPreferenceConnectionConfigProvider(
     }
 
     override fun hasConnectionConfiguration(): Boolean =
-        sharedPreferences.contains(KEY_CONFIG)
+        try {
+            getConnectionConfiguration()
+                .let { true }
+        } catch (_ : Throwable) {
+            false
+        }
 
     override fun getConnectionConfiguration(): ConnectionConfiguration =
         sharedPreferences.getString(KEY_CONFIG, null)

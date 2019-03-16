@@ -1,9 +1,10 @@
 package rocks.teagantotally.heartofgoldnotifications.app.injection
 
+import `in`.co.ophio.secure.core.ObscuredPreferencesBuilder
+import android.app.Application
 import android.app.NotificationManager
 import android.content.Context
 import android.content.SharedPreferences
-import android.preference.PreferenceManager
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import dagger.Module
@@ -23,7 +24,9 @@ import javax.inject.Singleton
 
 @Module
 class ApplicationModule(
-    private val applicationContext: Context
+    private val applicationContext: Context,
+    private val secureKey: String,
+    private val prefFileName: String
 ) {
     @Provides
     @Singleton
@@ -32,10 +35,16 @@ class ApplicationModule(
 
     @Provides
     @Singleton
-    fun provideSharedPreferences(
+    fun provideEncryptedSharedPreferences(
         context: Context
     ): SharedPreferences =
-        PreferenceManager.getDefaultSharedPreferences(context)
+        ObscuredPreferencesBuilder()
+            .setApplication(context as Application)
+            .obfuscateValue(true)
+            .obfuscateKey(true)
+            .setSharePrefFileName(prefFileName)
+            .setSecret(secureKey)
+            .createSharedPrefs()
 
     @Provides
     @Singleton
@@ -122,24 +131,6 @@ class ApplicationModule(
         context: Context
     ): CommandExecutor =
         IntentCommandExecutor(context)
-
-//    @Provides
-//    @Singleton
-//    @Suppress("UNCHECKED_CAST")
-//    fun provideEventProcessor(
-//        notifyUseCase: NotifyUseCase,
-//        finishNotifyUseCase: FinishNotifyUseCase,
-//        startClientUseCase: StartClientUseCase,
-//        stopClientUseCase: StopClientUseCase,
-//        updatePersistentNotificationUseCase: UpdatePersistentNotificationUseCase
-//    ): ProcessMessage =
-//        ProcessMessage(
-//            notifyUseCase as EventP<Event, Event>,
-//            finishNotifyUseCase as EventProcessingUseCase<Event, Event>,
-//            startClientUseCase as EventProcessingUseCase<Event, Event>,
-//            stopClientUseCase as EventProcessingUseCase<Event, Event>,
-//            updatePersistentNotificationUseCase as EventProcessingUseCase<Event, Event>
-//        )
 
     @Provides
     @Singleton
