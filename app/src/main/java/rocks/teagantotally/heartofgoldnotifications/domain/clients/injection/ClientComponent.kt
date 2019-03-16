@@ -2,7 +2,6 @@ package rocks.teagantotally.heartofgoldnotifications.domain.clients.injection
 
 import dagger.Subcomponent
 import rocks.teagantotally.heartofgoldnotifications.app.injection.scopes.SessionScope
-import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService
 import rocks.teagantotally.heartofgoldnotifications.domain.clients.Client
 
 @SessionScope

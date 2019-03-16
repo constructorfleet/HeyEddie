@@ -18,14 +18,18 @@ class SharedPreferenceConnectionConfigProvider(
         try {
             getConnectionConfiguration()
                 .let { true }
-        } catch (_ : Throwable) {
+        } catch (_: Throwable) {
             false
         }
 
-    override fun getConnectionConfiguration(): ConnectionConfiguration =
+    override fun getConnectionConfiguration(): ConnectionConfiguration? =
         sharedPreferences.getString(KEY_CONFIG, null)
-            .let {
-                gson.fromJson(it, ConnectionConfiguration::class.java)
+            ?.let {
+                try {
+                    gson.fromJson(it, ConnectionConfiguration::class.java)
+                } catch (_: Throwable) {
+                    null
+                }
             }
 
     override fun setConnectionConfiguration(connectionConfiguration: ConnectionConfiguration) {

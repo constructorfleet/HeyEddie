@@ -7,7 +7,7 @@ import android.view.ViewGroup
 import kotlinx.android.synthetic.main.fragment_status.*
 import rocks.teagantotally.heartofgoldnotifications.R
 import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.Message
-import rocks.teagantotally.heartofgoldnotifications.presentation.MainActivity
+import rocks.teagantotally.heartofgoldnotifications.presentation.main.MainActivity
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.BaseFragment
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.Scoped
 import rocks.teagantotally.heartofgoldnotifications.presentation.history.injection.HistoryModule

@@ -3,8 +3,6 @@ package rocks.teagantotally.heartofgoldnotifications.presentation.history.inject
 import dagger.Module
 import dagger.Provides
 import rocks.teagantotally.heartofgoldnotifications.app.injection.scopes.FragmentScope
-import rocks.teagantotally.heartofgoldnotifications.app.managers.ChannelManager
-import rocks.teagantotally.heartofgoldnotifications.domain.usecases.ProcessMessage
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.StartClientUseCase
 import rocks.teagantotally.heartofgoldnotifications.presentation.history.HistoryContract
 import rocks.teagantotally.heartofgoldnotifications.presentation.history.HistoryPresenter
@@ -20,15 +18,10 @@ class HistoryModule(
     @Provides
     @FragmentScope
     fun providePresenter(
-        channelManager: ChannelManager,
-        startClientUseCase: StartClientUseCase,
-        processMessage: ProcessMessage
+        startClientUseCase: StartClientUseCase
     ): HistoryContract.Presenter =
         HistoryPresenter(
             view,
-            channelManager.connectionEventChannel.openSubscription(),
-            channelManager.messageEventChannel.openSubscription(),
-            startClientUseCase,
-            processMessage
+            startClientUseCase
         )
 }

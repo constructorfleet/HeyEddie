@@ -5,7 +5,7 @@ import dagger.Module
 import dagger.Provides
 import kotlinx.coroutines.ObsoleteCoroutinesApi
 import rocks.teagantotally.heartofgoldnotifications.data.managers.IntentMqttCommandExecutor
-import rocks.teagantotally.heartofgoldnotifications.domain.framework.MqttCommandExecutor
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.commands.MqttCommandExecutor
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.StartClientUseCase
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.StopClientUseCase
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.SubscribeTo

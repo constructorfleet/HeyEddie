@@ -26,7 +26,7 @@ class HeyEddieApplication : Application() {
 
     @SuppressLint("HardwareIds")
     private fun getKeyStoreSeed() =
-        Settings.Secure.getString(this.getContentResolver(), Settings.Secure.ANDROID_ID);
+        Settings.Secure.getString(this.contentResolver, Settings.Secure.ANDROID_ID);
 
     private fun setupGraph() {
         DaggerApplicationComponent.builder()

@@ -5,7 +5,6 @@ import android.content.Intent
 import android.os.Parcelable
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.ObsoleteCoroutinesApi
-import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService
 import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService.Companion.ACTION_CONNECT
 import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService.Companion.ACTION_DISCONNECT
 import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService.Companion.ACTION_PUBLISH
@@ -14,7 +13,7 @@ import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService.Co
 import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService.Companion.EXTRA_MESSAGE
 import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService.Companion.EXTRA_QOS
 import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService.Companion.EXTRA_TOPIC
-import rocks.teagantotally.heartofgoldnotifications.domain.framework.MqttCommandExecutor
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.commands.MqttCommandExecutor
 import rocks.teagantotally.heartofgoldnotifications.domain.models.commands.MqttCommand
 
 @ObsoleteCoroutinesApi
@@ -22,8 +21,7 @@ class IntentMqttCommandExecutor(
     private val context: Context
 ) : MqttCommandExecutor {
     override fun execute(command: MqttCommand) {
-        buildIntent(command)
-            ?.let { context.sendBroadcast(it) }
+        context.sendBroadcast(buildIntent(command))
     }
 
     @UseExperimental(ExperimentalCoroutinesApi::class)
@@ -55,6 +53,5 @@ class IntentMqttCommandExecutor(
                         EXTRA_MESSAGE,
                         command.message as Parcelable
                     )
-            else -> null
         }
 }

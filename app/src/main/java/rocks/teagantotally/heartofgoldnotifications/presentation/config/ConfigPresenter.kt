@@ -45,7 +45,7 @@ class ConfigPresenter(
         }
 
         connectionConfigProvider.getConnectionConfiguration()
-            .let {
+            ?.let {
                 view.setHost(it.brokerHost)
                 view.setPort(it.brokerPort)
                 view.setClientId(it.clientId)
@@ -64,6 +64,7 @@ class ConfigPresenter(
                     it.cleanSession
                 )
             }
+            ?: run { view.isValid = false }
     }
 
     override fun checkValidity(

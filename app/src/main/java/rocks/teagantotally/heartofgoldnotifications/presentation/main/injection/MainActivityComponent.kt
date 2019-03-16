@@ -1,8 +1,8 @@
-package rocks.teagantotally.heartofgoldnotifications.presentation.injection
+package rocks.teagantotally.heartofgoldnotifications.presentation.main.injection
 
 import dagger.Subcomponent
 import rocks.teagantotally.heartofgoldnotifications.app.injection.scopes.ActivityScope
-import rocks.teagantotally.heartofgoldnotifications.presentation.MainActivity
+import rocks.teagantotally.heartofgoldnotifications.presentation.main.MainActivity
 import rocks.teagantotally.heartofgoldnotifications.presentation.config.injection.ConfigComponent
 import rocks.teagantotally.heartofgoldnotifications.presentation.history.injection.StatusComponent
 

@@ -13,7 +13,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import rocks.teagantotally.heartofgoldnotifications.R
 import rocks.teagantotally.heartofgoldnotifications.common.extensions.safeLet
-import rocks.teagantotally.heartofgoldnotifications.presentation.MainActivity
+import rocks.teagantotally.heartofgoldnotifications.presentation.main.MainActivity
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.Navigable
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.Scoped
 import rocks.teagantotally.heartofgoldnotifications.presentation.config.injection.ConfigModule

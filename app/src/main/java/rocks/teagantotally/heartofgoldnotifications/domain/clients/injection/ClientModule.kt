@@ -8,11 +8,12 @@ import kotlinx.coroutines.ObsoleteCoroutinesApi
 import org.eclipse.paho.android.service.MqttAndroidClient
 import org.eclipse.paho.client.mqttv3.IMqttAsyncClient
 import rocks.teagantotally.heartofgoldnotifications.app.injection.scopes.SessionScope
-import rocks.teagantotally.heartofgoldnotifications.app.managers.ChannelManager
 import rocks.teagantotally.heartofgoldnotifications.data.common.BrokerUriBuilder
 import rocks.teagantotally.heartofgoldnotifications.domain.clients.Client
 import rocks.teagantotally.heartofgoldnotifications.domain.clients.MqttClient
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.ConnectionConfigProvider
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.event.MqttEventConsumer
+import java.lang.IllegalStateException
 
 @Module
 class ClientModule(
@@ -24,13 +25,14 @@ class ClientModule(
         connectionConfigProvider: ConnectionConfigProvider
     ): IMqttAsyncClient =
         connectionConfigProvider.getConnectionConfiguration()
-            .let {
+            ?.let {
                 MqttAndroidClient(
                     context,
                     BrokerUriBuilder.getBrokerUri(it),
                     it.clientId
                 )
             }
+            ?: throw IllegalStateException("Connection is not configured") // TODO : Handle
 
     @ExperimentalCoroutinesApi
     @ObsoleteCoroutinesApi
@@ -39,13 +41,11 @@ class ClientModule(
     fun provideClient(
         mqttAsyncClient: IMqttAsyncClient,
         connectionConfigProvider: ConnectionConfigProvider,
-        channelManager: ChannelManager
+        mqttEventConsumer: MqttEventConsumer
     ): Client =
         MqttClient(
             mqttAsyncClient,
             connectionConfigProvider,
-            channelManager.connectionEventChannel,
-            channelManager.messageEventChannel,
-            channelManager.subscriptionEventChannel
+            mqttEventConsumer
         )
 }

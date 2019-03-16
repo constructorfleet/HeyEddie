@@ -9,13 +9,18 @@ import android.os.IBinder
 import com.github.ajalt.timberkt.Timber
 import kotlinx.coroutines.*
 import rocks.teagantotally.heartofgoldnotifications.app.HeyEddieApplication
-import rocks.teagantotally.heartofgoldnotifications.common.extensions.ifTrue
 import rocks.teagantotally.heartofgoldnotifications.data.managers.transform
 import rocks.teagantotally.heartofgoldnotifications.data.services.helpers.LongRunningServiceConnection
 import rocks.teagantotally.heartofgoldnotifications.data.services.helpers.ServiceBinder
+import rocks.teagantotally.heartofgoldnotifications.data.services.receivers.MqttCommandBroadcastReceiver
+import rocks.teagantotally.heartofgoldnotifications.data.services.receivers.MqttEventBroadcastReceiver
 import rocks.teagantotally.heartofgoldnotifications.domain.clients.Client
 import rocks.teagantotally.heartofgoldnotifications.domain.clients.injection.ClientModule
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.Notifier
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.event.MqttEventConsumer
+import rocks.teagantotally.heartofgoldnotifications.domain.models.ClientState
+import rocks.teagantotally.heartofgoldnotifications.domain.models.commands.MqttCommand
+import rocks.teagantotally.heartofgoldnotifications.domain.models.events.MqttEvent
 import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.Message
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.UpdatePersistentNotificationUseCase
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.Scoped
@@ -24,16 +29,24 @@ import kotlin.coroutines.CoroutineContext
 
 @ObsoleteCoroutinesApi
 @ExperimentalCoroutinesApi
-class MqttService : Service(), Client.ConnectionListener, Scoped {
+class MqttService : Service(), MqttEventConsumer, Scoped {
 
     companion object {
-        private const val ACTION_BASE = "rocks.teagantotally.heartofgoldnotifications.data.services.MqttService"
-        const val ACTION_START = "$ACTION_BASE.start"
-        const val ACTION_CONNECT = "$ACTION_BASE.connect"
-        const val ACTION_DISCONNECT = "$ACTION_BASE.disconnect"
-        const val ACTION_PUBLISH = "$ACTION_BASE.publish"
-        const val ACTION_SUBSCRIBE = "$ACTION_BASE.subscribe"
-        const val ACTION_UNSUBSCRIBE = "$ACTION_BASE.unsubscribe"
+        private const val BASE = "rocks.teagantotally.heartofgoldnotifications.data.services.MqttService"
+        const val ACTION_START = "$BASE.start"
+        const val ACTION_CONNECT = "$BASE.connect"
+        const val ACTION_DISCONNECT = "$BASE.disconnect"
+        const val ACTION_PUBLISH = "$BASE.publish"
+        const val ACTION_SUBSCRIBE = "$BASE.subscribe"
+        const val ACTION_UNSUBSCRIBE = "$BASE.unsubscribe"
+
+        const val EVENT_CONNECTED = "$BASE.connected"
+        const val EVENT_DISCONNECTED = "$BASE.disconnected"
+        const val EVENT_SUBSCRIBED = "$BASE.subscribed"
+        const val EVENT_UNSUBSCRIBED = "$BASE.unsubscribed"
+        const val EVENT_MESSAGE_PUBLISHED = "$BASE.message_published"
+        const val EVENT_MESSAGE_RECEIVED = "$BASE.message_received"
+        const val EVENT_COMMAND_FAILED = "$BASE.command_failed"
 
         private val COMMAND_ACTIONS =
             listOf(
@@ -45,10 +58,19 @@ class MqttService : Service(), Client.ConnectionListener, Scoped {
                 ACTION_UNSUBSCRIBE
             )
 
+        private val EVENTS =
+            listOf(
+                EVENT_CONNECTED,
+                EVENT_DISCONNECTED,
+                EVENT_COMMAND_FAILED
+            )
+
         const val EXTRA_MESSAGE = "message"
         const val EXTRA_NOTIFICATION_ID = "notification_id"
         const val EXTRA_TOPIC = "topic"
         const val EXTRA_QOS = "qos"
+        const val EXTRA_COMMAND = "command"
+        const val EXTRA_FAILURE_REASON = "failure_reason"
 
         lateinit var serviceBinder: ServiceBinder<MqttService>
         val longRunningServiceConnection: LongRunningServiceConnection<MqttService> =
@@ -64,7 +86,10 @@ class MqttService : Service(), Client.ConnectionListener, Scoped {
     lateinit var updatePersistentNotification: UpdatePersistentNotificationUseCase
 
     private var client: Client? = null
-    private val commandReceiver: MqttService.CommandReceiver = MqttService.CommandReceiver(this)
+    private val commandBroadcastReceiver: MqttCommandBroadcastReceiver =
+        MqttCommandBroadcastReceiver(this)
+    private val eventBroadcastReceiver: MqttEventBroadcastReceiver<MqttService> =
+        MqttEventBroadcastReceiver(this)
 
     override fun onBind(intent: Intent?): IBinder? =
         serviceBinder
@@ -81,7 +106,7 @@ class MqttService : Service(), Client.ConnectionListener, Scoped {
             }
             .run {
                 registerReceiver(
-                    commandReceiver,
+                    commandBroadcastReceiver,
                     IntentFilter()
                         .apply {
                             COMMAND_ACTIONS
@@ -90,12 +115,22 @@ class MqttService : Service(), Client.ConnectionListener, Scoped {
                 )
             }
             .run {
+                registerReceiver(
+                    eventBroadcastReceiver,
+                    IntentFilter()
+                        .apply {
+                            EVENTS
+                                .forEach { addAction(it) }
+                        }
+                )
+            }
+            .run {
                 launch {
-                    updatePersistentNotification(Client.ConnectionState.Unknown)
+                    updatePersistentNotification(ClientState.Unknown)
                 }
             }
             .run {
-                UpdatePersistentNotificationUseCase.getPersistentNotification(Client.ConnectionState.Unknown)
+                UpdatePersistentNotificationUseCase.getPersistentNotification(ClientState.Unknown)
                     .transform(this@MqttService)
                     .let { startForeground(it.first, it.second) }
             }
@@ -103,20 +138,33 @@ class MqttService : Service(), Client.ConnectionListener, Scoped {
 
     override fun onDestroy() {
         super.onDestroy()
-        client?.removeConnectionListener(this)
-        unregisterReceiver(commandReceiver)
+        unregisterReceiver(commandBroadcastReceiver)
+        unregisterReceiver(eventBroadcastReceiver)
         job.cancelChildren()
         sendBroadcast(
             Intent(
                 this,
                 StartReceiver::class.java
-            ).apply { action = ACTION_START }
+            ).apply {
+                action =
+                    ACTION_START
+            }
         )
     }
 
-    override fun onConnectionChange(state: Client.ConnectionState) {
+    override fun consume(event: MqttEvent) {
         launch {
-            updatePersistentNotification(state)
+            when (event) {
+                MqttEvent.Connected ->
+                    updatePersistentNotification(ClientState.Connected)
+                MqttEvent.Disconnected ->
+                    updatePersistentNotification(ClientState.Disconnected)
+                is MqttEvent.CommandFailed ->
+                    when (event.command) {
+                        MqttCommand.Connect, MqttCommand.Disconnect ->
+                            updatePersistentNotification(ClientState.Unknown)
+                    }
+            }
         }
     }
 
@@ -131,18 +179,11 @@ class MqttService : Service(), Client.ConnectionListener, Scoped {
                 .clientModule(ClientModule(this))
                 .build()
                 .provideClient()
-        client?.let {
-            it.addConnectionListener(this)
-            launch {
-                it.connect()
-            }
-        }
+                .also { it.connect() }
     }
 
     internal fun disconnect() {
-        launch {
-            client?.disconnect()
-        }
+        client?.disconnect()
     }
 
     internal fun dismissNotification(notificationId: Int) {
@@ -152,53 +193,15 @@ class MqttService : Service(), Client.ConnectionListener, Scoped {
     }
 
     internal fun publish(message: Message) {
-        launch {
-            client?.publish(message)
-        }
+        client?.publish(message)
     }
 
     internal fun subscribe(topic: String, qos: Int) {
-        launch {
-            client?.subscribe(topic, qos)
-        }
+        client?.subscribe(topic, qos)
     }
 
     internal fun unsubscribe(topic: String) {
-        launch {
-            client?.unsubscribe(topic)
-        }
-    }
-
-    internal class CommandReceiver(private val service: MqttService) : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-            try {
-                intent?.apply {
-                    when (action) {
-                        ACTION_CONNECT -> service.connect()
-                        ACTION_DISCONNECT -> service.disconnect()
-                        ACTION_PUBLISH -> {
-                            getIntExtra(EXTRA_NOTIFICATION_ID, 0)
-                                .ifTrue({ it > 0 }) { service.dismissNotification(it) }
-
-                            getParcelableExtra<Message>(EXTRA_MESSAGE)
-                                ?.let { service.publish(it) }
-                        }
-                        ACTION_SUBSCRIBE ->
-                            service.subscribe(
-                                getStringExtra(EXTRA_TOPIC),
-                                getIntExtra(EXTRA_QOS, 0)
-                            )
-                        ACTION_UNSUBSCRIBE ->
-                            service.unsubscribe(
-                                getStringExtra(EXTRA_TOPIC)
-                            )
-                        else -> null
-                    } ?: throw IllegalArgumentException()
-                }
-            } catch (t: Throwable) {
-                Timber.e(t) { "Unable to process action ${intent?.action}" }
-            }
-        }
+        client?.unsubscribe(topic)
     }
 
     class StartReceiver : BroadcastReceiver() {

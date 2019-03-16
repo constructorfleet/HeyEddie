@@ -9,17 +9,12 @@ import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import dagger.Module
 import dagger.Provides
-import kotlinx.coroutines.ObsoleteCoroutinesApi
-import rocks.teagantotally.heartofgoldnotifications.app.managers.ChannelManager
 import rocks.teagantotally.heartofgoldnotifications.data.local.SharedPreferenceConnectionConfigProvider
-import rocks.teagantotally.heartofgoldnotifications.data.managers.IntentMqttCommandExecutor
 import rocks.teagantotally.heartofgoldnotifications.data.managers.SystemNotifier
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.ConnectionConfigProvider
-import rocks.teagantotally.heartofgoldnotifications.domain.framework.MqttCommandExecutor
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.Notifier
-import rocks.teagantotally.heartofgoldnotifications.domain.framework.ProcessingUseCase
-import rocks.teagantotally.heartofgoldnotifications.domain.models.events.MessageEvent
-import rocks.teagantotally.heartofgoldnotifications.domain.usecases.*
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.FinishNotifyUseCase
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.UpdatePersistentNotificationUseCase
 import javax.inject.Singleton
 
 @Module
@@ -50,11 +45,11 @@ class ApplicationModule(
     @Singleton
     fun provideGson(): Gson =
         GsonBuilder().create()
-
-    @Provides
-    @Singleton
-    fun provideChannelManager(): ChannelManager =
-        ChannelManager()
+//
+//    @Provides
+//    @Singleton
+//    fun provideChannelManager(): ChannelManager =
+//        ChannelManager()
 
     @Provides
     @Singleton
@@ -76,15 +71,6 @@ class ApplicationModule(
 
     @Provides
     @Singleton
-    fun provideMessageProcessor(
-        notifyUseCase: NotifyUseCase
-    ): ProcessMessage =
-        ProcessMessage(
-            notifyUseCase as ProcessingUseCase<*, MessageEvent.Received>
-        )
-
-    @Provides
-    @Singleton
     fun providePersistentNotificationUpdater(
         notifier: Notifier
     ): UpdatePersistentNotificationUseCase =
@@ -96,17 +82,6 @@ class ApplicationModule(
         notifier: Notifier
     ): FinishNotifyUseCase =
         FinishNotifyUseCase(notifier)
-
-    @Provides
-    @Singleton
-    fun provideNotifyUseCase(
-        notifier: Notifier,
-        gson: Gson
-    ): NotifyUseCase =
-        NotifyUseCase(
-            gson,
-            notifier
-        )
 
     @Provides
     @Singleton
