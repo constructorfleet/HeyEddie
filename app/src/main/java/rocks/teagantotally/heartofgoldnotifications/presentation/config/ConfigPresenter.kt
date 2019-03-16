@@ -1,17 +1,15 @@
 package rocks.teagantotally.heartofgoldnotifications.presentation.config
 
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 import rocks.teagantotally.heartofgoldnotifications.common.extensions.safeLet
-import rocks.teagantotally.heartofgoldnotifications.domain.framework.ConnectionConfigProvider
-import rocks.teagantotally.heartofgoldnotifications.domain.models.commands.MqttCommand
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.ConnectionConfigManager
 import rocks.teagantotally.heartofgoldnotifications.domain.models.configs.ConnectionConfiguration
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.StartClientUseCase
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.ScopedPresenter
 
 class ConfigPresenter(
     view: ConfigContract.View,
-    private val connectionConfigProvider: ConnectionConfigProvider,
+    private val connectionConfigManager: ConnectionConfigManager,
     private val startClientUseCase: StartClientUseCase,
     coroutineScope: CoroutineScope
 ) : ScopedPresenter<ConfigContract.View, ConfigContract.Presenter>(view, coroutineScope), ConfigContract.Presenter {
@@ -24,7 +22,7 @@ class ConfigPresenter(
         reconnect: Boolean,
         cleanSession: Boolean
     ) {
-        connectionConfigProvider.setConnectionConfiguration(
+        connectionConfigManager.setConnectionConfiguration(
             ConnectionConfiguration(
                 host,
                 port,
@@ -34,17 +32,15 @@ class ConfigPresenter(
                 reconnect,
                 cleanSession
             )
-        )
-            .run { launch { startClientUseCase(MqttCommand.Connect) } }
-            .run { view.close() }
+        ).run { view.close() }
     }
 
     override fun onViewCreated() {
-        if (!connectionConfigProvider.hasConnectionConfiguration()) {
+        if (!connectionConfigManager.hasConnectionConfiguration()) {
             return
         }
 
-        connectionConfigProvider.getConnectionConfiguration()
+        connectionConfigManager.getConnectionConfiguration()
             ?.let {
                 view.setHost(it.brokerHost)
                 view.setPort(it.brokerPort)

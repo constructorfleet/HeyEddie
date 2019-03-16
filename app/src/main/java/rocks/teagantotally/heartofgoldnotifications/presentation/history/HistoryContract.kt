@@ -6,9 +6,9 @@ import rocks.teagantotally.heartofgoldnotifications.presentation.base.BaseView
 
 interface HistoryContract {
     interface View : BaseView<Presenter> {
-        fun showStatus(clientStatus: String)
+        fun logMessageReceived(message: Message)
 
-        fun logMessage(message: Message)
+        fun logMessagePublished(message: Message)
     }
 
     interface Presenter : BasePresenter

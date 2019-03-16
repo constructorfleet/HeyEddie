@@ -26,7 +26,8 @@ abstract class BaseActivity : AppCompatActivity(), Scoped {
 
     protected fun <FragmentType> setFragment(
         fragment: FragmentType,
-        addToBackStack: Boolean
+        addToBackStack: Boolean,
+        onCommit: ((Fragment) -> Unit)? = null
     ) where FragmentType : Fragment, FragmentType : Scoped {
         supportFragmentManager.beginTransaction()
             .replace(R.id.main_container, fragment, fragment.tag)
@@ -37,5 +38,8 @@ abstract class BaseActivity : AppCompatActivity(), Scoped {
                 }
             }
             .commit()
+            .run {
+                onCommit?.let { it(fragment) }
+            }
     }
 }

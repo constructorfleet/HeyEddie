@@ -1,10 +1,10 @@
-package rocks.teagantotally.heartofgoldnotifications.data.local
+package rocks.teagantotally.heartofgoldnotifications.data.managers.config
 
-import rocks.teagantotally.heartofgoldnotifications.domain.framework.ConnectionConfigProvider
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.ConnectionConfigManager
 import rocks.teagantotally.heartofgoldnotifications.domain.models.configs.ConnectionConfiguration
 
-class TestConnectionConfigProvider :
-    ConnectionConfigProvider {
+class TestConnectionConfigManager :
+    ConnectionConfigManager {
     val configuration =
         ConnectionConfiguration(
             brokerHost = "some.broker.com",

@@ -2,7 +2,7 @@ package rocks.teagantotally.heartofgoldnotifications.domain.framework
 
 import rocks.teagantotally.heartofgoldnotifications.domain.models.configs.ConnectionConfiguration
 
-interface ConnectionConfigProvider {
+interface ConnectionConfigManager {
     fun hasConnectionConfiguration(): Boolean
 
     fun getConnectionConfiguration(): ConnectionConfiguration?

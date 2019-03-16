@@ -3,19 +3,21 @@ package rocks.teagantotally.heartofgoldnotifications.domain.clients
 import kotlinx.coroutines.*
 import org.eclipse.paho.client.mqttv3.*
 import rocks.teagantotally.heartofgoldnotifications.common.extensions.safeLet
-import rocks.teagantotally.heartofgoldnotifications.domain.framework.ConnectionConfigProvider
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.ConnectionConfigManager
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.event.MqttEventConsumer
 import rocks.teagantotally.heartofgoldnotifications.domain.models.commands.MqttCommand
 import rocks.teagantotally.heartofgoldnotifications.domain.models.events.MqttEvent
 import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.Message
+import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.onPublish
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.Scoped
+import java.util.*
 import kotlin.coroutines.CoroutineContext
 
 @ObsoleteCoroutinesApi
 @ExperimentalCoroutinesApi
 class MqttClient(
     private val client: IMqttAsyncClient,
-    private val connectionConfigProvider: ConnectionConfigProvider,
+    private val connectionConfigManager: ConnectionConfigManager,
     private val mqttEventProcessor: MqttEventConsumer
 ) : Client, Scoped {
 
@@ -52,14 +54,14 @@ class MqttClient(
         client.isConnected
 
     override fun connect() {
-        if (client.isConnected || !connectionConfigProvider.hasConnectionConfiguration()) {
+        if (client.isConnected || !connectionConfigManager.hasConnectionConfiguration()) {
             return
         }
 
         launch {
             try {
                 client.connect(
-                    connectionConfigProvider.getConnectionConfiguration()!!.transform(),
+                    connectionConfigManager.getConnectionConfiguration()!!.transform(),
                     null,
                     getListener(MqttCommand.Connect, MqttEvent.Connected)
                 )
@@ -108,7 +110,7 @@ class MqttClient(
                     null,
                     getListener(
                         MqttCommand.Publish(message),
-                        MqttEvent.MessagePublished(message)
+                        MqttEvent.MessagePublished(message.onPublish())
                     )
                 )
             } catch (throwable: Throwable) {
@@ -164,7 +166,8 @@ class MqttClient(
                             validTopic,
                             String(validMessage.payload),
                             validMessage.qos,
-                            validMessage.isRetained
+                            validMessage.isRetained,
+                            Date()
                         )
                     )
                 )

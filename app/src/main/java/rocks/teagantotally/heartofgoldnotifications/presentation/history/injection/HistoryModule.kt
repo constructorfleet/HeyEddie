@@ -18,10 +18,9 @@ class HistoryModule(
     @Provides
     @FragmentScope
     fun providePresenter(
-        startClientUseCase: StartClientUseCase
+//        startClientUseCase: StartClientUseCase
     ): HistoryContract.Presenter =
         HistoryPresenter(
-            view,
-            startClientUseCase
+            view
         )
 }

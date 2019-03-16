@@ -10,6 +10,8 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.ObsoleteCoroutinesApi
 import rocks.teagantotally.heartofgoldnotifications.R
 import rocks.teagantotally.heartofgoldnotifications.app.HeyEddieApplication
 import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService.Companion.EVENT_COMMAND_FAILED
@@ -26,6 +28,8 @@ import rocks.teagantotally.heartofgoldnotifications.presentation.main.injection.
 import javax.inject.Inject
 
 
+@ObsoleteCoroutinesApi
+@ExperimentalCoroutinesApi
 class MainActivity : BaseActivity(),
     MainActivityContract.View,
     FragmentManager.OnBackStackChangedListener {
@@ -36,13 +40,14 @@ class MainActivity : BaseActivity(),
 
     @Inject
     override lateinit var presenter: MainActivityContract.Presenter
+    @Inject
+    lateinit var eventBroadcastReceiver: MqttEventBroadcastReceiver<*>
 
-    private val eventBroadcastReceiver: MqttEventBroadcastReceiver<MainActivityContract.Presenter> by lazy {
-        MqttEventBroadcastReceiver(presenter)
+    private var currentFragment: Fragment? = null
+    private val setCurrentFragment: (Fragment) -> Unit = {
+        currentFragment = it
+        updateNavigationMenu()
     }
-
-    private val currentFragment: Fragment?
-        get() = supportFragmentManager.findFragmentById(R.id.main_container)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -81,6 +86,7 @@ class MainActivity : BaseActivity(),
         presenter.onViewCreated()
     }
 
+    @UseExperimental(ObsoleteCoroutinesApi::class)
     override fun onResume() {
         super.onResume()
         registerReceiver(
@@ -94,6 +100,11 @@ class MainActivity : BaseActivity(),
         )
     }
 
+    override fun onStop() {
+        super.onStop()
+        unregisterReceiver(eventBroadcastReceiver)
+    }
+
     override fun onOptionsItemSelected(item: MenuItem): Boolean =
         when (item.itemId) {
             android.R.id.home ->
@@ -104,19 +115,23 @@ class MainActivity : BaseActivity(),
             ?: false
 
     override fun onBackStackChanged() {
-        currentFragment
-            ?.let { it as? Navigable }
-            ?.let { navigation_drawer.menu.findItem(it.navigationMenuId) }
-            ?.run { isChecked = true }
-            ?: uncheckNavigationItems()
+        updateNavigationMenu()
     }
 
     override fun showConfigSettings() {
-        setFragment(ConfigFragment(), true)
+        setFragment(
+            ConfigFragment(),
+            true,
+            setCurrentFragment
+        )
     }
 
-    override fun showStatus() {
-        setFragment(HistoryFragment(), true)
+    override fun showHistory() {
+        setFragment(
+            HistoryFragment(),
+            true,
+            setCurrentFragment
+        )
     }
 
     override fun showLoading(loading: Boolean) {
@@ -189,12 +204,15 @@ class MainActivity : BaseActivity(),
             ).show()
     }
 
-    private fun uncheckNavigationItems() {
-        navigation_drawer
-            .menu
+    private fun updateNavigationMenu() {
+        navigation_drawer.menu
             .let {
                 for (i in 0..(it.size() - 1)) {
-                    it.getItem(i).isChecked = false
+                    it.getItem(i)
+                        ?.let { menuItem ->
+                            menuItem.isChecked =
+                                (menuItem.itemId == (currentFragment as? Navigable)?.navigationMenuId)
+                        }
                 }
             }
     }

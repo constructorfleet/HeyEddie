@@ -16,6 +16,7 @@ import rocks.teagantotally.heartofgoldnotifications.data.services.receivers.Mqtt
 import rocks.teagantotally.heartofgoldnotifications.data.services.receivers.MqttEventBroadcastReceiver
 import rocks.teagantotally.heartofgoldnotifications.domain.clients.Client
 import rocks.teagantotally.heartofgoldnotifications.domain.clients.injection.ClientModule
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.ConnectionConfigManager
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.Notifier
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.event.MqttEventConsumer
 import rocks.teagantotally.heartofgoldnotifications.domain.models.ClientState
@@ -84,6 +85,8 @@ class MqttService : Service(), MqttEventConsumer, Scoped {
     lateinit var notifier: Notifier
     @Inject
     lateinit var updatePersistentNotification: UpdatePersistentNotificationUseCase
+    @Inject
+    lateinit var connectionConfigManager: ConnectionConfigManager
 
     private var client: Client? = null
     private val commandBroadcastReceiver: MqttCommandBroadcastReceiver =
@@ -126,11 +129,11 @@ class MqttService : Service(), MqttEventConsumer, Scoped {
             }
             .run {
                 launch {
-                    updatePersistentNotification(ClientState.Unknown)
+                    updatePersistentNotification(ClientState.Disconnected)
                 }
             }
             .run {
-                UpdatePersistentNotificationUseCase.getPersistentNotification(ClientState.Unknown)
+                UpdatePersistentNotificationUseCase.getPersistentNotification(ClientState.Disconnected)
                     .transform(this@MqttService)
                     .let { startForeground(it.first, it.second) }
             }

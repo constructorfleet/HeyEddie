@@ -1,14 +1,14 @@
-package rocks.teagantotally.heartofgoldnotifications.data.local
+package rocks.teagantotally.heartofgoldnotifications.data.managers.config
 
 import android.content.SharedPreferences
 import com.google.gson.Gson
-import rocks.teagantotally.heartofgoldnotifications.domain.framework.ConnectionConfigProvider
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.ConnectionConfigManager
 import rocks.teagantotally.heartofgoldnotifications.domain.models.configs.ConnectionConfiguration
 
-class SharedPreferenceConnectionConfigProvider(
+class SharedPreferenceConnectionConfigManager(
     private val sharedPreferences: SharedPreferences,
     private val gson: Gson
-) : ConnectionConfigProvider {
+) : ConnectionConfigManager {
 
     companion object {
         private const val KEY_CONFIG = "ConnectionConfiguration"

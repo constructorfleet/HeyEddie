@@ -10,7 +10,7 @@ interface MainActivityContract {
     interface View : BaseView<Presenter> {
         fun showConfigSettings()
 
-        fun showStatus()
+        fun showHistory()
 
         fun setConnectionState(state: ConnectionViewState)
     }

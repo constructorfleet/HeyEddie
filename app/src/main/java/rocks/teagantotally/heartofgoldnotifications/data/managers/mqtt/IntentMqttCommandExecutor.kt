@@ -1,4 +1,4 @@
-package rocks.teagantotally.heartofgoldnotifications.data.managers
+package rocks.teagantotally.heartofgoldnotifications.data.managers.mqtt
 
 import android.content.Context
 import android.content.Intent

@@ -22,6 +22,7 @@ import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.Messa
 import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.NotificationMessage
 import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.NotificationMessageChannel
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.Scoped
+import java.util.*
 import kotlin.coroutines.CoroutineContext
 
 class SystemNotifier(
@@ -95,7 +96,8 @@ fun NotificationMessage.transform(context: Context): Pair<Int, Notification> =
                                     action.topic,
                                     action.payload,
                                     action.qos,
-                                    action.retain
+                                    action.retain,
+                                    Date()
                                 ) as Parcelable
                             )
                             .let {

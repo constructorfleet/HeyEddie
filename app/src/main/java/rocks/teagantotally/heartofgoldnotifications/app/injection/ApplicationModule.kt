@@ -9,9 +9,11 @@ import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import dagger.Module
 import dagger.Provides
-import rocks.teagantotally.heartofgoldnotifications.data.local.SharedPreferenceConnectionConfigProvider
 import rocks.teagantotally.heartofgoldnotifications.data.managers.SystemNotifier
-import rocks.teagantotally.heartofgoldnotifications.domain.framework.ConnectionConfigProvider
+import rocks.teagantotally.heartofgoldnotifications.data.managers.config.SharedPreferenceConnectionConfigManager
+import rocks.teagantotally.heartofgoldnotifications.data.managers.history.SharedPreferenceMessageHistoryManager
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.ConnectionConfigManager
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.MessageHistoryManager
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.Notifier
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.FinishNotifyUseCase
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.UpdatePersistentNotificationUseCase
@@ -85,11 +87,22 @@ class ApplicationModule(
 
     @Provides
     @Singleton
-    fun provideConnectionConfigProvider(
+    fun provideConnectionConfigManager(
         sharedPreferences: SharedPreferences,
         gson: Gson
-    ): ConnectionConfigProvider =
-        SharedPreferenceConnectionConfigProvider(
+    ): ConnectionConfigManager =
+        SharedPreferenceConnectionConfigManager(
+            sharedPreferences,
+            gson
+        )
+
+    @Provides
+    @Singleton
+    fun provideMessageHistoryManager(
+        sharedPreferences: SharedPreferences,
+        gson: Gson
+    ): MessageHistoryManager =
+        SharedPreferenceMessageHistoryManager(
             sharedPreferences,
             gson
         )

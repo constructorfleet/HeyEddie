@@ -5,7 +5,7 @@ import dagger.Module
 import dagger.Provides
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.ObsoleteCoroutinesApi
-import rocks.teagantotally.heartofgoldnotifications.data.managers.IntentMqttEventConsumer
+import rocks.teagantotally.heartofgoldnotifications.data.managers.mqtt.IntentMqttEventConsumer
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.event.MqttEventConsumer
 import javax.inject.Singleton
 

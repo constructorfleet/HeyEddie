@@ -11,7 +11,7 @@ import rocks.teagantotally.heartofgoldnotifications.app.injection.scopes.Session
 import rocks.teagantotally.heartofgoldnotifications.data.common.BrokerUriBuilder
 import rocks.teagantotally.heartofgoldnotifications.domain.clients.Client
 import rocks.teagantotally.heartofgoldnotifications.domain.clients.MqttClient
-import rocks.teagantotally.heartofgoldnotifications.domain.framework.ConnectionConfigProvider
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.ConnectionConfigManager
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.event.MqttEventConsumer
 import java.lang.IllegalStateException
 
@@ -22,9 +22,9 @@ class ClientModule(
     @Provides
     @SessionScope
     fun provideMqttAsyncClient(
-        connectionConfigProvider: ConnectionConfigProvider
+        connectionConfigManager: ConnectionConfigManager
     ): IMqttAsyncClient =
-        connectionConfigProvider.getConnectionConfiguration()
+        connectionConfigManager.getConnectionConfiguration()
             ?.let {
                 MqttAndroidClient(
                     context,
@@ -40,12 +40,12 @@ class ClientModule(
     @SessionScope
     fun provideClient(
         mqttAsyncClient: IMqttAsyncClient,
-        connectionConfigProvider: ConnectionConfigProvider,
+        connectionConfigManager: ConnectionConfigManager,
         mqttEventConsumer: MqttEventConsumer
     ): Client =
         MqttClient(
             mqttAsyncClient,
-            connectionConfigProvider,
+            connectionConfigManager,
             mqttEventConsumer
         )
 }
