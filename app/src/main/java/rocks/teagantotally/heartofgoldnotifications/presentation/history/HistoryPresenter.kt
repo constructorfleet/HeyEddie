@@ -3,7 +3,7 @@ package rocks.teagantotally.heartofgoldnotifications.presentation.history
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.launch
-import rocks.teagantotally.heartofgoldnotifications.domain.models.commands.ConnectionCommand
+import rocks.teagantotally.heartofgoldnotifications.domain.models.commands.MqttCommand
 import rocks.teagantotally.heartofgoldnotifications.domain.models.events.ConnectionEvent
 import rocks.teagantotally.heartofgoldnotifications.domain.models.events.MessageEvent
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.ProcessMessage
@@ -27,7 +27,7 @@ class HistoryPresenter(
     override fun onViewCreated() {
         launch {
             view.showLoading(true)
-            startClientUseCase(ConnectionCommand.Connect)
+            startClientUseCase(MqttCommand.Connect)
         }
         launch {
             while (!connectionEventChannel.isClosedForReceive) {

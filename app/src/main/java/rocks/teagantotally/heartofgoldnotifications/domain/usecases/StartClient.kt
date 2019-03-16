@@ -1,14 +1,14 @@
 package rocks.teagantotally.heartofgoldnotifications.domain.usecases
 
-import rocks.teagantotally.heartofgoldnotifications.domain.framework.CommandExecutor
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.MqttCommandExecutor
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.UseCase
-import rocks.teagantotally.heartofgoldnotifications.domain.models.commands.ConnectionCommand
+import rocks.teagantotally.heartofgoldnotifications.domain.models.commands.MqttCommand
 
 class StartClientUseCase(
-    private val commandExecutor: CommandExecutor
-) : UseCase<ConnectionCommand.Connect> {
+    private val commandExecutor: MqttCommandExecutor
+) : UseCase<MqttCommand.Connect> {
 
-    override suspend fun invoke(parameter: ConnectionCommand.Connect) {
+    override suspend fun invoke(parameter: MqttCommand.Connect) {
         commandExecutor.execute(parameter)
     }
 }

@@ -4,7 +4,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import rocks.teagantotally.heartofgoldnotifications.common.extensions.safeLet
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.ConnectionConfigProvider
-import rocks.teagantotally.heartofgoldnotifications.domain.models.commands.ConnectionCommand
+import rocks.teagantotally.heartofgoldnotifications.domain.models.commands.MqttCommand
 import rocks.teagantotally.heartofgoldnotifications.domain.models.configs.ConnectionConfiguration
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.StartClientUseCase
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.ScopedPresenter
@@ -35,7 +35,7 @@ class ConfigPresenter(
                 cleanSession
             )
         )
-            .run { launch { startClientUseCase(ConnectionCommand.Connect) } }
+            .run { launch { startClientUseCase(MqttCommand.Connect) } }
             .run { view.close() }
     }
 

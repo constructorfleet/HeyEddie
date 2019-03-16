@@ -6,28 +6,26 @@ import android.os.Parcelable
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.ObsoleteCoroutinesApi
 import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService
-import rocks.teagantotally.heartofgoldnotifications.domain.framework.CommandExecutor
-import rocks.teagantotally.heartofgoldnotifications.domain.models.commands.ClientCommand
-import rocks.teagantotally.heartofgoldnotifications.domain.models.commands.Command
-import rocks.teagantotally.heartofgoldnotifications.domain.models.commands.ConnectionCommand
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.MqttCommandExecutor
+import rocks.teagantotally.heartofgoldnotifications.domain.models.commands.MqttCommand
 
 @ObsoleteCoroutinesApi
-class IntentCommandExecutor(
+class IntentMqttCommandExecutor(
     private val context: Context
-) : CommandExecutor {
-    override fun execute(command: Command) {
+) : MqttCommandExecutor {
+    override fun execute(command: MqttCommand) {
         buildIntent(command)
             ?.let { context.sendBroadcast(it) }
     }
 
     @UseExperimental(ExperimentalCoroutinesApi::class)
-    private fun buildIntent(command: Command) =
+    private fun buildIntent(command: MqttCommand) =
         when (command) {
-            is ConnectionCommand.Connect ->
+            is MqttCommand.Connect ->
                 Intent(MqttService.ACTION_CONNECT)
-            is ConnectionCommand.Disconnect ->
+            is MqttCommand.Disconnect ->
                 Intent(MqttService.ACTION_DISCONNECT)
-            is ClientCommand.Publish ->
+            is MqttCommand.Publish ->
                 Intent(MqttService.ACTION_PUBLISH)
                     .putExtra(
                         MqttService.EXTRA_MESSAGE,

@@ -12,12 +12,13 @@ import dagger.Provides
 import kotlinx.coroutines.ObsoleteCoroutinesApi
 import rocks.teagantotally.heartofgoldnotifications.app.managers.ChannelManager
 import rocks.teagantotally.heartofgoldnotifications.data.local.SharedPreferenceConnectionConfigProvider
-import rocks.teagantotally.heartofgoldnotifications.data.managers.IntentCommandExecutor
+import rocks.teagantotally.heartofgoldnotifications.data.managers.IntentMqttCommandExecutor
 import rocks.teagantotally.heartofgoldnotifications.data.managers.SystemNotifier
-import rocks.teagantotally.heartofgoldnotifications.domain.framework.CommandExecutor
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.ConnectionConfigProvider
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.MqttCommandExecutor
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.Notifier
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.ProcessingUseCase
+import rocks.teagantotally.heartofgoldnotifications.domain.models.commands.MqttCommand
 import rocks.teagantotally.heartofgoldnotifications.domain.models.events.MessageEvent
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.*
 import javax.inject.Singleton
@@ -100,7 +101,7 @@ class ApplicationModule(
     @Provides
     @Singleton
     fun provideStartClientUseCase(
-        commandExecutor: CommandExecutor
+        commandExecutor: MqttCommandExecutor
     ): StartClientUseCase =
         StartClientUseCase(
             commandExecutor
@@ -109,7 +110,7 @@ class ApplicationModule(
     @Provides
     @Singleton
     fun provideStopClientUseCase(
-        commandExecutor: CommandExecutor
+        commandExecutor: MqttCommandExecutor
     ): StopClientUseCase =
         StopClientUseCase(commandExecutor)
 
@@ -127,10 +128,10 @@ class ApplicationModule(
     @ObsoleteCoroutinesApi
     @Provides
     @Singleton
-    fun provideCommandExecutor(
+    fun provideMqttCommandExecutor(
         context: Context
-    ): CommandExecutor =
-        IntentCommandExecutor(context)
+    ): MqttCommandExecutor =
+        IntentMqttCommandExecutor(context)
 
     @Provides
     @Singleton

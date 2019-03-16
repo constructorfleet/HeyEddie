@@ -1,8 +1,7 @@
 package rocks.teagantotally.heartofgoldnotifications.app.managers
 
 import kotlinx.coroutines.channels.ConflatedBroadcastChannel
-import rocks.teagantotally.heartofgoldnotifications.domain.models.commands.ClientCommand
-import rocks.teagantotally.heartofgoldnotifications.domain.models.commands.ConnectionCommand
+import rocks.teagantotally.heartofgoldnotifications.domain.models.commands.MqttCommand
 import rocks.teagantotally.heartofgoldnotifications.domain.models.commands.NotificationCommand
 import rocks.teagantotally.heartofgoldnotifications.domain.models.events.ConnectionEvent
 import rocks.teagantotally.heartofgoldnotifications.domain.models.events.Failure
@@ -13,8 +12,8 @@ class ChannelManager {
     val connectionEventChannel = ConflatedBroadcastChannel<ConnectionEvent>()
     val messageEventChannel = ConflatedBroadcastChannel<MessageEvent>()
     val subscriptionEventChannel = ConflatedBroadcastChannel<SubscriptionEvent>()
-    val connectionCommandChannel = ConflatedBroadcastChannel<ConnectionCommand>()
-    val clientCommandChannel = ConflatedBroadcastChannel<ClientCommand>()
-    val notificationCommandChannel = ConflatedBroadcastChannel<NotificationCommand>()
-    val failureEventChannel = ConflatedBroadcastChannel<Failure<*>>()
+//    val connectionCommandChannel = ConflatedBroadcastChannel<ConnectionCommand>()
+//    val clientCommandChannel = ConflatedBroadcastChannel<MqttCommand>()
+//    val notificationCommandChannel = ConflatedBroadcastChannel<NotificationCommand>()
+//    val failureEventChannel = ConflatedBroadcastChannel<Failure<*>>()
 }
