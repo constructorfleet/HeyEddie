@@ -4,7 +4,7 @@ import dagger.Subcomponent
 import rocks.teagantotally.heartofgoldnotifications.app.injection.scopes.ActivityScope
 import rocks.teagantotally.heartofgoldnotifications.presentation.main.MainActivity
 import rocks.teagantotally.heartofgoldnotifications.presentation.config.injection.ConfigComponent
-import rocks.teagantotally.heartofgoldnotifications.presentation.history.injection.StatusComponent
+import rocks.teagantotally.heartofgoldnotifications.presentation.history.injection.HistoryComponent
 
 @ActivityScope
 @Subcomponent(modules = [MainActivityModule::class])
@@ -13,7 +13,7 @@ interface MainActivityComponent {
 
     fun configComponentBuilder(): ConfigComponent.Builder
 
-    fun statusComponentBuilder(): StatusComponent.Builder
+    fun historyComponentBuilder(): HistoryComponent.Builder
 
     @Subcomponent.Builder
     interface Builder {

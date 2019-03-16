@@ -6,13 +6,13 @@ import rocks.teagantotally.heartofgoldnotifications.presentation.history.History
 
 @FragmentScope
 @Subcomponent(modules = [HistoryModule::class])
-interface StatusComponent {
+interface HistoryComponent {
     fun inject(fragment: HistoryFragment)
 
     @Subcomponent.Builder
     interface Builder {
         fun module(module: HistoryModule): Builder
 
-        fun build(): StatusComponent
+        fun build(): HistoryComponent
     }
 }

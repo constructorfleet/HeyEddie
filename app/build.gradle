@@ -44,6 +44,8 @@ dependencies {
 
     implementation 'com.github.ajalt:timberkt:1.5.1'
 
+    implementation 'com.lightningkite.kotlin:lk-kotlin-observable-list:0.2.2'
+
     implementation 'org.parceler:parceler-api:1.1.10'
     kapt 'org.parceler:parceler:1.1.10'
 

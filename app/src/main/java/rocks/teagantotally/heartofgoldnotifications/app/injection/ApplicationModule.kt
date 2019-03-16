@@ -12,6 +12,7 @@ import dagger.Provides
 import rocks.teagantotally.heartofgoldnotifications.data.managers.SystemNotifier
 import rocks.teagantotally.heartofgoldnotifications.data.managers.config.SharedPreferenceConnectionConfigManager
 import rocks.teagantotally.heartofgoldnotifications.data.managers.history.SharedPreferenceMessageHistoryManager
+import rocks.teagantotally.heartofgoldnotifications.data.managers.history.TestMessageHistoryManager
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.ConnectionConfigManager
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.MessageHistoryManager
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.Notifier
