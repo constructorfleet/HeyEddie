@@ -9,6 +9,7 @@ import kotlinx.android.synthetic.main.fragment_history.*
 import kotlinx.android.synthetic.main.item_message_history.view.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.ObsoleteCoroutinesApi
+import kotlinx.coroutines.launch
 import rocks.teagantotally.heartofgoldnotifications.R
 import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.Message
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.BaseFragment
@@ -73,11 +74,15 @@ class HistoryFragment : BaseFragment(), HistoryContract.View, Scoped {
     }
 
     override fun logMessageReceived(message: Message) {
-        receivedAdapter.add(message)
+        launch {
+            receivedAdapter.add(message)
+        }
     }
 
     override fun logMessagePublished(message: Message) {
-        publishedAdapter.add(message)
+        launch {
+            publishedAdapter.add(message)
+        }
     }
 
     override fun showLoading(loading: Boolean) {

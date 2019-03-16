@@ -48,11 +48,6 @@ class ApplicationModule(
     @Singleton
     fun provideGson(): Gson =
         GsonBuilder().create()
-//
-//    @Provides
-//    @Singleton
-//    fun provideChannelManager(): ChannelManager =
-//        ChannelManager()
 
     @Provides
     @Singleton

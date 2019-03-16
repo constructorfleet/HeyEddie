@@ -16,7 +16,6 @@ import rocks.teagantotally.heartofgoldnotifications.data.services.receivers.Mqtt
 import rocks.teagantotally.heartofgoldnotifications.data.services.receivers.MqttEventBroadcastReceiver
 import rocks.teagantotally.heartofgoldnotifications.domain.clients.Client
 import rocks.teagantotally.heartofgoldnotifications.domain.clients.injection.ClientModule
-import rocks.teagantotally.heartofgoldnotifications.domain.framework.ConnectionConfigManager
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.Notifier
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.event.MqttEventConsumer
 import rocks.teagantotally.heartofgoldnotifications.domain.models.ClientState
@@ -24,6 +23,8 @@ import rocks.teagantotally.heartofgoldnotifications.domain.models.commands.MqttC
 import rocks.teagantotally.heartofgoldnotifications.domain.models.events.MqttEvent
 import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.Message
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.UpdatePersistentNotificationUseCase
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.message.ProcessMessagePublished
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.message.ProcessMessageReceived
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.Scoped
 import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
@@ -63,6 +64,10 @@ class MqttService : Service(), MqttEventConsumer, Scoped {
             listOf(
                 EVENT_CONNECTED,
                 EVENT_DISCONNECTED,
+                EVENT_SUBSCRIBED,
+                EVENT_UNSUBSCRIBED,
+                EVENT_MESSAGE_RECEIVED,
+                EVENT_MESSAGE_PUBLISHED,
                 EVENT_COMMAND_FAILED
             )
 
@@ -86,7 +91,9 @@ class MqttService : Service(), MqttEventConsumer, Scoped {
     @Inject
     lateinit var updatePersistentNotification: UpdatePersistentNotificationUseCase
     @Inject
-    lateinit var connectionConfigManager: ConnectionConfigManager
+    lateinit var processMessageReceived: ProcessMessageReceived
+    @Inject
+    lateinit var processMessagePublished: ProcessMessagePublished
 
     private var client: Client? = null
     private val commandBroadcastReceiver: MqttCommandBroadcastReceiver =
@@ -160,6 +167,7 @@ class MqttService : Service(), MqttEventConsumer, Scoped {
             when (event) {
                 MqttEvent.Connected ->
                     updatePersistentNotification(ClientState.Connected)
+                        .run { subscribe("/test", 0) }
                 MqttEvent.Disconnected ->
                     updatePersistentNotification(ClientState.Disconnected)
                 is MqttEvent.CommandFailed ->
@@ -167,6 +175,8 @@ class MqttService : Service(), MqttEventConsumer, Scoped {
                         MqttCommand.Connect, MqttCommand.Disconnect ->
                             updatePersistentNotification(ClientState.Unknown)
                     }
+                is MqttEvent.MessageReceived -> processMessageReceived(event)
+                is MqttEvent.MessagePublished -> processMessagePublished(event)
             }
         }
     }

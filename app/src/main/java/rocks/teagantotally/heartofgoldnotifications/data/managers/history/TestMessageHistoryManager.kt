@@ -5,6 +5,14 @@ import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.Messa
 import java.util.*
 
 class TestMessageHistoryManager : MessageHistoryManager {
+    override fun addListener(listener: MessageHistoryManager.Listener) {
+
+    }
+
+    override fun removeListener(listener: MessageHistoryManager.Listener) {
+
+    }
+
     override fun recordMessageReceived(message: Message) {
 
     }

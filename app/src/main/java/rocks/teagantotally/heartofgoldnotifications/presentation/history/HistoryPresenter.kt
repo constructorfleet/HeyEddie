@@ -1,14 +1,17 @@
 package rocks.teagantotally.heartofgoldnotifications.presentation.history
 
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.MessageHistoryManager
+import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.Message
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.ScopedPresenter
 
 class HistoryPresenter(
     view: HistoryContract.View,
-    val messageHistoryManager: MessageHistoryManager
-) : HistoryContract.Presenter, ScopedPresenter<HistoryContract.View, HistoryContract.Presenter>(view) {
+    private val messageHistoryManager: MessageHistoryManager
+) : HistoryContract.Presenter, ScopedPresenter<HistoryContract.View, HistoryContract.Presenter>(view),
+    MessageHistoryManager.Listener {
 
     override fun onViewCreated() {
+        messageHistoryManager.addListener(this)
         messageHistoryManager
             .getReceivedMessages()
             .forEach { view.logMessageReceived(it) }
@@ -18,6 +21,14 @@ class HistoryPresenter(
     }
 
     override fun onDestroyView() {
-        // no-op
+        messageHistoryManager.removeListener(this)
+    }
+
+    override fun onMessageReceived(message: Message) {
+        view.logMessageReceived(message)
+    }
+
+    override fun onMessagePublished(message: Message) {
+        view.logMessagePublished(message)
     }
 }

@@ -11,9 +11,19 @@ class SharedPreferenceMessageHistoryManager(
     private val gson: Gson
 ) : MessageHistoryManager {
 
+    private val listeners: MutableList<MessageHistoryManager.Listener> = mutableListOf()
+
     companion object {
         private const val KEY_RECEIVED_MESSAGES = "received_messages"
         private const val KEY_PUBLISHED_MESSAGES = "published_messages"
+    }
+
+    override fun addListener(listener: MessageHistoryManager.Listener) {
+        listeners.add(listener)
+    }
+
+    override fun removeListener(listener: MessageHistoryManager.Listener) {
+        listeners.remove(listener)
     }
 
     override fun recordMessageReceived(message: Message) {
@@ -27,19 +37,27 @@ class SharedPreferenceMessageHistoryManager(
                             .putStringSet(KEY_RECEIVED_MESSAGES, it)
                             .apply()
                     }
+                    ?.run {
+                        listeners
+                            .forEach { it.onMessageReceived(message) }
+                    }
             } ?: Timber.e { "Unable to record received message" }
     }
 
     override fun recordMessagePublished(message: Message) {
         serializeMessage(message)
             ?.let { serializedMessage ->
-                sharedPreferences.getStringSet(KEY_RECEIVED_MESSAGES, mutableSetOf())
+                sharedPreferences.getStringSet(KEY_PUBLISHED_MESSAGES, mutableSetOf())
                     ?.apply { add(serializedMessage) }
                     ?.let {
                         sharedPreferences
                             .edit()
-                            .putStringSet(KEY_RECEIVED_MESSAGES, it)
+                            .putStringSet(KEY_PUBLISHED_MESSAGES, it)
                             .apply()
+                    }
+                    ?.run {
+                        listeners
+                            .forEach { it.onMessagePublished(message) }
                     }
             } ?: Timber.e { "Unable to record received message" }
     }
