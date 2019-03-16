@@ -11,7 +11,7 @@ import rocks.teagantotally.heartofgoldnotifications.app.injection.scopes.Session
 import rocks.teagantotally.heartofgoldnotifications.data.common.BrokerUriBuilder
 import rocks.teagantotally.heartofgoldnotifications.domain.clients.Client
 import rocks.teagantotally.heartofgoldnotifications.domain.clients.MqttClient
-import rocks.teagantotally.heartofgoldnotifications.domain.framework.ConnectionConfigManager
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.managers.ConnectionConfigManager
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.event.MqttEventConsumer
 import java.lang.IllegalStateException
 

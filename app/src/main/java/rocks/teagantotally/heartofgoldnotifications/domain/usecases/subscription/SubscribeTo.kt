@@ -1,4 +1,4 @@
-package rocks.teagantotally.heartofgoldnotifications.domain.usecases
+package rocks.teagantotally.heartofgoldnotifications.domain.usecases.subscription
 
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.commands.MqttCommandExecutor
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.UseCase

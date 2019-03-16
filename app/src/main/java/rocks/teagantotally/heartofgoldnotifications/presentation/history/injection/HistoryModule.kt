@@ -3,7 +3,7 @@ package rocks.teagantotally.heartofgoldnotifications.presentation.history.inject
 import dagger.Module
 import dagger.Provides
 import rocks.teagantotally.heartofgoldnotifications.app.injection.scopes.FragmentScope
-import rocks.teagantotally.heartofgoldnotifications.domain.framework.MessageHistoryManager
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.managers.MessageHistoryManager
 import rocks.teagantotally.heartofgoldnotifications.presentation.history.HistoryContract
 import rocks.teagantotally.heartofgoldnotifications.presentation.history.HistoryPresenter
 

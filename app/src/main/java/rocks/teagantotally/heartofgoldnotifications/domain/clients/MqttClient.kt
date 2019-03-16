@@ -3,7 +3,7 @@ package rocks.teagantotally.heartofgoldnotifications.domain.clients
 import kotlinx.coroutines.*
 import org.eclipse.paho.client.mqttv3.*
 import rocks.teagantotally.heartofgoldnotifications.common.extensions.safeLet
-import rocks.teagantotally.heartofgoldnotifications.domain.framework.ConnectionConfigManager
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.managers.ConnectionConfigManager
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.event.MqttEventConsumer
 import rocks.teagantotally.heartofgoldnotifications.domain.models.commands.MqttCommand
 import rocks.teagantotally.heartofgoldnotifications.domain.models.events.MqttEvent

@@ -1,6 +1,6 @@
 package rocks.teagantotally.heartofgoldnotifications.data.managers.config
 
-import rocks.teagantotally.heartofgoldnotifications.domain.framework.ConnectionConfigManager
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.managers.ConnectionConfigManager
 import rocks.teagantotally.heartofgoldnotifications.domain.models.configs.ConnectionConfiguration
 
 class TestConnectionConfigManager :

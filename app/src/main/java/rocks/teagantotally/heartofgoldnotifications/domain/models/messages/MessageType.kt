@@ -1,5 +1,5 @@
 package rocks.teagantotally.heartofgoldnotifications.domain.models.messages
 
-enum class MessageTypes {
+enum class MessageType {
     NOTIFICATION
 }

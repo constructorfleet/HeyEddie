@@ -1,7 +1,7 @@
 package rocks.teagantotally.heartofgoldnotifications.presentation.main
 
 import kotlinx.coroutines.launch
-import rocks.teagantotally.heartofgoldnotifications.domain.framework.ConnectionConfigManager
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.managers.ConnectionConfigManager
 import rocks.teagantotally.heartofgoldnotifications.domain.models.commands.MqttCommand
 import rocks.teagantotally.heartofgoldnotifications.domain.models.events.MqttEvent
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.StartClientUseCase

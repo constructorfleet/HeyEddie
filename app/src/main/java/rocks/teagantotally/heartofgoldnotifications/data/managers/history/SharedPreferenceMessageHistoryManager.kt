@@ -3,7 +3,7 @@ package rocks.teagantotally.heartofgoldnotifications.data.managers.history
 import android.content.SharedPreferences
 import com.github.ajalt.timberkt.Timber
 import com.google.gson.Gson
-import rocks.teagantotally.heartofgoldnotifications.domain.framework.MessageHistoryManager
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.managers.MessageHistoryManager
 import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.Message
 
 class SharedPreferenceMessageHistoryManager(
@@ -11,7 +11,7 @@ class SharedPreferenceMessageHistoryManager(
     private val gson: Gson
 ) : MessageHistoryManager {
 
-    private val listeners: MutableList<MessageHistoryManager.Listener> = mutableListOf()
+    private val listeners: MutableSet<MessageHistoryManager.Listener> = mutableSetOf()
 
     companion object {
         private const val KEY_RECEIVED_MESSAGES = "received_messages"

@@ -1,10 +1,11 @@
 package rocks.teagantotally.heartofgoldnotifications.data.managers.history
 
-import rocks.teagantotally.heartofgoldnotifications.domain.framework.MessageHistoryManager
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.managers.MessageHistoryManager
 import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.Message
 import java.util.*
 
-class TestMessageHistoryManager : MessageHistoryManager {
+class TestMessageHistoryManager :
+    MessageHistoryManager {
     override fun addListener(listener: MessageHistoryManager.Listener) {
 
     }

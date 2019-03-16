@@ -1,6 +1,6 @@
 package rocks.teagantotally.heartofgoldnotifications.domain.usecases.message.publish
 
-import rocks.teagantotally.heartofgoldnotifications.domain.framework.MessageHistoryManager
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.managers.MessageHistoryManager
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.UseCase
 import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.Message
 
