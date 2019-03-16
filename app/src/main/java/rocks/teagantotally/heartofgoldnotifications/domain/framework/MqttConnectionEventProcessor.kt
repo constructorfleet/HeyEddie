@@ -1,0 +1,5 @@
+package rocks.teagantotally.heartofgoldnotifications.domain.framework
+
+import rocks.teagantotally.heartofgoldnotifications.domain.models.events.ConnectionEvent
+
+interface MqttConnectionEventProcessor<ConnectionEventType: ConnectionEvent> : EventProcessor<ConnectionEventType>
