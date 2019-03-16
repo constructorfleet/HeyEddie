@@ -14,7 +14,10 @@ import javax.inject.Singleton
 @UseExperimental(ExperimentalCoroutinesApi::class)
 @Singleton
 @Component(
-    modules = [ApplicationModule::class]
+    modules = [
+        ApplicationModule::class,
+        MqttCommandModule::class
+    ]
 )
 interface ApplicationComponent {
     fun inject(service: NotificationService)

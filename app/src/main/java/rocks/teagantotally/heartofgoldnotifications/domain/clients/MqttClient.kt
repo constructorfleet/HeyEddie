@@ -86,7 +86,7 @@ class MqttClient(
             }
         }
 
-    private fun getSubscribeListener(command: MqttCommand.SubscribeTo): IMqttActionListener =
+    private fun getSubscribeListener(command: MqttCommand.Subscribe): IMqttActionListener =
         object : IMqttActionListener, CoroutineScope by this@MqttClient {
 
             override fun onSuccess(token: IMqttToken?) {
@@ -239,7 +239,7 @@ class MqttClient(
 
     override fun subscribe(topic: String, qosMax: Int) {
         launch {
-            MqttCommand.SubscribeTo(topic, qosMax)
+            MqttCommand.Subscribe(topic, qosMax)
                 .let { command ->
                     if (!client.isConnected) {
                         subscriptionEventChannel.send(

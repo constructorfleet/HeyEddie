@@ -7,7 +7,7 @@ sealed class MqttCommand : Command {
 
     object Disconnect : MqttCommand()
 
-    class SubscribeTo(val topic: String, val maxQoS: Int) : MqttCommand()
+    class Subscribe(val topic: String, val maxQoS: Int) : MqttCommand()
 
     class Unsubscribe(val topic: String) : MqttCommand()
 

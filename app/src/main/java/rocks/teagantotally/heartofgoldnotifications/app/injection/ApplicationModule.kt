@@ -18,7 +18,6 @@ import rocks.teagantotally.heartofgoldnotifications.domain.framework.ConnectionC
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.MqttCommandExecutor
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.Notifier
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.ProcessingUseCase
-import rocks.teagantotally.heartofgoldnotifications.domain.models.commands.MqttCommand
 import rocks.teagantotally.heartofgoldnotifications.domain.models.events.MessageEvent
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.*
 import javax.inject.Singleton
@@ -100,22 +99,6 @@ class ApplicationModule(
 
     @Provides
     @Singleton
-    fun provideStartClientUseCase(
-        commandExecutor: MqttCommandExecutor
-    ): StartClientUseCase =
-        StartClientUseCase(
-            commandExecutor
-        )
-
-    @Provides
-    @Singleton
-    fun provideStopClientUseCase(
-        commandExecutor: MqttCommandExecutor
-    ): StopClientUseCase =
-        StopClientUseCase(commandExecutor)
-
-    @Provides
-    @Singleton
     fun provideNotifyUseCase(
         notifier: Notifier,
         gson: Gson
@@ -124,14 +107,6 @@ class ApplicationModule(
             gson,
             notifier
         )
-
-    @ObsoleteCoroutinesApi
-    @Provides
-    @Singleton
-    fun provideMqttCommandExecutor(
-        context: Context
-    ): MqttCommandExecutor =
-        IntentMqttCommandExecutor(context)
 
     @Provides
     @Singleton
