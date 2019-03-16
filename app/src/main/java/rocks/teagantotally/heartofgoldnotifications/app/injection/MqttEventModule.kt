@@ -10,7 +10,11 @@ import rocks.teagantotally.heartofgoldnotifications.data.managers.mqtt.IntentMqt
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.MessageHistoryManager
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.Notifier
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.event.MqttEventConsumer
-import rocks.teagantotally.heartofgoldnotifications.domain.usecases.message.*
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.message.publish.ProcessMessagePublished
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.message.publish.RecordMessagePublished
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.message.receive.Notify
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.message.receive.ProcessMessageReceived
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.message.receive.RecordMessageReceived
 import javax.inject.Singleton
 
 @ObsoleteCoroutinesApi
@@ -32,7 +36,9 @@ class MqttEventModule {
     fun provideRecordMessageReceivedUseCase(
         messageHistoryManager: MessageHistoryManager
     ): RecordMessageReceived =
-        RecordMessageReceived(messageHistoryManager)
+        RecordMessageReceived(
+            messageHistoryManager
+        )
 
     @Provides
     @Singleton
@@ -50,7 +56,9 @@ class MqttEventModule {
     fun provideRecordMessagePublishedUseCase(
         messageHistoryManager: MessageHistoryManager
     ): RecordMessagePublished =
-        RecordMessagePublished(messageHistoryManager)
+        RecordMessagePublished(
+            messageHistoryManager
+        )
 
     @Provides
     @Singleton

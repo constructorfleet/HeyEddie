@@ -1,4 +1,4 @@
-package rocks.teagantotally.heartofgoldnotifications.domain.usecases.message
+package rocks.teagantotally.heartofgoldnotifications.domain.usecases.message.receive
 
 import com.github.ajalt.timberkt.Timber
 import com.google.gson.Gson

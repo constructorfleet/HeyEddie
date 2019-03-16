@@ -1,4 +1,4 @@
-package rocks.teagantotally.heartofgoldnotifications.domain.usecases.message
+package rocks.teagantotally.heartofgoldnotifications.domain.usecases.message.receive
 
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.UseCase
 import rocks.teagantotally.heartofgoldnotifications.domain.models.events.MqttEvent

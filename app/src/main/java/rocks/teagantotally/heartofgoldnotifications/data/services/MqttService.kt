@@ -23,8 +23,8 @@ import rocks.teagantotally.heartofgoldnotifications.domain.models.commands.MqttC
 import rocks.teagantotally.heartofgoldnotifications.domain.models.events.MqttEvent
 import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.Message
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.UpdatePersistentNotificationUseCase
-import rocks.teagantotally.heartofgoldnotifications.domain.usecases.message.ProcessMessagePublished
-import rocks.teagantotally.heartofgoldnotifications.domain.usecases.message.ProcessMessageReceived
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.message.publish.ProcessMessagePublished
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.message.receive.ProcessMessageReceived
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.Scoped
 import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
