@@ -67,6 +67,10 @@ class MainActivityPresenter(
         view.showSubscriptions()
     }
 
+    override fun onNavigateToHistory() {
+        view.showHistory()
+    }
+
     override fun onDestroyView() {
         // no-op
     }

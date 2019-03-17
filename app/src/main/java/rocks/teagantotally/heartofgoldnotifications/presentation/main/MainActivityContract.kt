@@ -23,5 +23,7 @@ interface MainActivityContract {
         fun onNavigateToConfigSettings()
 
         fun onNavigateToSubscriptions()
+
+        fun onNavigateToHistory()
     }
 }

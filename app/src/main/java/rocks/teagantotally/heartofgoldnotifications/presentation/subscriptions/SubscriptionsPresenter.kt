@@ -8,6 +8,7 @@ import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.Messa
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.subscription.SubscribeTo
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.subscription.UnsubscribeFrom
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.ScopedPresenter
+import rocks.teagantotally.heartofgoldnotifications.presentation.subscriptions.viewmodels.SubscriptionViewModel
 
 class SubscriptionsPresenter(
     view: SubscriptionsContract.View,
@@ -24,11 +25,11 @@ class SubscriptionsPresenter(
         subscriptionManager.addListener(this)
     }
 
-    override fun onCreateSubscription() {
-        view.showNewSubscription()
+    override fun onShowCreateNewSubscription() {
+        view.showCreateNewSubscription()
     }
 
-    override fun addSubscription(topic: String, maxQoS: Int, messageType: MessageType) {
+    override fun saveNewSubscription(topic: String, maxQoS: Int, messageType: MessageType) {
         SubscriptionConfiguration(
             topic,
             maxQoS,

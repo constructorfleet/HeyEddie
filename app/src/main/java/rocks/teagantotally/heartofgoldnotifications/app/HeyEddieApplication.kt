@@ -6,6 +6,8 @@ import android.app.Application
 import android.content.Context
 import android.content.Intent
 import android.provider.Settings
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.ObsoleteCoroutinesApi
 //import android.support.multidex.MultiDex
 //import android.support.multidex.MultiDexApplication
 import rocks.teagantotally.heartofgoldnotifications.app.injection.ApplicationComponent
@@ -14,8 +16,11 @@ import rocks.teagantotally.heartofgoldnotifications.app.injection.DaggerApplicat
 import rocks.teagantotally.heartofgoldnotifications.app.managers.ActivityJobManager
 import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService
 
+@ExperimentalCoroutinesApi
+@ObsoleteCoroutinesApi
 class HeyEddieApplication : Application() {
     companion object {
+        @ObsoleteCoroutinesApi
         lateinit var applicationComponent: ApplicationComponent
         private const val PREF_FILE_NAME = "rocks.teagantotally.heartofgoldnotifications.app.pref"
     }
@@ -31,10 +36,6 @@ class HeyEddieApplication : Application() {
         setupGraph()
         startForegroundService(Intent(this, MqttService::class.java))
     }
-
-    @SuppressLint("HardwareIds")
-    private fun getKeyStoreSeed() =
-        Settings.Secure.getString(this.contentResolver, Settings.Secure.ANDROID_ID);
 
     private fun setupGraph() {
         DaggerApplicationComponent.builder()

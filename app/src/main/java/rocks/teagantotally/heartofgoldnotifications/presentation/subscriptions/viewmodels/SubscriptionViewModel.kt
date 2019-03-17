@@ -1,4 +1,4 @@
-package rocks.teagantotally.heartofgoldnotifications.presentation.subscriptions
+package rocks.teagantotally.heartofgoldnotifications.presentation.subscriptions.viewmodels
 
 import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.MessageType
 

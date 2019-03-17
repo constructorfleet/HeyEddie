@@ -81,6 +81,8 @@ class MainActivity : BaseActivity(),
                             presenter.onNavigateToConfigSettings()
                         R.id.menu_item_subscriptions ->
                             presenter.onNavigateToSubscriptions()
+                        R.id.menu_item_history ->
+                            presenter.onNavigateToHistory()
                         else -> null
                     }
                         ?.let { true }

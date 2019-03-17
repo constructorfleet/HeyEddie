@@ -4,48 +4,24 @@ import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import lk.kotlin.observable.list.ObservableList
-import lk.kotlin.observable.list.observableListOf
+import rocks.teagantotally.heartofgoldnotifications.common.extensions.ifTrue
 
 
 @Suppress("UNCHECKED_CAST")
 class SelfBindingRecyclerAdapter<ItemType>(
     private val itemBinder: ItemBinder<ItemType>,
-    val items: ObservableList<ItemType> = observableListOf(),
+    val items: MutableList<ItemType> = mutableListOf(),
     var itemClickListener: ItemClickListener<ItemType>? = null
 ) : RecyclerView.Adapter<SelfBindingRecyclerAdapter.ViewHolder>(), View.OnClickListener {
-    private lateinit var inflater: LayoutInflater
 
-    init {
-        items.onAdd += { _, position ->
-            notifyItemInserted(position)
-        }
-        items.onChange += { _, _, position ->
-            notifyItemChanged(position)
-        }
-        items.onMove += { _, oldPosition, newPosition ->
-            notifyItemMoved(oldPosition, newPosition)
-        }
-        items.onRemove += { _, position ->
-            notifyItemRemoved(position)
-        }
-    }
-
-    override fun onCreateViewHolder(parent: ViewGroup, layoutId: Int): ViewHolder {
-        if (!this::inflater.isInitialized) {
-            inflater = LayoutInflater.from(parent.context)
-        }
-
-        val view = inflater.inflate(layoutId, parent, false)
-
-        return ViewHolder(view)
-    }
+    override fun onCreateViewHolder(parent: ViewGroup, layoutId: Int): ViewHolder =
+        ViewHolder(LayoutInflater.from(parent.context).inflate(layoutId, parent, false))
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val view = holder.itemView
         val item = items[position]
 
-        view.tag = item
+        view.setTag(TAG_ITEM_MODEL, item)
         if (itemClickListener != null) {
             view.setOnClickListener {
                 itemClickListener?.onClick(item)
@@ -57,6 +33,7 @@ class SelfBindingRecyclerAdapter<ItemType>(
 
     fun add(item: ItemType) {
         items.add(item)
+        notifyItemInserted(items.lastIndex)
     }
 
     fun add(
@@ -64,24 +41,30 @@ class SelfBindingRecyclerAdapter<ItemType>(
         index: Int
     ) {
         items.add(index, item)
+        notifyItemInserted(index)
     }
 
     fun addAll(itemsToAdd: Collection<ItemType>) {
-        val index = items.lastIndex
-        items.addAll(itemsToAdd)
+        items.lastIndex
+            .let {
+                items.addAll(itemsToAdd)
+                notifyItemRangeInserted(it, itemsToAdd.size)
+            }
     }
 
     fun remove(item: ItemType) {
-        val index = items.indexOf(item)
-        if (index < 0) {
-            return
-        }
-
-        items.removeAt(index)
+        items.indexOf(item)
+            .ifTrue({ it >= 0 }) {
+                items.removeAt(it)
+                notifyItemRemoved(it)
+            }
     }
 
     fun remove(index: Int) {
-        items.removeAt(index)
+        if (index in 0..items.lastIndex) {
+            items.removeAt(index)
+            notifyItemRemoved(index)
+        }
     }
 
     fun removeAll(items: Collection<ItemType>) {
@@ -94,15 +77,24 @@ class SelfBindingRecyclerAdapter<ItemType>(
         index: Int,
         newItem: ItemType
     ) {
-        items.removeAt(index)
-        items.add(index, newItem)
+        if (index in 0..items.lastIndex) {
+            items.removeAt(index)
+            items.add(index, newItem)
+            notifyItemChanged(index)
+        }
     }
 
     fun moveItem(
         fromIndex: Int,
         toIndex: Int
     ) {
-        items.move(fromIndex, toIndex)
+        if (fromIndex in 0..items.lastIndex) {
+            items.removeAt(fromIndex)
+                .let {
+                    items.add(toIndex, it)
+                    notifyItemMoved(fromIndex, toIndex)
+                }
+        }
     }
 
     override fun getItemViewType(position: Int): Int =
@@ -112,13 +104,13 @@ class SelfBindingRecyclerAdapter<ItemType>(
         items.size
 
     override fun onClick(view: View) {
-        (view.tag as? ItemType)
+        (view.getTag(TAG_ITEM_MODEL) as? ItemType)
             ?.let { itemClickListener?.onClick(it) }
     }
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
 
     companion object {
-        private const val ITEM_MODEL = -124
+        private const val TAG_ITEM_MODEL = -124
     }
 }

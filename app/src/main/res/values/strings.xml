@@ -8,4 +8,11 @@
     <string name="publish_message">Publish Message</string>
     <string name="message_history">Message History</string>
     <string name="subscriptions">Subscriptions</string>
+    <string name="topic">Topic</string>
+    <string name="max_qos">Max QoS</string>
+    <string name="message_type">Message Type</string>
+
+    <string-array name="message_types">
+        <item>NOTIFICATION</item>
+    </string-array>
 </resources>

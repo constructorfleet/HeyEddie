@@ -1,17 +1,76 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="8dp">
+
+    <TextView
+        android:id="@+id/subscription_topic_label"
+        style="@style/TextAppearance.AppCompat.Body2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/topic"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/subscription_topic"
+        style="@style/TextAppearance.AppCompat.Body1"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        app:layout_constraintBottom_toBottomOf="@+id/subscription_topic_label"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/subscription_topic_label"
+        app:layout_constraintTop_toTopOf="@+id/subscription_topic_label"
+        tools:text="/text/topic" />
+
+    <TextView
+        android:id="@+id/subscription_max_qos_label"
+        style="@style/TextAppearance.AppCompat.Body2"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="@string/max_qos"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/subscription_topic" />
 
     <TextView
         android:id="@+id/subscription_max_qos"
+        style="@style/TextAppearance.AppCompat.Body1"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        app:layout_constraintBottom_toBottomOf="@+id/subscription_max_qos_label"
+        app:layout_constraintStart_toEndOf="@+id/subscription_max_qos_label"
+        app:layout_constraintTop_toTopOf="@+id/subscription_max_qos_label"
+        tools:text="0" />
 
-</LinearLayout>
+    <TextView
+        android:id="@+id/subscription_message_type_label"
+        style="@style/TextAppearance.AppCompat.Body2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:text="@string/message_type"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/subscription_max_qos"
+        app:layout_constraintTop_toTopOf="@+id/subscription_max_qos" />
+
+    <TextView
+        android:id="@+id/subscription_message_type"
+        style="@style/TextAppearance.AppCompat.Body1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        app:layout_constraintBottom_toBottomOf="@+id/subscription_message_type_label"
+        app:layout_constraintStart_toEndOf="@+id/subscription_message_type_label"
+        app:layout_constraintTop_toTopOf="@+id/subscription_message_type_label"
+        tools:text="NOTIFY" />
+
+
+</android.support.constraint.ConstraintLayout>
