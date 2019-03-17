@@ -25,6 +25,14 @@ class SubscriptionsPresenter(
         subscriptionManager.addListener(this)
     }
 
+    override fun onDeleteSubscription(subscription: SubscriptionViewModel.ActiveSubscription) {
+        view.promptToDelete(subscription)
+    }
+
+    override fun onCancelNewSubscription(subscription: SubscriptionViewModel.NewSubscription) {
+        view.promptToCancel(subscription)
+    }
+
     override fun onShowCreateNewSubscription() {
         view.showCreateNewSubscription()
     }
@@ -34,20 +42,14 @@ class SubscriptionsPresenter(
             topic,
             maxQoS,
             messageType
-        ).let {
-            subscriptionManager.addSubscription(
-                SubscriptionConfiguration(
-                    topic,
-                    maxQoS,
-                    messageType
-                )
-            )
-            view.newSubscriptionSaved(it.toViewModel())
-        }.run {
-            launch {
-                subscribeTo(MqttCommand.Subscribe(topic, maxQoS))
+        )
+            .let { subscriptionManager.addSubscription(it) }
+            .run { view.newSubscriptionSaved() }
+            .run {
+                launch {
+                    subscribeTo(MqttCommand.Subscribe(topic, maxQoS))
+                }
             }
-        }
     }
 
     override fun removeSubscription(topic: String, maxQoS: Int, messageType: MessageType) {
@@ -77,9 +79,9 @@ class SubscriptionsPresenter(
     }
 
     fun SubscriptionConfiguration.toViewModel() =
-            SubscriptionViewModel.ActiveSubscription(
-                topic,
-                maxQoS,
-                messageType
-            )
+        SubscriptionViewModel.ActiveSubscription(
+            topic,
+            maxQoS,
+            messageType
+        )
 }

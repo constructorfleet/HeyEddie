@@ -13,11 +13,19 @@ interface SubscriptionsContract {
 
         fun showCreateNewSubscription()
 
-        fun newSubscriptionSaved(subscription: SubscriptionViewModel)
+        fun newSubscriptionSaved()
+
+        fun promptToDelete(subscription: SubscriptionViewModel.ActiveSubscription)
+
+        fun promptToCancel(subscription: SubscriptionViewModel.NewSubscription)
     }
 
     interface Presenter : BasePresenter {
         fun onShowCreateNewSubscription()
+
+        fun onDeleteSubscription(subscription: SubscriptionViewModel.ActiveSubscription)
+
+        fun onCancelNewSubscription(subscription: SubscriptionViewModel.NewSubscription)
 
         fun saveNewSubscription(
             topic: String,
