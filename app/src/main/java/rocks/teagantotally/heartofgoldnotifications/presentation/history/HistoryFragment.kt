@@ -101,8 +101,10 @@ class HistoryFragment : BaseFragment(), HistoryContract.View, Scoped {
     }
 
     override fun clearHistory() {
-        receivedAdapter.removeAll(receivedAdapter.items)
-        publishedAdapter.removeAll(publishedAdapter.items)
+        launch {
+            receivedAdapter.clear()
+            publishedAdapter.clear()
+        }
     }
 
     override fun showLoading(loading: Boolean) {

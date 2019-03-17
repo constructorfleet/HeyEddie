@@ -97,6 +97,11 @@ class SelfBindingRecyclerAdapter<ItemType>(
         }
     }
 
+    fun clear() {
+        items.clear()
+        notifyDataSetChanged()
+    }
+
     override fun getItemViewType(position: Int): Int =
         itemBinder.getLayoutResourceId(items[position])
 
