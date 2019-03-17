@@ -1,5 +1,6 @@
 package rocks.teagantotally.heartofgoldnotifications.presentation.history
 
+import android.graphics.Color
 import android.os.Bundle
 import android.support.v7.widget.LinearLayoutManager
 import android.view.*
@@ -12,6 +13,7 @@ import rocks.teagantotally.heartofgoldnotifications.R
 import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.Message
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.BaseFragment
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.Scoped
+import rocks.teagantotally.heartofgoldnotifications.presentation.common.annotations.ActionBarTitle
 import rocks.teagantotally.heartofgoldnotifications.presentation.common.recyclerview.ItemBinder
 import rocks.teagantotally.heartofgoldnotifications.presentation.common.recyclerview.SelfBindingRecyclerAdapter
 import rocks.teagantotally.heartofgoldnotifications.presentation.history.injection.HistoryModule
@@ -19,6 +21,7 @@ import rocks.teagantotally.heartofgoldnotifications.presentation.main.MainActivi
 import javax.inject.Inject
 
 @ObsoleteCoroutinesApi
+@ActionBarTitle(R.string.title_message_history)
 class HistoryFragment : BaseFragment(), HistoryContract.View, Scoped {
     @Inject
     override lateinit var presenter: HistoryContract.Presenter
@@ -68,6 +71,13 @@ class HistoryFragment : BaseFragment(), HistoryContract.View, Scoped {
 
     override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
         inflater?.inflate(R.menu.menu_history, menu)
+    }
+
+    override fun onPrepareOptionsMenu(menu: Menu?) {
+        menu
+            ?.findItem(R.id.menu_item_delete_history)
+            ?.icon
+            ?.setTint(Color.WHITE)
     }
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean =

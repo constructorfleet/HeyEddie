@@ -16,6 +16,7 @@ import rocks.teagantotally.heartofgoldnotifications.common.extensions.safeLet
 import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.MessageType
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.BaseFragment
 import rocks.teagantotally.heartofgoldnotifications.presentation.common.OptionsMenuCallbacks
+import rocks.teagantotally.heartofgoldnotifications.presentation.common.annotations.ActionBarTitle
 import rocks.teagantotally.heartofgoldnotifications.presentation.common.recyclerview.AnimatedLinearLayoutManager
 import rocks.teagantotally.heartofgoldnotifications.presentation.common.recyclerview.CompositeItemBinder
 import rocks.teagantotally.heartofgoldnotifications.presentation.common.recyclerview.SelfBindingRecyclerAdapter
@@ -28,6 +29,7 @@ import javax.inject.Inject
 
 @ExperimentalCoroutinesApi
 @ObsoleteCoroutinesApi
+@ActionBarTitle(R.string.title_subscriptions)
 class SubscriptionsFragment : BaseFragment(), SubscriptionsContract.View,
     OptionsMenuCallbacks {
     @Inject

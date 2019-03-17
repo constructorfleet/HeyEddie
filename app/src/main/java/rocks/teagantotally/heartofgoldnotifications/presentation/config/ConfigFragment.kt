@@ -16,11 +16,13 @@ import rocks.teagantotally.heartofgoldnotifications.common.extensions.safeLet
 import rocks.teagantotally.heartofgoldnotifications.presentation.main.MainActivity
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.Navigable
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.Scoped
+import rocks.teagantotally.heartofgoldnotifications.presentation.common.annotations.ActionBarTitle
 import rocks.teagantotally.heartofgoldnotifications.presentation.config.injection.ConfigModule
 import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
 
 
+@ActionBarTitle(R.string.title_connection_config)
 class ConfigFragment : PreferenceFragmentCompat(), ConfigContract.View,
     SharedPreferences.OnSharedPreferenceChangeListener, Navigable, Scoped {
 

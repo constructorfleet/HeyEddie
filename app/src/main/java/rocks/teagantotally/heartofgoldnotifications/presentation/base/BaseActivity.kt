@@ -7,6 +7,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import rocks.teagantotally.heartofgoldnotifications.R
 import rocks.teagantotally.heartofgoldnotifications.app.managers.FragmentJobManager
+import rocks.teagantotally.heartofgoldnotifications.presentation.common.annotations.ActionBarTitle
 import kotlin.coroutines.CoroutineContext
 
 abstract class BaseActivity : AppCompatActivity(), Scoped {
@@ -41,5 +42,13 @@ abstract class BaseActivity : AppCompatActivity(), Scoped {
             .run {
                 onCommit?.let { it(fragment) }
             }
+    }
+
+    override fun onAttachFragment(fragment: Fragment?) {
+        super.onAttachFragment(fragment)
+        fragment
+            ?.javaClass
+            ?.getDeclaredAnnotation(ActionBarTitle::class.java)
+            ?.let { supportActionBar?.title = getString(it.value) }
     }
 }
