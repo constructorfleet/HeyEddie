@@ -9,7 +9,11 @@ interface HistoryContract {
         fun logMessageReceived(message: Message)
 
         fun logMessagePublished(message: Message)
+
+        fun clearHistory()
     }
 
-    interface Presenter : BasePresenter
+    interface Presenter : BasePresenter {
+        fun onDeleteHistory()
+    }
 }

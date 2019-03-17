@@ -57,7 +57,10 @@ class NewSubscriptionBinder(private val optionsMenuCallbacks: OptionsMenuCallbac
                     }
 
                     val messageTypeOptions =
-                        context.resources.getStringArray(R.array.message_types)
+                        MessageType
+                            .values()
+                            .map { it.name }
+                            .toTypedArray()
 
                     with(new_subscription_message_type) {
                         adapter =

@@ -20,4 +20,6 @@ interface MessageHistoryManager {
     fun getReceivedMessages(): List<Message>
 
     fun getPublishedMessages(): List<Message>
+
+    fun clear()
 }

@@ -1,6 +1,7 @@
 package rocks.teagantotally.heartofgoldnotifications.presentation.subscriptions
 
 import android.app.AlertDialog
+import android.content.DialogInterface
 import android.os.Bundle
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
@@ -105,11 +106,11 @@ class SubscriptionsFragment : BaseFragment(), SubscriptionsContract.View,
             R.id.menu_item_add_subscription ->
                 (subscriptionsAdapter.items[0] as? SubscriptionViewModel.NewSubscription)
                     ?.let {
-                        safeLet(it.topic, it.maxQoS) { topic, qos ->
+                        safeLet(it.topic, it.maxQoS, it.messageType) { topic, qos, messageType ->
                             presenter.saveNewSubscription(
                                 topic,
                                 qos,
-                                MessageType.NOTIFICATION
+                                messageType
                             )
                         }
                     }
@@ -135,20 +136,16 @@ class SubscriptionsFragment : BaseFragment(), SubscriptionsContract.View,
             .setTitle("Delete Subscription")
             .setMessage("Are you sure you want to delete the subscription for ${subscription.topic}?")
             .setCancelable(true)
-            .setPositiveButton("Yes") { dialog, which ->
+            .setPositiveButton("Yes") { dialog, _ ->
                 presenter.removeSubscription(subscription.topic, subscription.maxQoS, subscription.messageType)
                 invalidateOptionsMenu()
                 dialog.dismiss()
             }
             .setOnCancelListener {
-                subscriptions.adapter?.notifyDataSetChanged()
-                invalidateOptionsMenu()
-                it.dismiss()
+                dialogCancel(it)
             }
-            .setNegativeButton("No") { dialog, which ->
-                subscriptions.adapter?.notifyDataSetChanged()
-                invalidateOptionsMenu()
-                dialog.dismiss()
+            .setNegativeButton("No") { dialog, _ ->
+                dialogCancel(dialog)
             }
             .create()
             .show()
@@ -159,35 +156,26 @@ class SubscriptionsFragment : BaseFragment(), SubscriptionsContract.View,
             .setTitle("Cancel Subscription Creation")
             .setMessage("Are you sure you want to cancel creating the new subscription?")
             .setCancelable(true)
-            .setPositiveButton("Yes") { dialog, which ->
+            .setPositiveButton("Yes") { dialog, _ ->
                 subscriptionsAdapter.remove(subscription)
                 invalidateOptionsMenu()
                 dialog.dismiss()
             }
-            .setNegativeButton("No") { dialog, which ->
-                subscriptions.adapter?.notifyDataSetChanged()
-                invalidateOptionsMenu()
-                dialog.dismiss()
+            .setNegativeButton("No") { dialog, _ ->
+                dialogCancel(dialog)
             }
             .setOnCancelListener {
-                subscriptions.adapter?.notifyDataSetChanged()
-                invalidateOptionsMenu()
-                it.dismiss()
+                dialogCancel(it)
             }
             .create()
             .show()
     }
 
     override fun showCreateNewSubscription() {
-        SubscriptionViewModel.NewSubscription(
-            maxQoS = 0,
-            messageType = MessageType.NOTIFICATION
-        )
-            .let {
-                launch {
-                    subscriptionsAdapter.add(it, 0)
-                }
-            }
+        launch {
+            subscriptionsAdapter.add(SubscriptionViewModel.NewSubscription(), 0)
+        }
+        invalidateOptionsMenu()
     }
 
     override fun newSubscriptionSaved() {
@@ -209,6 +197,12 @@ class SubscriptionsFragment : BaseFragment(), SubscriptionsContract.View,
         activity?.invalidateOptionsMenu()
     }
 
+    private fun dialogCancel(dialog: DialogInterface) {
+        subscriptions.adapter?.notifyDataSetChanged()
+        invalidateOptionsMenu()
+        dialog.dismiss()
+    }
+
     class ItemSwipeCallback(
         private val presenter: SubscriptionsContract.Presenter,
         private val adapter: SelfBindingRecyclerAdapter<SubscriptionViewModel>
@@ -226,6 +220,6 @@ class SubscriptionsFragment : BaseFragment(), SubscriptionsContract.View,
         }
 
         override fun onMove(p0: RecyclerView, p1: RecyclerView.ViewHolder, p2: RecyclerView.ViewHolder): Boolean =
-                false
+            false
     }
 }

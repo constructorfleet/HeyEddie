@@ -11,8 +11,5 @@
     <string name="topic">Topic</string>
     <string name="max_qos">Max QoS</string>
     <string name="message_type">Message Type</string>
-
-    <string-array name="message_types">
-        <item>NOTIFICATION</item>
-    </string-array>
+    <string name="delete_history">Delete History</string>
 </resources>

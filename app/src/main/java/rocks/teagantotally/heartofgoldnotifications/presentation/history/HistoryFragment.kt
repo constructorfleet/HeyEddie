@@ -2,9 +2,7 @@ package rocks.teagantotally.heartofgoldnotifications.presentation.history
 
 import android.os.Bundle
 import android.support.v7.widget.LinearLayoutManager
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import kotlinx.android.synthetic.main.fragment_history.*
 import kotlinx.android.synthetic.main.item_message_history.view.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -31,7 +29,7 @@ class HistoryFragment : BaseFragment(), HistoryContract.View, Scoped {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setHasOptionsMenu(false)
+        setHasOptionsMenu(true)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? =
@@ -68,24 +66,43 @@ class HistoryFragment : BaseFragment(), HistoryContract.View, Scoped {
         presenter.onViewCreated()
     }
 
-    override fun onResume() {
-        super.onResume()
+    override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater?) {
+        inflater?.inflate(R.menu.menu_history, menu)
     }
 
-    override fun onStop() {
-        super.onStop()
-    }
+    override fun onOptionsItemSelected(item: MenuItem?): Boolean =
+        when (item?.itemId) {
+            R.id.menu_item_delete_history ->
+                presenter.onDeleteHistory()
+            else -> null
+        }?.run { true }
+            ?: false
 
     override fun logMessageReceived(message: Message) {
         launch {
             receivedAdapter.add(message)
+            with(received_messages_scrollview) {
+                post {
+                    scrollTo(0, bottom)
+                }
+            }
         }
     }
 
     override fun logMessagePublished(message: Message) {
         launch {
             publishedAdapter.add(message)
+            with(published_messages_scrollview) {
+                post {
+                    scrollTo(0, bottom)
+                }
+            }
         }
+    }
+
+    override fun clearHistory() {
+        receivedAdapter.removeAll(receivedAdapter.items)
+        publishedAdapter.removeAll(publishedAdapter.items)
     }
 
     override fun showLoading(loading: Boolean) {

@@ -21,6 +21,7 @@ import rocks.teagantotally.heartofgoldnotifications.domain.framework.event.MqttE
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.managers.SubscriptionManager
 import rocks.teagantotally.heartofgoldnotifications.domain.models.ClientState
 import rocks.teagantotally.heartofgoldnotifications.domain.models.commands.MqttCommand
+import rocks.teagantotally.heartofgoldnotifications.domain.models.configs.SubscriptionConfiguration
 import rocks.teagantotally.heartofgoldnotifications.domain.models.events.MqttEvent
 import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.Message
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.UpdatePersistentNotificationUseCase
@@ -33,7 +34,7 @@ import kotlin.coroutines.CoroutineContext
 
 @ObsoleteCoroutinesApi
 @ExperimentalCoroutinesApi
-class MqttService : Service(), MqttEventConsumer, Scoped {
+class MqttService : Service(), MqttEventConsumer, Scoped, SubscriptionManager.Listener {
 
     companion object {
         private const val BASE = "rocks.teagantotally.heartofgoldnotifications.data.services.MqttService"
@@ -98,8 +99,6 @@ class MqttService : Service(), MqttEventConsumer, Scoped {
     lateinit var processMessagePublished: ProcessMessagePublished
     @Inject
     lateinit var subscriptionManager: SubscriptionManager
-    @Inject
-    lateinit var subscribeTo: SubscribeTo
 
     private var client: Client? = null
     private val commandBroadcastReceiver: MqttCommandBroadcastReceiver =
@@ -191,6 +190,14 @@ class MqttService : Service(), MqttEventConsumer, Scoped {
                 is MqttEvent.MessagePublished -> processMessagePublished(event)
             }
         }
+    }
+
+    override fun onSubcriptionAdded(subscription: SubscriptionConfiguration) {
+
+    }
+
+    override fun onSubscriptionRemoved(subscription: SubscriptionConfiguration) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
     internal fun connect() {

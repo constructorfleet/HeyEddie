@@ -74,6 +74,14 @@ class SharedPreferenceMessageHistoryManager(
             ?.sortedBy { it.date }
             ?: emptyList()
 
+    override fun clear() {
+        sharedPreferences
+            .edit()
+            .putStringSet(KEY_RECEIVED_MESSAGES, mutableSetOf())
+            .putStringSet(KEY_PUBLISHED_MESSAGES, mutableSetOf())
+            .apply()
+    }
+
     private fun serializeMessage(message: Message): String? =
         try {
             gson.toJson(message)

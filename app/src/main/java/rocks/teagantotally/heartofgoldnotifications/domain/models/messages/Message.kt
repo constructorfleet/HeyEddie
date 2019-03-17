@@ -22,3 +22,5 @@ fun Message.onPublish(): Message =
         retain,
         Date()
     )
+
+interface ReceivedMessage

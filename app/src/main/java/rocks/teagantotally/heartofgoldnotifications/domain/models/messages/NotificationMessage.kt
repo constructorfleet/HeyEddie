@@ -52,7 +52,7 @@ class NotificationMessage(
     val autoCancel: Boolean = true,
     val importance: NotificationImportance = NotificationImportance.MID,
     val actions: List<NotificationMessageAction> = listOf()
-) : Parcelable {
+) : Parcelable, ReceivedMessage {
     val notificationId: Int
         get() = id ?: Int.unique().also { id = it }
 }

@@ -31,4 +31,9 @@ class HistoryPresenter(
     override fun onMessagePublished(message: Message) {
         view.logMessagePublished(message)
     }
+
+    override fun onDeleteHistory() {
+        messageHistoryManager.clear()
+        view.clearHistory()
+    }
 }
