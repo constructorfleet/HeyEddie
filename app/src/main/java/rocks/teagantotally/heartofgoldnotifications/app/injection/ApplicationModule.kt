@@ -12,9 +12,11 @@ import dagger.Provides
 import rocks.teagantotally.heartofgoldnotifications.data.managers.SystemNotifier
 import rocks.teagantotally.heartofgoldnotifications.data.managers.config.SharedPreferenceConnectionConfigManager
 import rocks.teagantotally.heartofgoldnotifications.data.managers.history.SharedPreferenceMessageHistoryManager
+import rocks.teagantotally.heartofgoldnotifications.data.managers.subscription.SharedPreferenceSubscriptionManager
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.managers.ConnectionConfigManager
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.managers.MessageHistoryManager
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.Notifier
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.managers.SubscriptionManager
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.FinishNotifyUseCase
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.UpdatePersistentNotificationUseCase
 import javax.inject.Singleton
@@ -87,6 +89,17 @@ class ApplicationModule(
         gson: Gson
     ): ConnectionConfigManager =
         SharedPreferenceConnectionConfigManager(
+            sharedPreferences,
+            gson
+        )
+
+    @Provides
+    @Singleton
+    fun provideSubscriptionManager(
+        sharedPreferences: SharedPreferences,
+        gson: Gson
+    ): SubscriptionManager =
+        SharedPreferenceSubscriptionManager(
             sharedPreferences,
             gson
         )

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/menu_item_new_subscription"
+        android:icon="@drawable/ic_add_subscription"
+        android:title="New Subscription"
+        android:visible="true"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/menu_item_add_subscription"
+        android:icon="@drawable/ic_check"
+        android:title="Add Subscription"
+        android:visible="false"
+        app:showAsAction="always" />
+</menu>

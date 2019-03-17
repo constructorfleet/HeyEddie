@@ -18,6 +18,7 @@ import rocks.teagantotally.heartofgoldnotifications.domain.clients.Client
 import rocks.teagantotally.heartofgoldnotifications.domain.clients.injection.ClientModule
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.Notifier
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.event.MqttEventConsumer
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.managers.SubscriptionManager
 import rocks.teagantotally.heartofgoldnotifications.domain.models.ClientState
 import rocks.teagantotally.heartofgoldnotifications.domain.models.commands.MqttCommand
 import rocks.teagantotally.heartofgoldnotifications.domain.models.events.MqttEvent
@@ -25,6 +26,7 @@ import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.Messa
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.UpdatePersistentNotificationUseCase
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.message.publish.ProcessMessagePublished
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.message.receive.ProcessMessageReceived
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.subscription.SubscribeTo
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.Scoped
 import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
@@ -94,6 +96,10 @@ class MqttService : Service(), MqttEventConsumer, Scoped {
     lateinit var processMessageReceived: ProcessMessageReceived
     @Inject
     lateinit var processMessagePublished: ProcessMessagePublished
+    @Inject
+    lateinit var subscriptionManager: SubscriptionManager
+    @Inject
+    lateinit var subscribeTo: SubscribeTo
 
     private var client: Client? = null
     private val commandBroadcastReceiver: MqttCommandBroadcastReceiver =
@@ -167,7 +173,13 @@ class MqttService : Service(), MqttEventConsumer, Scoped {
             when (event) {
                 MqttEvent.Connected ->
                     updatePersistentNotification(ClientState.Connected)
-                        .run { subscribe("/test", 0) }
+                        .run {
+                            subscriptionManager
+                                .getSubscriptions()
+                                .forEach {
+                                    subscribe(it.topic, it.maxQoS)
+                                }
+                        }
                 MqttEvent.Disconnected ->
                     updatePersistentNotification(ClientState.Disconnected)
                 is MqttEvent.CommandFailed ->

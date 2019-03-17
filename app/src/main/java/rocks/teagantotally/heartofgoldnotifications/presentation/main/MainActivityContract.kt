@@ -12,6 +12,8 @@ interface MainActivityContract {
 
         fun showHistory()
 
+        fun showSubscriptions()
+
         fun setConnectionState(state: ConnectionViewState)
     }
 
@@ -19,5 +21,7 @@ interface MainActivityContract {
         fun onHandleConnectionNavigation()
 
         fun onNavigateToConfigSettings()
+
+        fun onNavigateToSubscriptions()
     }
 }

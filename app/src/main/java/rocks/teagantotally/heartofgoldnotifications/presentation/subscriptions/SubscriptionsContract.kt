@@ -7,12 +7,18 @@ import rocks.teagantotally.heartofgoldnotifications.presentation.base.BaseView
 
 interface SubscriptionsContract {
     interface View : BaseView<Presenter> {
-        fun displaySubscription(subscription: SubscriptionConfiguration)
+        fun displaySubscription(subscription: SubscriptionViewModel)
 
-        fun removeSubscription(subscription: SubscriptionConfiguration)
+        fun removeSubscription(subscription: SubscriptionViewModel)
+
+        fun showNewSubscription()
+
+        fun newSubscriptionSaved(subscription: SubscriptionViewModel)
     }
 
     interface Presenter : BasePresenter {
+        fun onCreateSubscription()
+
         fun addSubscription(
             topic: String,
             maxQoS: Int,

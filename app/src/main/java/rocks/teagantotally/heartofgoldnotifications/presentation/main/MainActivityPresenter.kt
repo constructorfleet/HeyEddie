@@ -63,6 +63,10 @@ class MainActivityPresenter(
         view.showConfigSettings()
     }
 
+    override fun onNavigateToSubscriptions() {
+        view.showSubscriptions()
+    }
+
     override fun onDestroyView() {
         // no-op
     }

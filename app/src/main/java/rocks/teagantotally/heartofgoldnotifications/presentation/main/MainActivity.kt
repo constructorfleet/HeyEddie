@@ -25,6 +25,7 @@ import rocks.teagantotally.heartofgoldnotifications.presentation.config.ConfigFr
 import rocks.teagantotally.heartofgoldnotifications.presentation.history.HistoryFragment
 import rocks.teagantotally.heartofgoldnotifications.presentation.main.injection.MainActivityComponent
 import rocks.teagantotally.heartofgoldnotifications.presentation.main.injection.MainActivityModule
+import rocks.teagantotally.heartofgoldnotifications.presentation.subscriptions.SubscriptionsFragment
 import javax.inject.Inject
 
 
@@ -70,17 +71,21 @@ class MainActivity : BaseActivity(),
             }
             .inject(this)
 
-        navigation_drawer.setNavigationItemSelectedListener {
-            when (it.itemId) {
-                R.id.menu_item_connection ->
-                    presenter.onHandleConnectionNavigation()
-                R.id.menu_item_settings ->
-                    presenter.onNavigateToConfigSettings()
-                else -> null
-            }
-                .also { drawer_container.closeDrawers() }
-                ?.let { true }
-                ?: false
+        navigation_drawer.setNavigationItemSelectedListener { menuItem ->
+            drawer_container.closeDrawers()
+                .let {
+                    when (menuItem.itemId) {
+                        R.id.menu_item_connection ->
+                            presenter.onHandleConnectionNavigation()
+                        R.id.menu_item_settings ->
+                            presenter.onNavigateToConfigSettings()
+                        R.id.menu_item_subscriptions ->
+                            presenter.onNavigateToSubscriptions()
+                        else -> null
+                    }
+                        ?.let { true }
+                        ?: false
+                }
         }
 
         presenter.onViewCreated()
@@ -134,6 +139,14 @@ class MainActivity : BaseActivity(),
         )
     }
 
+    override fun showSubscriptions() {
+        setFragment(
+            SubscriptionsFragment(),
+            true,
+            setCurrentFragment
+        )
+    }
+
     override fun showLoading(loading: Boolean) {
         loading_indicator.visibility =
             when (loading) {
@@ -141,6 +154,8 @@ class MainActivity : BaseActivity(),
                 false -> View.GONE
             }
     }
+
+
 
     override fun showError(message: String?) {
         message?.let {

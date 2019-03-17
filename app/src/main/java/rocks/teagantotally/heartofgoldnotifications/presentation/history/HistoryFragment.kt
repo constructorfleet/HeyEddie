@@ -26,13 +26,16 @@ class HistoryFragment : BaseFragment(), HistoryContract.View, Scoped {
     override lateinit var presenter: HistoryContract.Presenter
 
     override val navigationMenuId: Int = R.id.menu_item_history
+    private val receivedAdapter = SelfBindingRecyclerAdapter(MessageItemBinder)
+    private val publishedAdapter = SelfBindingRecyclerAdapter(MessageItemBinder)
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setHasOptionsMenu(false)
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? =
         inflater.inflate(R.layout.fragment_history, container, false)
-
-
-    private val receivedAdapter = SelfBindingRecyclerAdapter(MessageItemBinder)
-    private val publishedAdapter = SelfBindingRecyclerAdapter(MessageItemBinder)
 
     @UseExperimental(ExperimentalCoroutinesApi::class)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

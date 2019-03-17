@@ -2,9 +2,10 @@ package rocks.teagantotally.heartofgoldnotifications.presentation.main.injection
 
 import dagger.Subcomponent
 import rocks.teagantotally.heartofgoldnotifications.app.injection.scopes.ActivityScope
-import rocks.teagantotally.heartofgoldnotifications.presentation.main.MainActivity
 import rocks.teagantotally.heartofgoldnotifications.presentation.config.injection.ConfigComponent
 import rocks.teagantotally.heartofgoldnotifications.presentation.history.injection.HistoryComponent
+import rocks.teagantotally.heartofgoldnotifications.presentation.main.MainActivity
+import rocks.teagantotally.heartofgoldnotifications.presentation.subscriptions.injection.SubscriptionsComponent
 
 @ActivityScope
 @Subcomponent(modules = [MainActivityModule::class])
@@ -14,6 +15,8 @@ interface MainActivityComponent {
     fun configComponentBuilder(): ConfigComponent.Builder
 
     fun historyComponentBuilder(): HistoryComponent.Builder
+
+    fun subscriptionComponentBuilder(): SubscriptionsComponent.Builder
 
     @Subcomponent.Builder
     interface Builder {
