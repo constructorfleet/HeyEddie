@@ -14,6 +14,8 @@ interface MainActivityContract {
 
         fun showSubscriptions()
 
+        fun showPublish()
+
         fun setConnectionState(state: ConnectionViewState)
     }
 
@@ -25,5 +27,7 @@ interface MainActivityContract {
         fun onNavigateToSubscriptions()
 
         fun onNavigateToHistory()
+
+        fun onNavigateToPublish()
     }
 }

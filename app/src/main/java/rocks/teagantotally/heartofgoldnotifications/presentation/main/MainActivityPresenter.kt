@@ -71,6 +71,10 @@ class MainActivityPresenter(
         view.showHistory()
     }
 
+    override fun onNavigateToPublish() {
+        view.showPublish()
+    }
+
     override fun onDestroyView() {
         // no-op
     }

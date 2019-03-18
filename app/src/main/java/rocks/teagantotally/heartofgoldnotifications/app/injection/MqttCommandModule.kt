@@ -8,6 +8,7 @@ import rocks.teagantotally.heartofgoldnotifications.data.managers.mqtt.IntentMqt
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.commands.MqttCommandExecutor
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.StartClientUseCase
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.StopClientUseCase
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.message.publish.PublishMessage
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.subscription.SubscribeTo
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.subscription.UnsubscribeFrom
 import javax.inject.Singleton
@@ -29,6 +30,13 @@ class MqttCommandModule {
         commandExecutor: MqttCommandExecutor
     ): StopClientUseCase =
         StopClientUseCase(commandExecutor)
+
+    @Provides
+    @Singleton
+    fun providePublishMessageUseCase(
+        commandExecutor: MqttCommandExecutor
+    ): PublishMessage =
+        PublishMessage(commandExecutor)
 
     @Provides
     @Singleton

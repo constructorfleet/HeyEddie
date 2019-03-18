@@ -25,6 +25,7 @@ import rocks.teagantotally.heartofgoldnotifications.presentation.config.ConfigFr
 import rocks.teagantotally.heartofgoldnotifications.presentation.history.HistoryFragment
 import rocks.teagantotally.heartofgoldnotifications.presentation.main.injection.MainActivityComponent
 import rocks.teagantotally.heartofgoldnotifications.presentation.main.injection.MainActivityModule
+import rocks.teagantotally.heartofgoldnotifications.presentation.pubish.PublishFragment
 import rocks.teagantotally.heartofgoldnotifications.presentation.subscriptions.SubscriptionsFragment
 import javax.inject.Inject
 
@@ -83,6 +84,8 @@ class MainActivity : BaseActivity(),
                             presenter.onNavigateToSubscriptions()
                         R.id.menu_item_history ->
                             presenter.onNavigateToHistory()
+                        R.id.menu_item_publish ->
+                            presenter.onNavigateToPublish()
                         else -> null
                     }
                         ?.let { true }
@@ -144,6 +147,14 @@ class MainActivity : BaseActivity(),
     override fun showSubscriptions() {
         setFragment(
             SubscriptionsFragment(),
+            true,
+            setCurrentFragment
+        )
+    }
+
+    override fun showPublish() {
+        setFragment(
+            PublishFragment(),
             true,
             setCurrentFragment
         )

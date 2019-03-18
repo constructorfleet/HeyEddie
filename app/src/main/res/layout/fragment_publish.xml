@@ -1,24 +1,71 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    android:padding="8dp">
 
     <android.support.design.widget.TextInputLayout
         android:id="@+id/publish_topic_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="@string/topic"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintTop_toTopOf="parent">
 
         <android.support.design.widget.TextInputEditText
             android:id="@+id/publish_topic"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:inputType="textUri" />
 
     </android.support.design.widget.TextInputLayout>
 
+    <TextView
+        android:id="@+id/publish_qos_label"
+        style="@style/Base.TextAppearance.AppCompat.Body2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="@string/max_qos"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/publish_topic_layout" />
+
+    <Spinner
+        android:id="@+id/publish_qos"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="@+id/publish_qos_label"
+        app:layout_constraintStart_toEndOf="@+id/publish_qos_label"
+        app:layout_constraintTop_toTopOf="@+id/publish_qos_label" />
+
+    <Switch
+        android:id="@+id/publish_retain"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/retain"
+        app:layout_constraintBottom_toBottomOf="@+id/publish_qos"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/publish_qos" />
+
+    <android.support.design.widget.TextInputLayout
+        android:id="@+id/publish_payload_layout"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:hint="@string/payload"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/publish_retain">
+
+        <android.support.design.widget.TextInputEditText
+            android:id="@+id/publish_payload"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="top"
+            android:inputType="textAutoComplete" />
+
+    </android.support.design.widget.TextInputLayout>
 
 </android.support.constraint.ConstraintLayout>

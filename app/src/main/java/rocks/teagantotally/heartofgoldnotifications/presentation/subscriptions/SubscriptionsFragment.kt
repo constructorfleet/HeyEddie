@@ -13,7 +13,6 @@ import kotlinx.coroutines.ObsoleteCoroutinesApi
 import kotlinx.coroutines.launch
 import rocks.teagantotally.heartofgoldnotifications.R
 import rocks.teagantotally.heartofgoldnotifications.common.extensions.safeLet
-import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.MessageType
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.BaseFragment
 import rocks.teagantotally.heartofgoldnotifications.presentation.common.OptionsMenuCallbacks
 import rocks.teagantotally.heartofgoldnotifications.presentation.common.annotations.ActionBarTitle

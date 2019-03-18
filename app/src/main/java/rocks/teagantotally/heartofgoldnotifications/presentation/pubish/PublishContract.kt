@@ -4,13 +4,23 @@ import rocks.teagantotally.heartofgoldnotifications.presentation.base.BasePresen
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.BaseView
 
 interface PublishContract {
-    interface View: BaseView<Presenter> {
+    interface View : BaseView<Presenter> {
+        var isValid: Boolean
+
         fun showSuccess()
     }
 
     interface Presenter : BasePresenter {
-        fun checkValid()
+        fun checkValid(
+            topic: String?,
+            payload: String?
+        )
 
-        fun publish()
+        fun publish(
+            topic: String,
+            payload: String,
+            retain: Boolean,
+            qos: Int
+        )
     }
 }

@@ -12,8 +12,12 @@
     <string name="max_qos">Max QoS</string>
     <string name="message_type">Message Type</string>
     <string name="delete_history">Delete History</string>
+    <string name="retain">Retain</string>
+    <string name="payload">Payload</string>
 
     <string name="title_connection_config">Configure Connection</string>
     <string name="title_message_history">Message History</string>
     <string name="title_subscriptions">Subscriptions</string>
+    <string name="title_publish">Publish</string>
+
 </resources>

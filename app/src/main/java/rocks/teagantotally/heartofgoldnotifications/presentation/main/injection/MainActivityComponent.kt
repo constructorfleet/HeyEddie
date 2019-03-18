@@ -5,6 +5,7 @@ import rocks.teagantotally.heartofgoldnotifications.app.injection.scopes.Activit
 import rocks.teagantotally.heartofgoldnotifications.presentation.config.injection.ConfigComponent
 import rocks.teagantotally.heartofgoldnotifications.presentation.history.injection.HistoryComponent
 import rocks.teagantotally.heartofgoldnotifications.presentation.main.MainActivity
+import rocks.teagantotally.heartofgoldnotifications.presentation.pubish.injection.PublishComponent
 import rocks.teagantotally.heartofgoldnotifications.presentation.subscriptions.injection.SubscriptionsComponent
 
 @ActivityScope
@@ -17,6 +18,8 @@ interface MainActivityComponent {
     fun historyComponentBuilder(): HistoryComponent.Builder
 
     fun subscriptionComponentBuilder(): SubscriptionsComponent.Builder
+
+    fun publishComponentBuilder(): PublishComponent.Builder
 
     @Subcomponent.Builder
     interface Builder {
