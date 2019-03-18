@@ -34,14 +34,14 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/new_subscription_topic_label" />
 
-    <Spinner
+    <rocks.teagantotally.heartofgoldnotifications.presentation.views.QoSSpinner
         android:id="@+id/new_subscription_max_qos"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         app:layout_constraintBottom_toBottomOf="@+id/new_subscription_max_qos_label"
         app:layout_constraintStart_toEndOf="@+id/new_subscription_max_qos_label"
-        app:layout_constraintTop_toTopOf="@+id/new_subscription_max_qos_label" />
+        app:layout_constraintTop_toTopOf="@+id/new_subscription_max_qos_label"/>
 
     <TextView
         android:id="@+id/new_subscription_message_type_label"
@@ -53,7 +53,7 @@
         app:layout_constraintStart_toEndOf="@+id/new_subscription_max_qos"
         app:layout_constraintTop_toTopOf="@+id/new_subscription_max_qos_label" />
 
-    <Spinner
+    <rocks.teagantotally.heartofgoldnotifications.presentation.views.MessageTypeSpinner
         android:id="@+id/new_subscription_message_type"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

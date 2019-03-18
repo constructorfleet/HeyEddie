@@ -91,22 +91,22 @@ class HistoryFragment : BaseFragment(), HistoryContract.View, Scoped {
     override fun logMessageReceived(message: Message) {
         launch {
             receivedAdapter.add(message)
-            with(received_messages_scrollview) {
-                post {
-                    scrollTo(0, bottom)
-                }
-            }
+//            with(received_messages_scrollview) {
+//                post {
+//                    scrollTo(0, bottom)
+//                }
+//            }
         }
     }
 
     override fun logMessagePublished(message: Message) {
         launch {
             publishedAdapter.add(message)
-            with(published_messages_scrollview) {
-                post {
-                    scrollTo(0, bottom)
-                }
-            }
+//            with(published_messages_scrollview) {
+//                post {
+//                    scrollTo(0, bottom)
+//                }
+//            }
         }
     }
 
