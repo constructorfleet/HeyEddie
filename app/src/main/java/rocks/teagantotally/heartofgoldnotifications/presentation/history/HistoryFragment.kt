@@ -37,13 +37,6 @@ class HistoryFragment : BaseFragment(), HistoryContract.View, Scoped {
     override val navigationMenuId: Int = R.id.menu_item_history
     private val receivedAdapter = SelfBindingRecyclerAdapter(MessageItemBinder)
     private val publishedAdapter = SelfBindingRecyclerAdapter(MessageItemBinder)
-    private val itemDivider: DividerItemDecoration by lazy {
-        DividerItemDecoration(context, DividerItemDecoration.VERTICAL)
-            .apply {
-                ContextCompat.getDrawable(this@HistoryFragment.context!!, R.drawable.divider_history)
-                    ?.let { setDrawable(it) }
-            }
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

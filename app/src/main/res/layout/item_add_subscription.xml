@@ -3,6 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    android:background="@android:color/transparent"
     android:orientation="vertical"
     android:padding="8dp">
 
@@ -41,7 +43,7 @@
         android:layout_marginStart="8dp"
         app:layout_constraintBottom_toBottomOf="@+id/new_subscription_max_qos_label"
         app:layout_constraintStart_toEndOf="@+id/new_subscription_max_qos_label"
-        app:layout_constraintTop_toTopOf="@+id/new_subscription_max_qos_label"/>
+        app:layout_constraintTop_toTopOf="@+id/new_subscription_max_qos_label" />
 
     <TextView
         android:id="@+id/new_subscription_message_type_label"
