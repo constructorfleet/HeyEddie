@@ -4,7 +4,9 @@ import android.graphics.Color
 import android.os.Bundle
 import android.text.Editable
 import android.view.*
+import com.github.ajalt.timberkt.Timber
 import kotlinx.android.synthetic.main.fragment_publish.*
+import org.json.JSONObject
 import rocks.teagantotally.heartofgoldnotifications.R
 import rocks.teagantotally.heartofgoldnotifications.common.extensions.asQoS
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.BaseFragment
@@ -77,12 +79,22 @@ class PublishFragment : BaseFragment(), Scoped, PublishContract.View, OptionsMen
     override fun onOptionsItemSelected(item: MenuItem?): Boolean =
         when (item?.itemId) {
             R.id.menu_item_publish ->
-                presenter.publish(
-                    publish_topic.text!!.toString(),
-                    publish_payload.text!!.toString(),
-                    publish_retain.isChecked,
-                    publish_qos.selectedItem as? Int ?: 0
-                )
+                publish_payload.text =
+                    Editable.Factory().newEditable(
+                        try {
+                            JSONObject(publish_payload.text?.toString()).toString(2)
+                        } catch (throwable: Throwable) {
+                            Timber.e(throwable)
+                            publish_payload.text
+                        }
+                    ).also {
+                        presenter.publish(
+                            publish_topic.text!!.toString(),
+                            publish_payload.text!!.toString(),
+                            publish_retain.isChecked,
+                            publish_qos.selectedItem as? Int ?: 0
+                        )
+                    }
             else -> null
         }
             ?.run { true }

@@ -12,7 +12,17 @@ open class Message(
     val qos: Int,
     val retain: Boolean,
     val date: Date
-) : Parcelable, Serializable
+) : Parcelable, Serializable {
+    override fun equals(other: Any?): Boolean =
+        (other as? Message)
+            ?.let {
+                (it.topic == topic && it.payload == payload && it.qos == qos && it.retain == retain)
+            } ?: false
+
+    override fun hashCode(): Int {
+        return super.hashCode()
+    }
+}
 
 fun Message.onPublish(): Message =
     Message(

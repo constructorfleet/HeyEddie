@@ -2,7 +2,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="?attr/colorPrimaryDark"
-    android:gravity="bottom"
+    android:gravity="center_vertical"
     android:orientation="vertical"
     android:padding="16dp"
     android:theme="@style/ThemeOverlay.AppCompat.Dark">
@@ -10,7 +10,10 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:gravity="center_vertical"
         android:text="@string/app_name"
-        android:textAppearance="@style/TextAppearance.AppCompat.Title" />
+        android:drawablePadding="16dp"
+        android:textAppearance="@style/TextAppearance.AppCompat.Title"
+        android:drawableStart="@drawable/ic_hitchhiker_symbol"/>
 
 </LinearLayout>

@@ -11,9 +11,9 @@
     <application
         android:name=".app.HeyEddieApplication"
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@drawable/ic_hitchhiker_symbol"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@drawable/ic_hitchhiker_symbol"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
@@ -44,8 +44,6 @@
         <service
             android:name=".data.services.MqttService"
             android:exported="false" />
-
-        <receiver android:name=".data.services.MqttService$CommandReceiver" />
 
         <receiver
             android:name=".data.services.MqttService$StartReceiver"
