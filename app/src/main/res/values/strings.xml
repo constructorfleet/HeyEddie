@@ -19,5 +19,8 @@
     <string name="title_message_history">Message History</string>
     <string name="title_subscriptions">Subscriptions</string>
     <string name="title_publish">Publish</string>
+    <string name="received_messages">Received Messages</string>
+    <string name="published_messages">Published Messages</string>
+    <string name="at">at</string>
 
 </resources>

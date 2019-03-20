@@ -1,45 +1,64 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:padding="8dp">
 
-    <TextView
-        style="@style/TextAppearance.AppCompat.Subhead"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Received Messages" />
-
-    <ScrollView
-        android:id="@+id/received_messages_scrollview"
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1">
-
-        <android.support.v7.widget.RecyclerView
-            android:id="@+id/received_messages"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-
-    </ScrollView>
-
-    <TextView
-        style="@style/TextAppearance.AppCompat.Subhead"
-        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Published Messages" />
+        android:orientation="vertical">
 
-    <ScrollView
-        android:id="@+id/published_messages_scrollview"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1">
-
-        <android.support.v7.widget.RecyclerView
-            android:id="@+id/published_messages"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
 
-    </ScrollView>
+            <TextView
+                android:id="@+id/received_messages_label"
+                style="@style/TextAppearance.AppCompat.Headline"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:drawableEnd="@drawable/ic_arrow_up"
+                android:text="@string/received_messages"
+                android:textColor="@color/colorLink" />
 
-</LinearLayout>
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/received_messages"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nestedScrollingEnabled="false" />
+
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/colorDivider" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/published_messages_label"
+                style="@style/TextAppearance.AppCompat.Headline"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:drawableEnd="@drawable/ic_arrow_up"
+                android:text="@string/published_messages"
+                android:textColor="@color/colorLink" />
+
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/published_messages"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nestedScrollingEnabled="false" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>
