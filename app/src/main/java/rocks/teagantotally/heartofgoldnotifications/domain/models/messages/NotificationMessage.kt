@@ -48,6 +48,7 @@ class NotificationMessage(
     var id: Int? = null,
     val title: String,
     val body: String,
+    val openApplication: Boolean = false,
     val onGoing: Boolean = false,
     val autoCancel: Boolean = true,
     val importance: NotificationImportance = NotificationImportance.MID,

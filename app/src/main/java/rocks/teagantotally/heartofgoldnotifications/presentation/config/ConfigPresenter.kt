@@ -4,13 +4,13 @@ import kotlinx.coroutines.CoroutineScope
 import rocks.teagantotally.heartofgoldnotifications.common.extensions.safeLet
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.managers.ConnectionConfigManager
 import rocks.teagantotally.heartofgoldnotifications.domain.models.configs.ConnectionConfiguration
-import rocks.teagantotally.heartofgoldnotifications.domain.usecases.StartClientUseCase
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.StartClient
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.ScopedPresenter
 
 class ConfigPresenter(
     view: ConfigContract.View,
     private val connectionConfigManager: ConnectionConfigManager,
-    private val startClientUseCase: StartClientUseCase,
+    private val startClient: StartClient,
     coroutineScope: CoroutineScope
 ) : ScopedPresenter<ConfigContract.View, ConfigContract.Presenter>(view, coroutineScope), ConfigContract.Presenter {
     override fun saveConfig(

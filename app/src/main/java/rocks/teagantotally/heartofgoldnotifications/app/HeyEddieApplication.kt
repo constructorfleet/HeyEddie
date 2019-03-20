@@ -1,15 +1,13 @@
 package rocks.teagantotally.heartofgoldnotifications.app
 
+//import android.support.multidex.MultiDex
+//import android.support.multidex.MultiDexApplication
 import `in`.co.ophio.secure.core.KeyStoreKeyGenerator
 import android.annotation.SuppressLint
 import android.app.Application
-import android.content.Context
 import android.content.Intent
-import android.provider.Settings
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.ObsoleteCoroutinesApi
-//import android.support.multidex.MultiDex
-//import android.support.multidex.MultiDexApplication
 import rocks.teagantotally.heartofgoldnotifications.app.injection.ApplicationComponent
 import rocks.teagantotally.heartofgoldnotifications.app.injection.ApplicationModule
 import rocks.teagantotally.heartofgoldnotifications.app.injection.DaggerApplicationComponent
@@ -24,6 +22,7 @@ class HeyEddieApplication : Application() {
         lateinit var applicationComponent: ApplicationComponent
         private const val PREF_FILE_NAME = "rocks.teagantotally.heartofgoldnotifications.app.pref"
     }
+
 //    override fun attachBaseContext(base: Context?) {
 //        super.attachBaseContext(base)
 //        MultiDex.install(this);
@@ -39,13 +38,15 @@ class HeyEddieApplication : Application() {
 
     private fun setupGraph() {
         DaggerApplicationComponent.builder()
-            .applicationModule(ApplicationModule(
-                this,
-                getKeyStoreKey(),
-                PREF_FILE_NAME
-            ))
+            .applicationModule(
+                ApplicationModule(
+                    this,
+                    getKeyStoreKey(),
+                    PREF_FILE_NAME
+                )
+            )
             .build()
-            .let { applicationComponent = it }
+            .also { applicationComponent = it }
 
         registerActivityLifecycleCallbacks(ActivityJobManager)
     }

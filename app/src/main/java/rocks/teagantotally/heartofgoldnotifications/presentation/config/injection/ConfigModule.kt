@@ -5,7 +5,7 @@ import dagger.Provides
 import kotlinx.coroutines.CoroutineScope
 import rocks.teagantotally.heartofgoldnotifications.app.injection.scopes.FragmentScope
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.managers.ConnectionConfigManager
-import rocks.teagantotally.heartofgoldnotifications.domain.usecases.StartClientUseCase
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.StartClient
 import rocks.teagantotally.heartofgoldnotifications.presentation.config.ConfigContract
 import rocks.teagantotally.heartofgoldnotifications.presentation.config.ConfigPresenter
 
@@ -28,13 +28,13 @@ class ConfigModule(
     fun providePresenter(
         view: ConfigContract.View,
         connectionConfigManager: ConnectionConfigManager,
-        startClientUseCase: StartClientUseCase,
+        startClient: StartClient,
         coroutineScope: CoroutineScope
     ): ConfigContract.Presenter =
         ConfigPresenter(
             view,
             connectionConfigManager,
-            startClientUseCase,
+            startClient,
             coroutineScope
         )
 }

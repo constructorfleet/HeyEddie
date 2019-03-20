@@ -3,7 +3,6 @@ package rocks.teagantotally.heartofgoldnotifications.data.services.receivers
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.widget.Toast
 import com.github.ajalt.timberkt.Timber
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.ObsoleteCoroutinesApi

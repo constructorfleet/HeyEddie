@@ -5,8 +5,8 @@ import dagger.Provides
 import rocks.teagantotally.heartofgoldnotifications.app.injection.scopes.ActivityScope
 import rocks.teagantotally.heartofgoldnotifications.data.services.receivers.MqttEventBroadcastReceiver
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.managers.ConnectionConfigManager
-import rocks.teagantotally.heartofgoldnotifications.domain.usecases.StartClientUseCase
-import rocks.teagantotally.heartofgoldnotifications.domain.usecases.StopClientUseCase
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.StartClient
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.StopClient
 import rocks.teagantotally.heartofgoldnotifications.presentation.main.MainActivityContract
 import rocks.teagantotally.heartofgoldnotifications.presentation.main.MainActivityPresenter
 
@@ -23,7 +23,7 @@ class MainActivityModule(
     @ActivityScope
     fun provideMqttEventReeiver(
         mqttEventConsumer: MainActivityContract.Presenter
-    ) : MqttEventBroadcastReceiver<*> =
+    ): MqttEventBroadcastReceiver<*> =
         MqttEventBroadcastReceiver(mqttEventConsumer)
 
 
@@ -32,13 +32,13 @@ class MainActivityModule(
     fun providePresenter(
         view: MainActivityContract.View,
         configManager: ConnectionConfigManager,
-        startClientUseCase: StartClientUseCase,
-        stopClientUseCase: StopClientUseCase
+        startClient: StartClient,
+        stopClient: StopClient
     ): MainActivityContract.Presenter =
         MainActivityPresenter(
             view,
             configManager,
-            startClientUseCase,
-            stopClientUseCase
+            startClient,
+            stopClient
         )
 }

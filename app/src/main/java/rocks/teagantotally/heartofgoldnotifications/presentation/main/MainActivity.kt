@@ -169,7 +169,6 @@ class MainActivity : BaseActivity(),
     }
 
 
-
     override fun showError(message: String?) {
         message?.let {
             Snackbar.make(

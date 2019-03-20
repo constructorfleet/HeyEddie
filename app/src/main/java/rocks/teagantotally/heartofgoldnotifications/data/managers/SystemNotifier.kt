@@ -13,6 +13,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.ObsoleteCoroutinesApi
 import rocks.teagantotally.heartofgoldnotifications.R
 import rocks.teagantotally.heartofgoldnotifications.common.extensions.ifAlso
+import rocks.teagantotally.heartofgoldnotifications.common.extensions.putInvoker
 import rocks.teagantotally.heartofgoldnotifications.common.extensions.unique
 import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService.Companion.ACTION_PUBLISH
 import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService.Companion.EXTRA_MESSAGE
@@ -22,6 +23,7 @@ import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.Messa
 import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.NotificationMessage
 import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.NotificationMessageChannel
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.Scoped
+import rocks.teagantotally.heartofgoldnotifications.presentation.main.MainActivity
 import java.util.*
 import kotlin.coroutines.CoroutineContext
 
@@ -47,7 +49,7 @@ class SystemNotifier(
     private fun createChannel(notificationChannel: NotificationMessageChannel) {
         try {
             notificationManager.getNotificationChannel(notificationChannel.id)
-        } catch (_ : Throwable) {
+        } catch (_: Throwable) {
             null
         } ?: notificationManager.createNotificationChannel(notificationChannel.transform())
     }
@@ -85,10 +87,24 @@ fun NotificationMessage.transform(context: Context): Pair<Int, Notification> =
             .extend(Notification.CarExtender())
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setWhen(System.currentTimeMillis())
+            .ifAlso({ openApplication }) { builder ->
+                Intent(context, MainActivity::class.java)
+                    .let {
+                        it.putInvoker(SystemNotifier::class)
+                        PendingIntent.getActivity(
+                            context,
+                            Int.unique(),
+                            it,
+                            PendingIntent.FLAG_UPDATE_CURRENT
+                        )
+                    }
+                    .let { builder.setContentIntent(it) }
+            }
             .ifAlso({ !actions.isNullOrEmpty() }) { builder ->
                 actions
                     .forEach { action ->
                         Intent(ACTION_PUBLISH)
+                            .putInvoker(SystemNotifier::class)
                             .putExtra(EXTRA_NOTIFICATION_ID, notificationId)
                             .putExtra(
                                 EXTRA_MESSAGE,

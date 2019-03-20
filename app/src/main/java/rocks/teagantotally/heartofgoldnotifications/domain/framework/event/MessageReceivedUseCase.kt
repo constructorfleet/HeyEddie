@@ -6,7 +6,6 @@ import rocks.teagantotally.heartofgoldnotifications.domain.framework.UseCase
 import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.Message
 import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.MessageType
 import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.ReceivedMessage
-import java.lang.Exception
 
 @Suppress("UNCHECKED_CAST")
 abstract class MessageReceivedUseCase<ResultType : ReceivedMessage>(

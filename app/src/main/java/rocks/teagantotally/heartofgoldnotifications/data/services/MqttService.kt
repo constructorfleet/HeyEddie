@@ -5,6 +5,8 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.net.ConnectivityManager
+import android.net.NetworkRequest
 import android.os.IBinder
 import com.github.ajalt.timberkt.Timber
 import kotlinx.coroutines.*
@@ -27,31 +29,36 @@ import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.Messa
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.UpdatePersistentNotificationUseCase
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.message.publish.ProcessMessagePublished
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.message.receive.ProcessMessageReceived
-import rocks.teagantotally.heartofgoldnotifications.domain.usecases.subscription.SubscribeTo
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.Scoped
 import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
 
 @ObsoleteCoroutinesApi
 @ExperimentalCoroutinesApi
-class MqttService : Service(), MqttEventConsumer, Scoped, SubscriptionManager.Listener {
+class MqttService : Service(),
+    MqttEventConsumer,
+    Scoped,
+    SubscriptionManager.Listener {
 
     companion object {
         private const val BASE = "rocks.teagantotally.heartofgoldnotifications.data.services.MqttService"
-        const val ACTION_START = "$BASE.start"
-        const val ACTION_CONNECT = "$BASE.connect"
-        const val ACTION_DISCONNECT = "$BASE.disconnect"
-        const val ACTION_PUBLISH = "$BASE.publish"
-        const val ACTION_SUBSCRIBE = "$BASE.subscribe"
-        const val ACTION_UNSUBSCRIBE = "$BASE.unsubscribe"
+        private const val BASE_ACTION = "$BASE.action"
+        private const val BASE_EVENT = "$BASE.event"
 
-        const val EVENT_CONNECTED = "$BASE.connected"
-        const val EVENT_DISCONNECTED = "$BASE.disconnected"
-        const val EVENT_SUBSCRIBED = "$BASE.subscribed"
-        const val EVENT_UNSUBSCRIBED = "$BASE.unsubscribed"
-        const val EVENT_MESSAGE_PUBLISHED = "$BASE.message_published"
-        const val EVENT_MESSAGE_RECEIVED = "$BASE.message_received"
-        const val EVENT_COMMAND_FAILED = "$BASE.command_failed"
+        const val ACTION_START = "$BASE_ACTION.start"
+        const val ACTION_CONNECT = "$BASE_ACTION.connect"
+        const val ACTION_DISCONNECT = "$BASE_ACTION.disconnect"
+        const val ACTION_PUBLISH = "$BASE_ACTION.publish"
+        const val ACTION_SUBSCRIBE = "$BASE_ACTION.subscribe"
+        const val ACTION_UNSUBSCRIBE = "$BASE_ACTION.unsubscribe"
+
+        const val EVENT_CONNECTED = "$BASE_EVENT.connected"
+        const val EVENT_DISCONNECTED = "$BASE_EVENT.disconnected"
+        const val EVENT_SUBSCRIBED = "$BASE_EVENT.subscribed"
+        const val EVENT_UNSUBSCRIBED = "$BASE_EVENT.unsubscribed"
+        const val EVENT_MESSAGE_PUBLISHED = "$BASE_EVENT.message_published"
+        const val EVENT_MESSAGE_RECEIVED = "$BASE_EVENT.message_received"
+        const val EVENT_COMMAND_FAILED = "$BASE_EVENT.command_failed"
 
         private val COMMAND_ACTIONS =
             listOf(
@@ -99,6 +106,12 @@ class MqttService : Service(), MqttEventConsumer, Scoped, SubscriptionManager.Li
     lateinit var processMessagePublished: ProcessMessagePublished
     @Inject
     lateinit var subscriptionManager: SubscriptionManager
+    @Inject
+    lateinit var networkRequest: NetworkRequest
+    @Inject
+    lateinit var connectivityCallback: ConnectivityManager.NetworkCallback
+    @Inject
+    lateinit var connectivityManager: ConnectivityManager
 
     private var client: Client? = null
     private val commandBroadcastReceiver: MqttCommandBroadcastReceiver =
@@ -110,7 +123,21 @@ class MqttService : Service(), MqttEventConsumer, Scoped, SubscriptionManager.Li
         serviceBinder
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int =
-        HeyEddieApplication.applicationComponent.inject(this)
+        HeyEddieApplication.applicationComponent
+            .also { it.inject(this) }
+            .also {
+                it.threadComponentBuilder()
+//                    .module(ThreadModule())
+                    .build()
+                    .getBackgroundHandler()
+                    .let {
+                        connectivityManager.requestNetwork(
+                            networkRequest,
+                            connectivityCallback,
+                            it
+                        )
+                    }
+            }
             .run { serviceBinder = ServiceBinder(this@MqttService) }
             .run {
                 bindService(
@@ -151,8 +178,8 @@ class MqttService : Service(), MqttEventConsumer, Scoped, SubscriptionManager.Li
             }
             .run { START_STICKY }
 
+
     override fun onDestroy() {
-        super.onDestroy()
         unregisterReceiver(commandBroadcastReceiver)
         unregisterReceiver(eventBroadcastReceiver)
         job.cancelChildren()
@@ -165,6 +192,7 @@ class MqttService : Service(), MqttEventConsumer, Scoped, SubscriptionManager.Li
                     ACTION_START
             }
         )
+        super.onDestroy()
     }
 
     override fun consume(event: MqttEvent) {

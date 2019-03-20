@@ -24,6 +24,7 @@ class UpdatePersistentNotificationUseCase(
                 PERSISTENT_NOTIFICATION_ID,
                 "Hey Eddie",
                 state.message,
+                openApplication = true,
                 onGoing = true,
                 autoCancel = false
             )

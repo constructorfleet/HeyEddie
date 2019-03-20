@@ -10,10 +10,10 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:drawableStart="@drawable/ic_hitchhiker_symbol"
+        android:drawablePadding="16dp"
         android:gravity="center_vertical"
         android:text="@string/app_name"
-        android:drawablePadding="16dp"
-        android:textAppearance="@style/TextAppearance.AppCompat.Title"
-        android:drawableStart="@drawable/ic_hitchhiker_symbol"/>
+        android:textAppearance="@style/TextAppearance.AppCompat.Title" />
 
 </LinearLayout>

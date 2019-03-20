@@ -16,8 +16,10 @@ import javax.inject.Singleton
 @Component(
     modules = [
         ApplicationModule::class,
+        DeviceEventModule::class,
         MqttCommandModule::class,
-        MqttEventModule::class
+        MqttEventModule::class,
+        ThreadModule::class
     ]
 )
 interface ApplicationComponent {
@@ -27,6 +29,8 @@ interface ApplicationComponent {
     fun clientComponentBuilder(): ClientComponent.Builder
 
     fun mainActivityComponentBuilder(): MainActivityComponent.Builder
+
+    fun threadComponentBuilder(): ThreadComponent.Builder
 
     fun provideApplicationContext(): Context
 }

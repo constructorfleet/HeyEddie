@@ -4,16 +4,16 @@ import kotlinx.coroutines.launch
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.managers.ConnectionConfigManager
 import rocks.teagantotally.heartofgoldnotifications.domain.models.commands.MqttCommand
 import rocks.teagantotally.heartofgoldnotifications.domain.models.events.MqttEvent
-import rocks.teagantotally.heartofgoldnotifications.domain.usecases.StartClientUseCase
-import rocks.teagantotally.heartofgoldnotifications.domain.usecases.StopClientUseCase
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.StartClient
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.StopClient
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.ConnectionViewState
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.ScopedPresenter
 
 class MainActivityPresenter(
     view: MainActivityContract.View,
     private val configManager: ConnectionConfigManager,
-    private val startClient: StartClientUseCase,
-    private val stopClient: StopClientUseCase
+    private val startClient: StartClient,
+    private val stopClient: StopClient
 ) : MainActivityContract.Presenter, ScopedPresenter<MainActivityContract.View, MainActivityContract.Presenter>(view) {
     private lateinit var connectionViewState: ConnectionViewState
 

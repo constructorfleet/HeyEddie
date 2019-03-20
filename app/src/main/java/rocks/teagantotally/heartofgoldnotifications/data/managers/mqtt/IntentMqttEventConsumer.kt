@@ -5,6 +5,8 @@ import android.content.Intent
 import android.os.Parcelable
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.ObsoleteCoroutinesApi
+import rocks.teagantotally.heartofgoldnotifications.common.extensions.log
+import rocks.teagantotally.heartofgoldnotifications.common.extensions.putInvoker
 import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService.Companion.EVENT_COMMAND_FAILED
 import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService.Companion.EVENT_CONNECTED
 import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService.Companion.EVENT_DISCONNECTED
@@ -25,7 +27,10 @@ class IntentMqttEventConsumer(
     private val context: Context
 ) : MqttEventConsumer {
     override fun consume(event: MqttEvent) {
-        context.sendBroadcast(buildIntent(event))
+        buildIntent(event)
+            .also {
+                it.log(this::class)
+            }.let { context.sendBroadcast(it) }
     }
 
     private fun buildIntent(event: MqttEvent): Intent =
@@ -68,5 +73,5 @@ class IntentMqttEventConsumer(
                         EXTRA_FAILURE_REASON,
                         event.throwable.localizedMessage
                     )
-        }
+        }.putInvoker(IntentMqttEventConsumer::class)
 }

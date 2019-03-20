@@ -6,8 +6,8 @@ import dagger.Provides
 import kotlinx.coroutines.ObsoleteCoroutinesApi
 import rocks.teagantotally.heartofgoldnotifications.data.managers.mqtt.IntentMqttCommandExecutor
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.commands.MqttCommandExecutor
-import rocks.teagantotally.heartofgoldnotifications.domain.usecases.StartClientUseCase
-import rocks.teagantotally.heartofgoldnotifications.domain.usecases.StopClientUseCase
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.StartClient
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.StopClient
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.message.publish.PublishMessage
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.subscription.SubscribeTo
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.subscription.UnsubscribeFrom
@@ -19,8 +19,8 @@ class MqttCommandModule {
     @Singleton
     fun provideStartClientUseCase(
         commandExecutor: MqttCommandExecutor
-    ): StartClientUseCase =
-        StartClientUseCase(
+    ): StartClient =
+        StartClient(
             commandExecutor
         )
 
@@ -28,8 +28,8 @@ class MqttCommandModule {
     @Singleton
     fun provideStopClientUseCase(
         commandExecutor: MqttCommandExecutor
-    ): StopClientUseCase =
-        StopClientUseCase(commandExecutor)
+    ): StopClient =
+        StopClient(commandExecutor)
 
     @Provides
     @Singleton
