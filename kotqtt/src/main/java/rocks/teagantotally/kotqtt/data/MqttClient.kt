@@ -7,7 +7,6 @@ import org.eclipse.paho.client.mqttv3.*
 import rocks.teagantotally.kotqtt.domain.framework.client.Client
 import rocks.teagantotally.kotqtt.domain.framework.client.CommandResult
 import rocks.teagantotally.kotqtt.domain.framework.connections.MqttAuthentication
-import rocks.teagantotally.kotqtt.domain.framework.connections.MqttBrokerConnection
 import rocks.teagantotally.kotqtt.domain.framework.connections.MqttConnectionOptions
 import rocks.teagantotally.kotqtt.domain.models.Message
 import rocks.teagantotally.kotqtt.domain.models.QoS
@@ -16,17 +15,13 @@ import rocks.teagantotally.kotqtt.domain.models.events.*
 import java.util.*
 
 class MqttClient(
-    val brokerConnection: MqttBrokerConnection,
-    val connectionOptions: MqttConnectionOptions,
+    private val client: IMqttAsyncClient,
+    private val connectionOptions: MqttConnectionOptions,
     coroutineScope: CoroutineScope
 ) : Client,
     MqttCallback,
     CoroutineScope by coroutineScope {
 
-    private val client: MqttAsyncClient = MqttAsyncClient(
-        brokerConnection.brokerUri,
-        brokerConnection.clientId
-    )
     private val commandChannel: ReceiveChannel<MqttCommand> = Channel()
     private val eventChannel: BroadcastChannel<MqttEvent> = ConflatedBroadcastChannel()
 
@@ -214,6 +209,15 @@ class MqttClient(
                 when (useVersion31) {
                     true -> 4
                     false -> 3
+                }
+            lastWill
+                ?.let { will ->
+                    it.setWill(
+                        will.topic,
+                        will.payload,
+                        will.qos.value,
+                        will.retain
+                    )
                 }
             (authentication as? MqttAuthentication.Basic)
                 ?.let { auth ->
