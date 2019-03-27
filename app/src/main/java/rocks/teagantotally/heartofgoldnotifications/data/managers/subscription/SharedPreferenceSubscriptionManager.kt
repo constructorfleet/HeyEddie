@@ -38,7 +38,7 @@ class SharedPreferenceSubscriptionManager(
                     }
                     .run {
                         listeners
-                            .forEach { it.onSubcriptionAdded(subscription) }
+                            .forEach { it.onSubscriptionAdded(subscription) }
                     }
             }
     }

@@ -1,13 +1,14 @@
 package rocks.teagantotally.heartofgoldnotifications.domain.usecases.message.publish
 
-import rocks.teagantotally.heartofgoldnotifications.domain.framework.UseCase
-import rocks.teagantotally.heartofgoldnotifications.domain.framework.commands.MqttCommandExecutor
-import rocks.teagantotally.heartofgoldnotifications.domain.models.commands.MqttCommand
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.UseCaseWithParameter
+import rocks.teagantotally.kotqtt.domain.framework.client.MqttCommandExecutor
+import rocks.teagantotally.kotqtt.domain.models.commands.MqttPublishCommand
+import javax.inject.Inject
 
-class PublishMessage(
+class PublishMessage @Inject constructor(
     private val commandExecutor: MqttCommandExecutor
-) : UseCase<MqttCommand.Publish> {
-    override suspend fun invoke(parameter: MqttCommand.Publish) {
+) : UseCaseWithParameter<MqttPublishCommand> {
+    override suspend fun invoke(parameter: MqttPublishCommand) {
         commandExecutor.execute(parameter)
     }
 }

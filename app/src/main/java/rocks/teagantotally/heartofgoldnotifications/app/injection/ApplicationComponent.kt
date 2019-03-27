@@ -6,7 +6,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.ObsoleteCoroutinesApi
 import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService
 import rocks.teagantotally.heartofgoldnotifications.data.services.NotificationService
-import rocks.teagantotally.heartofgoldnotifications.domain.clients.injection.ClientComponent
 import rocks.teagantotally.heartofgoldnotifications.presentation.main.injection.MainActivityComponent
 import javax.inject.Singleton
 
@@ -16,21 +15,14 @@ import javax.inject.Singleton
 @Component(
     modules = [
         ApplicationModule::class,
-        DeviceEventModule::class,
-        MqttCommandModule::class,
-        MqttEventModule::class,
-        ThreadModule::class
+        DeviceEventModule::class
     ]
 )
 interface ApplicationComponent {
     fun inject(service: NotificationService)
     fun inject(service: MqttService)
 
-    fun clientComponentBuilder(): ClientComponent.Builder
-
     fun mainActivityComponentBuilder(): MainActivityComponent.Builder
-
-    fun threadComponentBuilder(): ThreadComponent.Builder
 
     fun provideApplicationContext(): Context
 }

@@ -1,12 +1,13 @@
 package rocks.teagantotally.heartofgoldnotifications.domain.usecases.message.publish
 
-import rocks.teagantotally.heartofgoldnotifications.domain.framework.UseCase
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.UseCaseWithParameter
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.managers.MessageHistoryManager
-import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.Message
+import rocks.teagantotally.kotqtt.domain.models.Message
+import javax.inject.Inject
 
-class RecordMessagePublished(
+class RecordMessagePublished @Inject constructor(
     private val messageHistoryManager: MessageHistoryManager
-) : UseCase<Message> {
+) : UseCaseWithParameter<Message> {
     override suspend fun invoke(parameter: Message) {
         messageHistoryManager.recordMessagePublished(parameter)
     }

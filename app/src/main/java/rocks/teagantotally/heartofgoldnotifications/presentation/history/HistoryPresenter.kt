@@ -1,8 +1,8 @@
 package rocks.teagantotally.heartofgoldnotifications.presentation.history
 
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.managers.MessageHistoryManager
-import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.Message
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.ScopedPresenter
+import rocks.teagantotally.kotqtt.domain.models.Message
 
 class HistoryPresenter(
     view: HistoryContract.View,

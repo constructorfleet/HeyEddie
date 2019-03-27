@@ -1,6 +1,5 @@
 package rocks.teagantotally.heartofgoldnotifications.presentation.main
 
-import android.content.IntentFilter
 import android.os.Bundle
 import android.support.design.widget.Snackbar
 import android.support.v4.app.Fragment
@@ -14,10 +13,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.ObsoleteCoroutinesApi
 import rocks.teagantotally.heartofgoldnotifications.R
 import rocks.teagantotally.heartofgoldnotifications.app.HeyEddieApplication
-import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService.Companion.EVENT_COMMAND_FAILED
-import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService.Companion.EVENT_CONNECTED
-import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService.Companion.EVENT_DISCONNECTED
-import rocks.teagantotally.heartofgoldnotifications.data.services.receivers.MqttEventBroadcastReceiver
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.BaseActivity
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.ConnectionViewState
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.Navigable
@@ -42,8 +37,6 @@ class MainActivity : BaseActivity(),
 
     @Inject
     override lateinit var presenter: MainActivityContract.Presenter
-    @Inject
-    lateinit var eventBroadcastReceiver: MqttEventBroadcastReceiver<*>
 
     private var currentFragment: Fragment? = null
     private val setCurrentFragment: (Fragment) -> Unit = {
@@ -94,25 +87,6 @@ class MainActivity : BaseActivity(),
         }
 
         presenter.onViewCreated()
-    }
-
-    @UseExperimental(ObsoleteCoroutinesApi::class)
-    override fun onResume() {
-        super.onResume()
-        registerReceiver(
-            eventBroadcastReceiver,
-            IntentFilter()
-                .apply {
-                    addAction(EVENT_CONNECTED)
-                    addAction(EVENT_DISCONNECTED)
-                    addAction(EVENT_COMMAND_FAILED)
-                }
-        )
-    }
-
-    override fun onStop() {
-        super.onStop()
-        unregisterReceiver(eventBroadcastReceiver)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean =

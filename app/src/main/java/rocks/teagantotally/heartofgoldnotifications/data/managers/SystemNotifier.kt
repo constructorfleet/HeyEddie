@@ -19,11 +19,12 @@ import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService.Co
 import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService.Companion.EXTRA_MESSAGE
 import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService.Companion.EXTRA_NOTIFICATION_ID
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.Notifier
-import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.Message
 import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.NotificationMessage
 import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.NotificationMessageChannel
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.Scoped
 import rocks.teagantotally.heartofgoldnotifications.presentation.main.MainActivity
+import rocks.teagantotally.kotqtt.domain.models.Message
+import rocks.teagantotally.kotqtt.domain.models.QoS
 import java.util.*
 import kotlin.coroutines.CoroutineContext
 
@@ -110,9 +111,9 @@ fun NotificationMessage.transform(context: Context): Pair<Int, Notification> =
                                 EXTRA_MESSAGE,
                                 Message(
                                     action.topic,
-                                    action.payload,
-                                    action.qos,
                                     action.retain,
+                                    QoS.fromQoS(action.qos),
+                                    action.payload.toByteArray(),
                                     Date()
                                 ) as Parcelable
                             )

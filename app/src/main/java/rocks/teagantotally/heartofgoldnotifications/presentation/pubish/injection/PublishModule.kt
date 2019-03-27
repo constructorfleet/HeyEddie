@@ -2,8 +2,8 @@ package rocks.teagantotally.heartofgoldnotifications.presentation.pubish.injecti
 
 import dagger.Module
 import dagger.Provides
+import rocks.teagantotally.heartofgoldnotifications.app.injection.client.ClientContainer
 import rocks.teagantotally.heartofgoldnotifications.app.injection.scopes.FragmentScope
-import rocks.teagantotally.heartofgoldnotifications.domain.usecases.message.publish.PublishMessage
 import rocks.teagantotally.heartofgoldnotifications.presentation.pubish.PublishContract
 import rocks.teagantotally.heartofgoldnotifications.presentation.pubish.PublishPresenter
 
@@ -13,11 +13,6 @@ class PublishModule(
 ) {
     @Provides
     @FragmentScope
-    fun providePresenter(
-        publishMessage: PublishMessage
-    ): PublishContract.Presenter =
-        PublishPresenter(
-            view,
-            publishMessage
-        )
+    fun providePresenter(): PublishContract.Presenter =
+        PublishPresenter(view)
 }

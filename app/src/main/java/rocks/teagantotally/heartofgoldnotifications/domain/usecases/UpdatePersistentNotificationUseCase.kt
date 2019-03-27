@@ -1,14 +1,14 @@
 package rocks.teagantotally.heartofgoldnotifications.domain.usecases
 
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.Notifier
-import rocks.teagantotally.heartofgoldnotifications.domain.framework.UseCase
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.UseCaseWithParameter
 import rocks.teagantotally.heartofgoldnotifications.domain.models.ClientState
 import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.NotificationMessage
 import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.NotificationMessageChannel
 
 class UpdatePersistentNotificationUseCase(
     private val notifier: Notifier
-) : UseCase<ClientState> {
+) : UseCaseWithParameter<ClientState> {
     companion object {
         private const val PERSISTENT_NOTIFICATION_ID = -1009
         private val PERSISTENT_CHANNEL: NotificationMessageChannel =

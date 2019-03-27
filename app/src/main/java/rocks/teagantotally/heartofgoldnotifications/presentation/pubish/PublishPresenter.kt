@@ -1,21 +1,35 @@
 package rocks.teagantotally.heartofgoldnotifications.presentation.pubish
 
+import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.launch
-import rocks.teagantotally.heartofgoldnotifications.domain.framework.event.MqttEventConsumer
-import rocks.teagantotally.heartofgoldnotifications.domain.models.commands.MqttCommand
-import rocks.teagantotally.heartofgoldnotifications.domain.models.events.MqttEvent
-import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.Message
+import rocks.teagantotally.heartofgoldnotifications.app.HeyEddieApplication
+import rocks.teagantotally.heartofgoldnotifications.app.injection.client.ClientContainer
+import rocks.teagantotally.heartofgoldnotifications.common.extensions.ifMaybe
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.message.publish.PublishMessage
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.ScopedPresenter
+import rocks.teagantotally.kotqtt.domain.framework.client.CommandResult
+import rocks.teagantotally.kotqtt.domain.framework.client.MqttEventProducer
+import rocks.teagantotally.kotqtt.domain.models.Message
+import rocks.teagantotally.kotqtt.domain.models.QoS
+import rocks.teagantotally.kotqtt.domain.models.commands.MqttPublishCommand
 import java.util.*
 
 class PublishPresenter(
-    view: PublishContract.View,
-    private val publishMessage: PublishMessage
-) : PublishContract.Presenter, ScopedPresenter<PublishContract.View, PublishContract.Presenter>(view),
-    MqttEventConsumer {
+    view: PublishContract.View
+) : PublishContract.Presenter, ScopedPresenter<PublishContract.View, PublishContract.Presenter>(view) {
+
     private var messagePublishing: Message? = null
-    private var commandPublishing: MqttCommand.Publish? = null
+
+    private val clientContainer: ClientContainer by lazy {
+        HeyEddieApplication.clientComponent.provideClientContainer()
+    }
+
+    private val eventProducer: MqttEventProducer by lazy {
+        clientContainer.eventProducer
+    }
+    private val publishMessage: PublishMessage by lazy {
+        clientContainer.publishMessage
+    }
 
     override fun onViewCreated() {
         view.isValid = false
@@ -29,37 +43,34 @@ class PublishPresenter(
         launch {
             view.showLoading(true)
             publishMessage(
-                MqttCommand.Publish(
+                MqttPublishCommand(
                     Message(
                         topic,
-                        payload,
-                        qos,
                         retain,
+                        QoS.fromQoS(qos),
+                        payload.toByteArray(),
                         Date()
                     ).also { messagePublishing = it }
-                ).also { commandPublishing = it }
+                )
             )
-        }
-    }
-
-    override fun consume(event: MqttEvent) {
-        when (event) {
-            is MqttEvent.MessagePublished ->
-                if (event.message == messagePublishing) {
-                    view.showSuccess()
-                } else {
-                    null
+            eventProducer.subscribe()
+                .run {
+                    while (!isClosedForReceive) {
+                        consumeEach { event ->
+                            (event as? CommandResult<*>)
+                                ?.ifMaybe({ it.command is MqttPublishCommand }) {
+                                    when (it) {
+                                        is CommandResult.Success<*, *> ->
+                                            view.showSuccess()
+                                        is CommandResult.Failure<*> -> view.showError(it.throwable.message)
+                                    }
+                                }
+                                ?.let { cancel() }
+                                ?.run { view.showLoading(false) }
+                        }
+                    }
                 }
-            is MqttEvent.CommandFailed ->
-                if (event.command == commandPublishing) {
-                    view.showError(event.throwable.message)
-                } else {
-                    null
-                }
-            else -> null
         }
-            ?.run { view.showLoading(false) }
-            ?: view.showError("Error Processing Message")
     }
 
     override fun onDestroyView() {

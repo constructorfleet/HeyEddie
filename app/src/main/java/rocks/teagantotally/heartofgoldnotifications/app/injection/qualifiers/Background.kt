@@ -1,4 +1,4 @@
-package rocks.teagantotally.heartofgoldnotifications.app.injection
+package rocks.teagantotally.heartofgoldnotifications.app.injection.qualifiers
 
 import javax.inject.Qualifier
 

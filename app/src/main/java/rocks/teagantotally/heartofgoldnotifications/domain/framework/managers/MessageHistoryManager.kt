@@ -1,6 +1,6 @@
 package rocks.teagantotally.heartofgoldnotifications.domain.framework.managers
 
-import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.Message
+import rocks.teagantotally.kotqtt.domain.models.Message
 
 interface MessageHistoryManager {
     interface Listener {

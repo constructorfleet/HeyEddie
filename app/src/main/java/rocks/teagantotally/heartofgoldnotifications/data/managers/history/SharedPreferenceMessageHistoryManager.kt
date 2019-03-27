@@ -4,7 +4,7 @@ import android.content.SharedPreferences
 import com.github.ajalt.timberkt.Timber
 import com.google.gson.Gson
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.managers.MessageHistoryManager
-import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.Message
+import rocks.teagantotally.kotqtt.domain.models.Message
 
 class SharedPreferenceMessageHistoryManager(
     private val sharedPreferences: SharedPreferences,

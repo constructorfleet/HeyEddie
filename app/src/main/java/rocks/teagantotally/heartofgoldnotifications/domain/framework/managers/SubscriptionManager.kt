@@ -5,7 +5,7 @@ import rocks.teagantotally.heartofgoldnotifications.domain.models.configs.Subscr
 
 interface SubscriptionManager {
     interface Listener {
-        fun onSubcriptionAdded(subscription: SubscriptionConfiguration)
+        fun onSubscriptionAdded(subscription: SubscriptionConfiguration)
 
         fun onSubscriptionRemoved(subscription: SubscriptionConfiguration)
     }

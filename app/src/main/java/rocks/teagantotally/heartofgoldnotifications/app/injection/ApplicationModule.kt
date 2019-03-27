@@ -19,6 +19,7 @@ import rocks.teagantotally.heartofgoldnotifications.domain.framework.managers.Me
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.managers.SubscriptionManager
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.FinishNotifyUseCase
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.UpdatePersistentNotificationUseCase
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.message.receive.Notify
 import javax.inject.Singleton
 
 @Module
@@ -66,6 +67,17 @@ class ApplicationModule(
         SystemNotifier(
             context,
             notificationManager
+        )
+
+    @Provides
+    @Singleton
+    fun provideNotifyUseCase(
+        notifier: Notifier,
+        gson: Gson
+    ): Notify =
+        Notify(
+            gson,
+            notifier
         )
 
     @Provides

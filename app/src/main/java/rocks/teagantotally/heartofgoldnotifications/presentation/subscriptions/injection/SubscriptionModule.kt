@@ -4,8 +4,6 @@ import dagger.Module
 import dagger.Provides
 import rocks.teagantotally.heartofgoldnotifications.app.injection.scopes.FragmentScope
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.managers.SubscriptionManager
-import rocks.teagantotally.heartofgoldnotifications.domain.usecases.subscription.SubscribeTo
-import rocks.teagantotally.heartofgoldnotifications.domain.usecases.subscription.UnsubscribeFrom
 import rocks.teagantotally.heartofgoldnotifications.presentation.subscriptions.SubscriptionsContract
 import rocks.teagantotally.heartofgoldnotifications.presentation.subscriptions.SubscriptionsPresenter
 
@@ -16,14 +14,10 @@ class SubscriptionModule(
     @Provides
     @FragmentScope
     fun providePresenter(
-        subscriptionManager: SubscriptionManager,
-        subscribeTo: SubscribeTo,
-        unsubscribeFrom: UnsubscribeFrom
+        subscriptionManager: SubscriptionManager
     ): SubscriptionsContract.Presenter =
         SubscriptionsPresenter(
             view,
-            subscriptionManager,
-            subscribeTo,
-            unsubscribeFrom
+            subscriptionManager
         )
 }

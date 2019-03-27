@@ -1,6 +1,5 @@
 package rocks.teagantotally.heartofgoldnotifications.presentation.main
 
-import rocks.teagantotally.heartofgoldnotifications.domain.framework.event.MqttEventConsumer
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.BasePresenter
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.BaseView
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.ConnectionViewState
@@ -18,7 +17,7 @@ interface MainActivityContract {
         fun setConnectionState(state: ConnectionViewState)
     }
 
-    interface Presenter : BasePresenter, MqttEventConsumer {
+    interface Presenter : BasePresenter {
         fun onHandleConnectionNavigation()
 
         fun onNavigateToConfigSettings()

@@ -1,5 +1,9 @@
 package rocks.teagantotally.heartofgoldnotifications.domain.framework
 
-interface UseCase<in ParameterType> {
+interface UseCase {
+    suspend operator fun invoke()
+}
+
+interface UseCaseWithParameter<in ParameterType> {
     suspend operator fun invoke(parameter: ParameterType)
 }

@@ -14,7 +14,7 @@ android {
         applicationId "rocks.teagantotally.heartofgoldnotifications"
         minSdkVersion 27
         targetSdkVersion 28
-//        multiDexEnabled true
+        multiDexEnabled true
         versionCode 3
         versionName "1.1"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -32,8 +32,9 @@ androidExtensions {
 }
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
-//    implementation 'com.android.support:multidex:1.0.3'
+//    implementation fil fileTree(dir: 'libs', include: ['*.jar'])
+    implementation project(':kotqtt')
+    implementation 'com.android.support:multidex:1.0.3'
     implementation"org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.0.1'

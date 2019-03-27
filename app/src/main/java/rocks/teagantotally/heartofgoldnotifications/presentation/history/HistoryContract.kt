@@ -1,8 +1,8 @@
 package rocks.teagantotally.heartofgoldnotifications.presentation.history
 
-import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.Message
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.BasePresenter
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.BaseView
+import rocks.teagantotally.kotqtt.domain.models.Message
 
 interface HistoryContract {
     interface View : BaseView<Presenter> {

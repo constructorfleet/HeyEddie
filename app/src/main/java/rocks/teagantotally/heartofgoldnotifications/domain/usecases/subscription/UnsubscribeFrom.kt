@@ -1,13 +1,14 @@
 package rocks.teagantotally.heartofgoldnotifications.domain.usecases.subscription
 
-import rocks.teagantotally.heartofgoldnotifications.domain.framework.UseCase
-import rocks.teagantotally.heartofgoldnotifications.domain.framework.commands.MqttCommandExecutor
-import rocks.teagantotally.heartofgoldnotifications.domain.models.commands.MqttCommand
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.UseCaseWithParameter
+import rocks.teagantotally.kotqtt.domain.framework.client.MqttCommandExecutor
+import rocks.teagantotally.kotqtt.domain.models.commands.MqttUnsubscribeCommand
+import javax.inject.Inject
 
-class UnsubscribeFrom(
+class UnsubscribeFrom @Inject constructor(
     private val commandExecutor: MqttCommandExecutor
-) : UseCase<MqttCommand.Unsubscribe> {
-    override suspend fun invoke(parameter: MqttCommand.Unsubscribe) {
+) : UseCaseWithParameter<MqttUnsubscribeCommand> {
+    override suspend fun invoke(parameter: MqttUnsubscribeCommand) {
         commandExecutor.execute(parameter)
     }
 }

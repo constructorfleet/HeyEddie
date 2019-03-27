@@ -34,6 +34,7 @@ class MqttClient(
                     is MqttPublishCommand -> publish(it)
                     is MqttSubscribeCommand -> subscribe(it)
                     is MqttUnsubscribeCommand -> unsubscribe(it)
+                    is MqttGetStatusCommand -> getStatus()
                 }
             }
         }
@@ -53,9 +54,9 @@ class MqttClient(
                                     it,
                                     isRetained,
                                     QoS.fromQoS(qos),
-                                    payload
-                                ),
-                                Date()
+                                    payload,
+                                    Date()
+                                )
                             )
                         )
                     }
@@ -112,8 +113,7 @@ class MqttClient(
                     getListener(
                         command,
                         MqttMessagePublished(
-                            command.message,
-                            Date()
+                            command.message
                         )
                     )
                 )
@@ -159,6 +159,10 @@ class MqttClient(
                 )
             }
         }
+    }
+
+    private fun getStatus() {
+        sendEvent(MqttStatusEvent(client.isConnected))
     }
 
     private fun <CommandType : MqttCommand> sendNotConnectedEvent(command: CommandType) {

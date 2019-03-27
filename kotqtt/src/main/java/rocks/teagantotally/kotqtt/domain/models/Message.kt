@@ -1,10 +1,13 @@
 package rocks.teagantotally.kotqtt.domain.models
 
+import java.util.*
+
 data class Message(
     val topic: String,
     val retain: Boolean = false,
     val qos: QoS = QoS.DEFAULT_QOS,
-    val payload: ByteArray = ByteArray(0)
+    val payload: ByteArray = ByteArray(0),
+    val date: Date = Date()
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

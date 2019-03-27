@@ -11,7 +11,6 @@ import kotlinx.coroutines.ObsoleteCoroutinesApi
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 import rocks.teagantotally.heartofgoldnotifications.R
-import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.Message
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.BaseFragment
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.Scoped
 import rocks.teagantotally.heartofgoldnotifications.presentation.common.annotations.ActionBarTitle
@@ -19,6 +18,7 @@ import rocks.teagantotally.heartofgoldnotifications.presentation.common.recycler
 import rocks.teagantotally.heartofgoldnotifications.presentation.common.recyclerview.SelfBindingRecyclerAdapter
 import rocks.teagantotally.heartofgoldnotifications.presentation.history.injection.HistoryModule
 import rocks.teagantotally.heartofgoldnotifications.presentation.main.MainActivity
+import rocks.teagantotally.kotqtt.domain.models.Message
 import java.text.SimpleDateFormat
 import javax.inject.Inject
 
@@ -182,9 +182,9 @@ class HistoryFragment : BaseFragment(), HistoryContract.View, Scoped {
             with(view) {
                 timestamp.text = DATE_FORMATTER.format(item.date)
                 payload.text = try {
-                    JSONObject(item.payload).toString(2)
+                    JSONObject(String(item.payload)).toString(2)
                 } catch (_: Throwable) {
-                    item.payload
+                    "UNKNOWN"
                 }
                 topic.text = item.topic
             }
