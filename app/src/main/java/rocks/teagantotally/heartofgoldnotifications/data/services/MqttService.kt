@@ -6,25 +6,22 @@ import android.content.Context
 import android.content.Intent
 import android.os.IBinder
 import com.github.ajalt.timberkt.Timber
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.ObsoleteCoroutinesApi
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.ReceiveChannel
-import kotlinx.coroutines.launch
 import rocks.teagantotally.heartofgoldnotifications.app.HeyEddieApplication
 import rocks.teagantotally.heartofgoldnotifications.app.injection.client.ClientContainer
 import rocks.teagantotally.heartofgoldnotifications.common.extensions.ifAlso
-import rocks.teagantotally.heartofgoldnotifications.common.extensions.ifTrueMaybe
 import rocks.teagantotally.heartofgoldnotifications.data.managers.transform
 import rocks.teagantotally.heartofgoldnotifications.data.services.helpers.LongRunningServiceConnection
 import rocks.teagantotally.heartofgoldnotifications.data.services.helpers.ServiceBinder
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.Notifier
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.event.ClientConfigurationChangedEvent
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.managers.SubscriptionManager
 import rocks.teagantotally.heartofgoldnotifications.domain.models.ClientState
 import rocks.teagantotally.heartofgoldnotifications.domain.models.configs.ConnectionConfiguration
 import rocks.teagantotally.heartofgoldnotifications.domain.models.configs.SubscriptionConfiguration
-import rocks.teagantotally.heartofgoldnotifications.domain.usecases.config.ClientConfigurationChangedUseCase
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.UpdatePersistentNotificationUseCase
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.config.ClientConfigurationChangedUseCase
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.config.GetClientConfigurationUseCase
 import rocks.teagantotally.kotqtt.domain.framework.client.CommandResult
 import rocks.teagantotally.kotqtt.domain.models.events.MqttConnectedEvent
@@ -97,6 +94,8 @@ class MqttService : Service(),
     override val coroutineContext: CoroutineContext by lazy { coroutineScope.coroutineContext }
 
     @Inject
+    lateinit var notifier: Notifier
+    @Inject
     lateinit var updatePersistentNotification: UpdatePersistentNotificationUseCase
     @Inject
     lateinit var clientConfigurationChangedUseCase: ClientConfigurationChangedUseCase
@@ -114,31 +113,31 @@ class MqttService : Service(),
         HeyEddieApplication.applicationComponent
             .also { it.inject(this) }
             .run {
-                launch {
-                    getClientConfiguration()
-                        ?.let { onClientConfigured(it) }
-                        ?: listenForConfigurationChange()
+                runBlocking {
+                    notifier.createChannel(UpdatePersistentNotificationUseCase.PERSISTENT_CHANNEL)
                 }
+                    .run {
+                        UpdatePersistentNotificationUseCase.getPersistentNotification(ClientState.Disconnected)
+                            .transform(this@MqttService)
+                            .let { startForeground(it.first, it.second) }
+                    }
+                    .run {
+                        launch {
+                            getClientConfiguration()
+                                ?.let { onClientConfigured(it) }
+                                ?: listenForConfigurationChange()
+                        }
+                    }
+                    .run { serviceBinder = ServiceBinder(this@MqttService) }
+                    .run {
+                        bindService(
+                            Intent(this@MqttService, MqttService::class.java),
+                            longRunningServiceConnection,
+                            Context.BIND_AUTO_CREATE
+                        )
+                    }
+                    .run { START_STICKY }
             }
-            .run { serviceBinder = ServiceBinder(this@MqttService) }
-            .run {
-                bindService(
-                    Intent(this@MqttService, MqttService::class.java),
-                    longRunningServiceConnection,
-                    Context.BIND_AUTO_CREATE
-                )
-            }
-            .run {
-                launch {
-                    updatePersistentNotification(ClientState.Disconnected)
-                }
-            }
-            .run {
-                UpdatePersistentNotificationUseCase.getPersistentNotification(ClientState.Disconnected)
-                    .transform(this@MqttService)
-                    .let { startForeground(it.first, it.second) }
-            }
-            .run { START_STICKY }
 
 
     override fun onDestroy() {
@@ -157,8 +156,8 @@ class MqttService : Service(),
     private fun listenForConfigurationChange() {
         launch {
             while (!clientConfigurationChanged.isClosedForReceive) {
-                clientConfigurationChanged.receiveOrNull()?.let { configChangeEvent ->
-
+                clientConfigurationChanged.receiveOrNull()?.let {
+                    onClientConfigured(it.connectionConfiguration)
                 }
             }
         }
@@ -170,7 +169,7 @@ class MqttService : Service(),
                 mqttEventConsumer = it.eventProducer.subscribe()
                 listenForEvents()
             }
-            .ifAlso({clientConfiguration.autoReconnect}) {
+            .ifAlso({ clientConfiguration.autoReconnect }) {
                 HeyEddieApplication
                     .clientComponent
                     .provideClientContainer()
@@ -180,7 +179,7 @@ class MqttService : Service(),
 
     private fun listenForEvents() {
         launch {
-            while(!mqttEventConsumer.isClosedForReceive) {
+            while (!mqttEventConsumer.isClosedForReceive) {
                 mqttEventConsumer.receiveOrNull()?.let { consume(it) }
             }
         }

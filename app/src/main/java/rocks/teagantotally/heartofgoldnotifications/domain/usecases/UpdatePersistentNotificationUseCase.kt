@@ -11,7 +11,7 @@ class UpdatePersistentNotificationUseCase(
 ) : UseCaseWithParameter<ClientState> {
     companion object {
         private const val PERSISTENT_NOTIFICATION_ID = -1009
-        private val PERSISTENT_CHANNEL: NotificationMessageChannel =
+        val PERSISTENT_CHANNEL: NotificationMessageChannel =
             NotificationMessageChannel(
                 "persistent",
                 "Persistent",

@@ -7,10 +7,8 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Parcelable
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.ObsoleteCoroutinesApi
-import kotlinx.coroutines.launch
 import rocks.teagantotally.heartofgoldnotifications.R
 import rocks.teagantotally.heartofgoldnotifications.common.extensions.ifAlso
 import rocks.teagantotally.heartofgoldnotifications.common.extensions.putInvoker
@@ -28,27 +26,21 @@ import java.util.*
 
 class SystemNotifier(
     private val context: Context,
-    private val notificationManager: NotificationManager,
-    coroutineScope: CoroutineScope
-) : Notifier, CoroutineScope by coroutineScope {
-
+    private val notificationManager: NotificationManager
+) : Notifier {
     override fun notify(notification: NotificationMessage) {
-        launch {
-            createChannel(notification.channel)
-            notification.transform(context)
-                .let {
-                    notificationManager.notify(it.first, it.second)
-                }
-        }
+        createChannel(notification.channel)
+        notification.transform(context)
+            .let {
+                notificationManager.notify(it.first, it.second)
+            }
     }
 
     override fun dismiss(notificationId: Int) {
-        launch {
-            notificationManager.cancel(notificationId)
-        }
+        notificationManager.cancel(notificationId)
     }
 
-    private fun createChannel(notificationChannel: NotificationMessageChannel) {
+    override fun createChannel(notificationChannel: NotificationMessageChannel) {
         try {
             notificationManager.getNotificationChannel(notificationChannel.id)
         } catch (_: Throwable) {

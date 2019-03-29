@@ -66,13 +66,11 @@ class ApplicationModule(
     @Singleton
     fun provideNotifier(
         context: Context,
-        notificationManager: NotificationManager,
-        @UI coroutineScope: CoroutineScope
+        notificationManager: NotificationManager
     ): Notifier =
         SystemNotifier(
             context,
-            notificationManager,
-            coroutineScope
+            notificationManager
         )
 
     @Provides
