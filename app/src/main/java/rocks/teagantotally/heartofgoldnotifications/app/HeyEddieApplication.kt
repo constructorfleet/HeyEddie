@@ -4,7 +4,6 @@ package rocks.teagantotally.heartofgoldnotifications.app
 //import android.support.multidex.MultiDexApplication
 import `in`.co.ophio.secure.core.KeyStoreKeyGenerator
 import android.annotation.SuppressLint
-import android.app.Application
 import android.content.Context
 import android.content.Intent
 import android.support.multidex.MultiDex
@@ -18,6 +17,7 @@ import rocks.teagantotally.heartofgoldnotifications.app.injection.client.ClientM
 import rocks.teagantotally.heartofgoldnotifications.app.injection.client.DaggerClientComponent
 import rocks.teagantotally.heartofgoldnotifications.app.managers.ActivityJobManager
 import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.event.ClientConfigurationChangedEvent
 import kotlin.coroutines.CoroutineContext
 
 @ExperimentalCoroutinesApi
@@ -28,21 +28,26 @@ class HeyEddieApplication : MultiDexApplication() {
         lateinit var applicationComponent: ApplicationComponent
         lateinit var clientComponent: ClientComponent
 
-        fun setClientComponent(module: ClientModule) {
+        suspend fun setClientComponent(module: ClientModule) {
             DaggerClientComponent.builder()
                 .applicationComponent(applicationComponent)
                 .clientModule(module)
                 .build()
                 .let { clientComponent = it }
+                .also {
+                    applicationComponent.provideConnectionConfigurationChangedUseCase()
+                        .let {
+                            if (!it.isClosedForSend) {
+                                it.send(
+                                    ClientConfigurationChangedEvent(
+                                        clientComponent.provideConnectionConfiguration()
+                                    )
+                                )
+                            }
+                        }
+
+                }
         }
-
-        private const val PREF_FILE_NAME = "rocks.teagantotally.heartofgoldnotifications.app.pref"
-
-        private val clientChangeCoroutineScope: CoroutineScope =
-            object : CoroutineScope {
-                override val coroutineContext: CoroutineContext =
-                    Job().plus(Dispatchers.IO)
-            }
     }
 
     override fun attachBaseContext(base: Context?) {
@@ -63,7 +68,7 @@ class HeyEddieApplication : MultiDexApplication() {
                 ApplicationModule(
                     this,
                     getKeyStoreKey(),
-                    PREF_FILE_NAME
+                    this.packageName
                 )
             )
             .build()

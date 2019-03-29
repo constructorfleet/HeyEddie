@@ -9,20 +9,23 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.ObsoleteCoroutinesApi
 import rocks.teagantotally.heartofgoldnotifications.R
 import rocks.teagantotally.heartofgoldnotifications.app.HeyEddieApplication
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.BaseActivity
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.ConnectionViewState
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.Navigable
-import rocks.teagantotally.heartofgoldnotifications.presentation.config.ConfigFragment
-import rocks.teagantotally.heartofgoldnotifications.presentation.history.HistoryFragment
+import rocks.teagantotally.heartofgoldnotifications.presentation.main.fragments.config.ConfigFragment
+import rocks.teagantotally.heartofgoldnotifications.presentation.main.fragments.history.HistoryFragment
 import rocks.teagantotally.heartofgoldnotifications.presentation.main.injection.MainActivityComponent
 import rocks.teagantotally.heartofgoldnotifications.presentation.main.injection.MainActivityModule
-import rocks.teagantotally.heartofgoldnotifications.presentation.pubish.PublishFragment
-import rocks.teagantotally.heartofgoldnotifications.presentation.subscriptions.SubscriptionsFragment
+import rocks.teagantotally.heartofgoldnotifications.presentation.main.fragments.pubish.PublishFragment
+import rocks.teagantotally.heartofgoldnotifications.presentation.main.fragments.subscriptions.SubscriptionsFragment
 import javax.inject.Inject
+import kotlin.coroutines.CoroutineContext
 
 
 @ObsoleteCoroutinesApi
@@ -35,6 +38,7 @@ class MainActivity : BaseActivity(),
         lateinit var mainActivityComponent: MainActivityComponent
     }
 
+    override val coroutineContext: CoroutineContext = Job() + Dispatchers.Main
     @Inject
     override lateinit var presenter: MainActivityContract.Presenter
 

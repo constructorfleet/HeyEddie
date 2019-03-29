@@ -1,17 +1,21 @@
 package rocks.teagantotally.heartofgoldnotifications.presentation.main
 
-import kotlinx.coroutines.channels.consumeEach
+import com.github.ajalt.timberkt.Timber
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.launch
 import rocks.teagantotally.heartofgoldnotifications.app.HeyEddieApplication
 import rocks.teagantotally.heartofgoldnotifications.app.injection.client.ClientContainer
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.event.ClientConfigurationChangedEvent
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.managers.ConnectionConfigManager
-import rocks.teagantotally.heartofgoldnotifications.domain.usecases.ConnectClient
-import rocks.teagantotally.heartofgoldnotifications.domain.usecases.DisconnectClient
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.config.ClientConfigurationChangedUseCase
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.connection.ConnectClient
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.connection.DisconnectClient
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.connection.GetClientStatus
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.ConnectionViewState
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.ScopedPresenter
 import rocks.teagantotally.kotqtt.domain.framework.client.CommandResult
 import rocks.teagantotally.kotqtt.domain.framework.client.MqttCommandExecutor
-import rocks.teagantotally.kotqtt.domain.framework.client.MqttEventProducer
 import rocks.teagantotally.kotqtt.domain.models.commands.MqttConnectCommand
 import rocks.teagantotally.kotqtt.domain.models.commands.MqttDisconnectCommand
 import rocks.teagantotally.kotqtt.domain.models.commands.MqttGetStatusCommand
@@ -22,23 +26,30 @@ import rocks.teagantotally.kotqtt.domain.models.events.MqttStatusEvent
 
 class MainActivityPresenter(
     view: MainActivityContract.View,
-    private val configManager: ConnectionConfigManager
-) : MainActivityContract.Presenter, ScopedPresenter<MainActivityContract.View, MainActivityContract.Presenter>(view) {
+    private val clientConfigurationChangedUseCase: ClientConfigurationChangedUseCase,
+    private val configManager: ConnectionConfigManager,
+    coroutineScope: CoroutineScope
+) : MainActivityContract.Presenter,
+    ScopedPresenter<MainActivityContract.View, MainActivityContract.Presenter>(view, coroutineScope) {
     private lateinit var connectionViewState: ConnectionViewState
 
     private val clientContainer: ClientContainer by lazy { HeyEddieApplication.clientComponent.provideClientContainer() }
 
     private val connectClient: ConnectClient by lazy { clientContainer.connectClient }
     private val disconnectClient: DisconnectClient by lazy { clientContainer.disconnectClient }
-    private val eventProducer: MqttEventProducer by lazy { clientContainer.eventProducer }
+    private val getClientStatus: GetClientStatus by lazy { clientContainer.getClientStatus }
+    private val eventReceiver: ReceiveChannel<MqttEvent> by lazy { clientContainer.eventProducer.subscribe() }
     private val commandExecutor: MqttCommandExecutor by lazy { clientContainer.commandExecutor }
+
+    private val clientConfigurationChanged: ReceiveChannel<ClientConfigurationChangedEvent> by lazy { clientConfigurationChangedUseCase.openSubscription() }
+    private var isListening: Boolean = false
 
     override fun onViewCreated() {
         configManager.getConnectionConfiguration()
             ?.let { config ->
                 view.showLoading()
+                listenForEvents()
                 launch {
-                    eventProducer.subscribe().consumeEach { consume(it) }
                     commandExecutor.execute(MqttGetStatusCommand)
                 }
             } ?: ConnectionViewState.Unconfigured
@@ -46,6 +57,7 @@ class MainActivityPresenter(
                 connectionViewState = it
                 view.setConnectionState(it)
                 view.showConfigSettings()
+                listenForConfigurationChange()
             }
     }
 
@@ -82,7 +94,28 @@ class MainActivityPresenter(
         // no-op
     }
 
+    private fun listenForConfigurationChange() {
+        launch {
+            clientConfigurationChanged.receiveOrNull()?.let {
+                listenForEvents()
+            }
+        }
+    }
+
+    private fun listenForEvents() {
+        if (isListening) {
+            return
+        }
+        isListening = true
+        launch {
+            while (!eventReceiver.isClosedForReceive) {
+                eventReceiver.receiveOrNull()?.let { consume(it) }
+            }
+        }
+    }
+
     private fun consume(receivedEvent: MqttEvent) {
+        Timber.d { "Received ${receivedEvent}" }
         val event: MqttEvent =
             (receivedEvent as? CommandResult.Success<*, *>)
                 ?.let {

@@ -2,6 +2,9 @@ package rocks.teagantotally.heartofgoldnotifications.data.managers.config
 
 import android.content.SharedPreferences
 import com.google.gson.Gson
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import rocks.teagantotally.heartofgoldnotifications.app.HeyEddieApplication
 import rocks.teagantotally.heartofgoldnotifications.app.injection.client.ClientModule
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.managers.ConnectionConfigManager
@@ -10,26 +13,15 @@ import rocks.teagantotally.heartofgoldnotifications.domain.models.configs.Connec
 class SharedPreferenceConnectionConfigManager(
     private val sharedPreferences: SharedPreferences,
     private val gson: Gson
-) : ConnectionConfigManager {
+) : ConnectionConfigManager, SharedPreferences.OnSharedPreferenceChangeListener {
 
     companion object {
         private const val KEY_CONFIG = "ConnectionConfiguration"
     }
 
-    private val createClientComponentOnSave: SharedPreferences.OnSharedPreferenceChangeListener =
-        object : SharedPreferences.OnSharedPreferenceChangeListener {
-            override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
-                if (key != KEY_CONFIG) {
-                    return
-                }
-
-                getConnectionConfiguration()?.let { setupClientComponent(it) }
-            }
-        }
-
     init {
-        sharedPreferences.registerOnSharedPreferenceChangeListener(createClientComponentOnSave)
-        sharedPreferences.registerOnSharedPreferenceChangeListener(createClientComponentOnSave)
+        sharedPreferences.unregisterOnSharedPreferenceChangeListener(this)
+        sharedPreferences.registerOnSharedPreferenceChangeListener(this)
 
         getConnectionConfiguration()
             ?.let { setupClientComponent(it) }
@@ -57,9 +49,6 @@ class SharedPreferenceConnectionConfigManager(
         connectionConfiguration: ConnectionConfiguration
     ) {
         sharedPreferences
-            .also { prefs ->
-
-            }
             .edit()
             .apply {
                 putString(KEY_CONFIG, gson.toJson(connectionConfiguration))
@@ -67,7 +56,17 @@ class SharedPreferenceConnectionConfigManager(
             .apply()
     }
 
+    override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
+        if (key != KEY_CONFIG) {
+            return
+        }
+
+        getConnectionConfiguration()?.let { setupClientComponent(it) }
+    }
+
     private fun setupClientComponent(connectionConfiguration: ConnectionConfiguration) {
-        HeyEddieApplication.setClientComponent(ClientModule(connectionConfiguration))
+        CoroutineScope(Dispatchers.IO).launch {
+            HeyEddieApplication.setClientComponent(ClientModule(connectionConfiguration))
+        }
     }
 }

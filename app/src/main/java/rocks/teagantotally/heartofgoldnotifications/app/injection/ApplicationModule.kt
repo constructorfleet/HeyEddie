@@ -9,6 +9,9 @@ import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import dagger.Module
 import dagger.Provides
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.channels.BroadcastChannel
+import rocks.teagantotally.heartofgoldnotifications.app.injection.qualifiers.UI
 import rocks.teagantotally.heartofgoldnotifications.data.managers.SystemNotifier
 import rocks.teagantotally.heartofgoldnotifications.data.managers.config.SharedPreferenceConnectionConfigManager
 import rocks.teagantotally.heartofgoldnotifications.data.managers.history.SharedPreferenceMessageHistoryManager
@@ -17,6 +20,7 @@ import rocks.teagantotally.heartofgoldnotifications.domain.framework.Notifier
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.managers.ConnectionConfigManager
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.managers.MessageHistoryManager
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.managers.SubscriptionManager
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.config.ClientConfigurationChangedUseCase
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.FinishNotifyUseCase
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.UpdatePersistentNotificationUseCase
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.message.receive.Notify
@@ -62,11 +66,13 @@ class ApplicationModule(
     @Singleton
     fun provideNotifier(
         context: Context,
-        notificationManager: NotificationManager
+        notificationManager: NotificationManager,
+        @UI coroutineScope: CoroutineScope
     ): Notifier =
         SystemNotifier(
             context,
-            notificationManager
+            notificationManager,
+            coroutineScope
         )
 
     @Provides
@@ -93,6 +99,13 @@ class ApplicationModule(
         notifier: Notifier
     ): FinishNotifyUseCase =
         FinishNotifyUseCase(notifier)
+
+    @Provides
+    @Singleton
+    fun provideConnectionConfigurationChangedUseCase(): ClientConfigurationChangedUseCase =
+        ClientConfigurationChangedUseCase(
+            BroadcastChannel(100)
+        )
 
     @Provides
     @Singleton

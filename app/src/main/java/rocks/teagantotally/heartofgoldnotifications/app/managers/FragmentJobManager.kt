@@ -4,28 +4,27 @@ import android.content.Context
 import android.support.v4.app.Fragment
 import android.support.v4.app.FragmentManager
 import com.github.ajalt.timberkt.Timber
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancelChildren
-import rocks.teagantotally.heartofgoldnotifications.presentation.base.Scoped
+import kotlinx.coroutines.*
+import rocks.teagantotally.heartofgoldnotifications.common.extensions.childScope
+import rocks.teagantotally.heartofgoldnotifications.presentation.base.BaseActivity
+import rocks.teagantotally.heartofgoldnotifications.presentation.base.BaseFragment
 
 object FragmentJobManager : FragmentManager.FragmentLifecycleCallbacks() {
     override fun onFragmentAttached(fragmentManager: FragmentManager, fragment: Fragment, context: Context) {
-        (fragment as? Scoped)
+        (fragment as? BaseFragment)
             ?.let { scopedFragment ->
-                (fragment.activity as? Scoped)
-                    ?.let { it.job }
-                    .let {
-                        with(scopedFragment) {
-                            job = Job(it)
-                        }
+                (fragment.activity as? CoroutineScope)
+                    ?.let { it.childScope(Dispatchers.Main) }
+                    ?.let {
+                        scopedFragment.coroutineScope = it
                     }
             }
     }
 
     override fun onFragmentDestroyed(fragmentManager: FragmentManager, fragment: Fragment) {
-        (fragment as? Scoped)
-            ?.job
+        (fragment as? CoroutineScope)
+            ?.coroutineContext
+            ?.get(Job)
             ?.also {
                 Timber.d { "Cancelling ${it.children.count()} jobs" }
             }

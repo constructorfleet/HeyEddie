@@ -1,7 +1,9 @@
 package rocks.teagantotally.kotqtt.data
 
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.channels.*
+import kotlinx.coroutines.channels.BroadcastChannel
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.launch
 import org.eclipse.paho.client.mqttv3.*
 import rocks.teagantotally.kotqtt.domain.framework.client.Client
@@ -23,20 +25,24 @@ class MqttClient(
     CoroutineScope by coroutineScope {
 
     private val commandChannel: ReceiveChannel<MqttCommand> = Channel()
-    private val eventChannel: BroadcastChannel<MqttEvent> = ConflatedBroadcastChannel()
+    private val eventChannel: BroadcastChannel<MqttEvent> = BroadcastChannel(100)
+
+    init {
+        launch {
+            while (!commandChannel.isClosedForReceive) {
+                commandChannel.receiveOrNull()?.let { execute(it) }
+            }
+        }
+    }
 
     override suspend fun execute(command: MqttCommand) {
-        if (!commandChannel.isClosedForReceive) {
-            commandChannel.consumeEach {
-                when (it) {
-                    is MqttConnectCommand -> connect(it)
-                    is MqttDisconnectCommand -> disconnect(it)
-                    is MqttPublishCommand -> publish(it)
-                    is MqttSubscribeCommand -> subscribe(it)
-                    is MqttUnsubscribeCommand -> unsubscribe(it)
-                    is MqttGetStatusCommand -> getStatus()
-                }
-            }
+        when (command) {
+            is MqttConnectCommand -> connect(command)
+            is MqttDisconnectCommand -> disconnect(command)
+            is MqttPublishCommand -> publish(command)
+            is MqttSubscribeCommand -> subscribe(command)
+            is MqttUnsubscribeCommand -> unsubscribe(command)
+            is MqttGetStatusCommand -> getStatus()
         }
     }
 

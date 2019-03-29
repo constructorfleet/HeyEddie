@@ -2,11 +2,11 @@ package rocks.teagantotally.heartofgoldnotifications.presentation.main.injection
 
 import dagger.Subcomponent
 import rocks.teagantotally.heartofgoldnotifications.app.injection.scopes.ActivityScope
-import rocks.teagantotally.heartofgoldnotifications.presentation.config.injection.ConfigComponent
-import rocks.teagantotally.heartofgoldnotifications.presentation.history.injection.HistoryComponent
+import rocks.teagantotally.heartofgoldnotifications.presentation.main.fragments.config.injection.ConfigComponent
+import rocks.teagantotally.heartofgoldnotifications.presentation.main.fragments.history.injection.HistoryComponent
 import rocks.teagantotally.heartofgoldnotifications.presentation.main.MainActivity
-import rocks.teagantotally.heartofgoldnotifications.presentation.pubish.injection.PublishComponent
-import rocks.teagantotally.heartofgoldnotifications.presentation.subscriptions.injection.SubscriptionsComponent
+import rocks.teagantotally.heartofgoldnotifications.presentation.main.fragments.pubish.injection.PublishComponent
+import rocks.teagantotally.heartofgoldnotifications.presentation.main.fragments.subscriptions.injection.SubscriptionsComponent
 
 @ActivityScope
 @Subcomponent(modules = [MainActivityModule::class])

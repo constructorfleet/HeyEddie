@@ -1,7 +1,8 @@
 package rocks.teagantotally.heartofgoldnotifications.app.injection.client
 
-import rocks.teagantotally.heartofgoldnotifications.domain.usecases.ConnectClient
-import rocks.teagantotally.heartofgoldnotifications.domain.usecases.DisconnectClient
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.connection.ConnectClient
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.connection.DisconnectClient
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.connection.GetClientStatus
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.message.publish.PublishMessage
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.subscription.SubscribeTo
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.subscription.UnsubscribeFrom
@@ -17,5 +18,6 @@ data class ClientContainer @Inject constructor(
     var commandExecutor: MqttCommandExecutor,
     var connectClient: ConnectClient,
     var disconnectClient: DisconnectClient,
-    var publishMessage: PublishMessage
+    var publishMessage: PublishMessage,
+    var getClientStatus: GetClientStatus
 )

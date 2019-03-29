@@ -5,8 +5,8 @@ import android.app.Application
 import android.os.Bundle
 import com.github.ajalt.timberkt.Timber
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancelChildren
-import rocks.teagantotally.heartofgoldnotifications.presentation.base.Scoped
 
 object ActivityJobManager : Application.ActivityLifecycleCallbacks {
     override fun onActivityPaused(activity: Activity?) {
@@ -22,11 +22,8 @@ object ActivityJobManager : Application.ActivityLifecycleCallbacks {
     }
 
     override fun onActivityDestroyed(activity: Activity?) {
-        (activity as? Scoped)
-            ?.job
-            ?.also {
-                Timber.d { "Cancelling ${it.children.count()} jobs" }
-            }
+        (activity as? CoroutineScope)
+            ?.coroutineContext
             ?.run {
                 try {
                     cancelChildren()

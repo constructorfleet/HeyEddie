@@ -7,10 +7,10 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Parcelable
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.ObsoleteCoroutinesApi
+import kotlinx.coroutines.launch
 import rocks.teagantotally.heartofgoldnotifications.R
 import rocks.teagantotally.heartofgoldnotifications.common.extensions.ifAlso
 import rocks.teagantotally.heartofgoldnotifications.common.extensions.putInvoker
@@ -21,31 +21,32 @@ import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService.Co
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.Notifier
 import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.NotificationMessage
 import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.NotificationMessageChannel
-import rocks.teagantotally.heartofgoldnotifications.presentation.base.Scoped
 import rocks.teagantotally.heartofgoldnotifications.presentation.main.MainActivity
 import rocks.teagantotally.kotqtt.domain.models.Message
 import rocks.teagantotally.kotqtt.domain.models.QoS
 import java.util.*
-import kotlin.coroutines.CoroutineContext
 
 class SystemNotifier(
     private val context: Context,
-    private val notificationManager: NotificationManager
-) : Notifier, Scoped {
-
-    override var job: Job = Job()
-    override val coroutineContext: CoroutineContext by lazy { job.plus(Dispatchers.Main) }
+    private val notificationManager: NotificationManager,
+    coroutineScope: CoroutineScope
+) : Notifier, CoroutineScope by coroutineScope {
 
     override fun notify(notification: NotificationMessage) {
-        createChannel(notification.channel)
-        notification.transform(context)
-            .let {
-                notificationManager.notify(it.first, it.second)
-            }
+        launch {
+            createChannel(notification.channel)
+            notification.transform(context)
+                .let {
+                    notificationManager.notify(it.first, it.second)
+                }
+        }
     }
 
-    override fun dismiss(notificationId: Int) =
-        notificationManager.cancel(notificationId)
+    override fun dismiss(notificationId: Int) {
+        launch {
+            notificationManager.cancel(notificationId)
+        }
+    }
 
     private fun createChannel(notificationChannel: NotificationMessageChannel) {
         try {

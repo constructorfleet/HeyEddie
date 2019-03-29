@@ -4,6 +4,7 @@ import dagger.Component
 import dagger.Subcomponent
 import rocks.teagantotally.heartofgoldnotifications.app.injection.ApplicationComponent
 import rocks.teagantotally.heartofgoldnotifications.app.injection.scopes.SessionScope
+import rocks.teagantotally.heartofgoldnotifications.domain.models.configs.ConnectionConfiguration
 
 @SessionScope
 @Component(
@@ -11,6 +12,6 @@ import rocks.teagantotally.heartofgoldnotifications.app.injection.scopes.Session
     dependencies = [ApplicationComponent::class]
 )
 interface ClientComponent {
-//    fun inject(clientContainer: ClientContainer)
     fun provideClientContainer(): ClientContainer
+    fun provideConnectionConfiguration(): ConnectionConfiguration
 }
