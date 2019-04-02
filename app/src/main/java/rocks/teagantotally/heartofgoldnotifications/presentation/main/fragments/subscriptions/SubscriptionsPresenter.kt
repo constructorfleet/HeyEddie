@@ -74,10 +74,10 @@ class SubscriptionsPresenter(
                                     when (it) {
                                         is CommandResult.Success<*, *> ->
                                             subscriptionManager.addSubscription(subscription)
+                                                .run { view.newSubscriptionSaved() }
                                         is CommandResult.Failure<*> -> view.showError(it.throwable.message)
                                     }
                                 }
-                                ?.let { cancel() }
                                 ?.run { view.showLoading(false) }
                         }
                     }
