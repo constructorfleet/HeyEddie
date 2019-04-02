@@ -5,6 +5,7 @@ import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import rocks.teagantotally.heartofgoldnotifications.app.HeyEddieApplication
 import rocks.teagantotally.heartofgoldnotifications.app.injection.client.ClientModule
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.managers.ConnectionConfigManager
@@ -13,16 +14,13 @@ import rocks.teagantotally.heartofgoldnotifications.domain.models.configs.Connec
 class SharedPreferenceConnectionConfigManager(
     private val sharedPreferences: SharedPreferences,
     private val gson: Gson
-) : ConnectionConfigManager, SharedPreferences.OnSharedPreferenceChangeListener {
+) : ConnectionConfigManager{
 
     companion object {
         private const val KEY_CONFIG = "ConnectionConfiguration"
     }
 
     init {
-        sharedPreferences.unregisterOnSharedPreferenceChangeListener(this)
-        sharedPreferences.registerOnSharedPreferenceChangeListener(this)
-
         getConnectionConfiguration()
             ?.let { setupClientComponent(it) }
     }
@@ -53,19 +51,13 @@ class SharedPreferenceConnectionConfigManager(
             .apply {
                 putString(KEY_CONFIG, gson.toJson(connectionConfiguration))
             }
-            .apply()
-    }
-
-    override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
-        if (key != KEY_CONFIG) {
-            return
-        }
+            .commit()
 
         getConnectionConfiguration()?.let { setupClientComponent(it) }
     }
 
     private fun setupClientComponent(connectionConfiguration: ConnectionConfiguration) {
-        CoroutineScope(Dispatchers.IO).launch {
+        runBlocking {
             HeyEddieApplication.setClientComponent(ClientModule(connectionConfiguration))
         }
     }

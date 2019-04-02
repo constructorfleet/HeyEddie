@@ -7,6 +7,7 @@ import android.support.v4.app.FragmentManager
 import android.support.v4.view.GravityCompat
 import android.view.MenuItem
 import android.view.View
+import android.widget.TextView
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.Dispatchers
@@ -20,10 +21,10 @@ import rocks.teagantotally.heartofgoldnotifications.presentation.base.Connection
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.Navigable
 import rocks.teagantotally.heartofgoldnotifications.presentation.main.fragments.config.ConfigFragment
 import rocks.teagantotally.heartofgoldnotifications.presentation.main.fragments.history.HistoryFragment
-import rocks.teagantotally.heartofgoldnotifications.presentation.main.injection.MainActivityComponent
-import rocks.teagantotally.heartofgoldnotifications.presentation.main.injection.MainActivityModule
 import rocks.teagantotally.heartofgoldnotifications.presentation.main.fragments.pubish.PublishFragment
 import rocks.teagantotally.heartofgoldnotifications.presentation.main.fragments.subscriptions.SubscriptionsFragment
+import rocks.teagantotally.heartofgoldnotifications.presentation.main.injection.MainActivityComponent
+import rocks.teagantotally.heartofgoldnotifications.presentation.main.injection.MainActivityModule
 import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
 
@@ -103,6 +104,7 @@ class MainActivity : BaseActivity(),
             ?: false
 
     override fun onBackStackChanged() {
+
         updateNavigationMenu()
     }
 
@@ -158,49 +160,13 @@ class MainActivity : BaseActivity(),
     }
 
     override fun setConnectionState(state: ConnectionViewState) {
+        supportActionBar?.subtitle = getString(state.displayText)
         navigation_drawer.menu
             .let { menu ->
-                when (state) {
-                    ConnectionViewState.Connected ->
-                        menu.findItem(R.id.menu_item_connection)
-                            ?.let {
-                                it.setIcon(R.drawable.ic_unsync)
-                                it.setTitle(R.string.connection_disconnect)
-                            }
-                            ?.let {
-                                menu.findItem(R.id.menu_item_publish)
-                                    ?.let {
-                                        it.isEnabled = true
-                                        it.icon.alpha = 255
-                                    }
-                            }
-                    ConnectionViewState.Disconnected ->
-                        menu.findItem(R.id.menu_item_connection)
-                            ?.let {
-                                it.setIcon(R.drawable.ic_sync)
-                                it.setTitle(R.string.connection_establish)
-                            }
-                            ?.let {
-                                menu.findItem(R.id.menu_item_publish)
-                                    ?.let {
-                                        it.isEnabled = false
-                                        it.icon.alpha = 127
-                                    }
-                            }
-                    ConnectionViewState.Unconfigured ->
-                        menu.findItem(R.id.menu_item_connection)
-                            ?.let {
-                                it.setIcon(R.drawable.ic_sync_problem)
-                                it.setTitle(R.string.connection_not_possible)
-                            }
-                            ?.run {
-                                menu.findItem(R.id.menu_item_publish)
-                                    ?.let {
-                                        it.isEnabled = false
-                                        it.icon.alpha = 127
-                                    }
-                            }
-                }
+                menu.findItem(R.id.menu_item_connection)
+                    ?.let { it.connectionSetup(state) }
+                menu.findItem(R.id.menu_item_publish)
+                    ?.let { it.publishSetup(state) }
             }
             ?: Toast.makeText(
                 this,
@@ -220,5 +186,28 @@ class MainActivity : BaseActivity(),
                         }
                 }
             }
+    }
+
+    private fun MenuItem.connectionSetup(viewState: ConnectionViewState) {
+        setIcon(viewState.navigationIcon)
+        setTitle(viewState.navigationText)
+        setIconEnabled(viewState.canNavigate)
+    }
+
+    private fun MenuItem.publishSetup(viewState: ConnectionViewState) {
+        setIconEnabled(viewState.connected)
+    }
+
+    private fun MenuItem.setIconEnabled(enabled: Boolean) {
+        when (enabled) {
+            true -> {
+                isEnabled = true
+                icon.alpha = 255
+            }
+            false -> {
+                isEnabled = false
+                icon.alpha = 127
+            }
+        }
     }
 }

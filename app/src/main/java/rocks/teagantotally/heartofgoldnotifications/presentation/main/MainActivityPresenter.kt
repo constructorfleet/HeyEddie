@@ -6,6 +6,7 @@ import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.launch
 import rocks.teagantotally.heartofgoldnotifications.app.HeyEddieApplication
 import rocks.teagantotally.heartofgoldnotifications.app.injection.client.ClientContainer
+import rocks.teagantotally.heartofgoldnotifications.common.extensions.ifAlso
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.event.ClientConfigurationChangedEvent
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.managers.ConnectionConfigManager
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.config.ClientConfigurationChangedUseCase
@@ -33,13 +34,19 @@ class MainActivityPresenter(
     ScopedPresenter<MainActivityContract.View, MainActivityContract.Presenter>(view, coroutineScope) {
     private lateinit var connectionViewState: ConnectionViewState
 
-    private val clientContainer: ClientContainer by lazy { HeyEddieApplication.clientComponent.provideClientContainer() }
+    private val clientContainer: ClientContainer
+        get() = HeyEddieApplication.clientComponent.provideClientContainer()
 
-    private val connectClient: ConnectClient by lazy { clientContainer.connectClient }
-    private val disconnectClient: DisconnectClient by lazy { clientContainer.disconnectClient }
-    private val getClientStatus: GetClientStatus by lazy { clientContainer.getClientStatus }
-    private val eventReceiver: ReceiveChannel<MqttEvent> by lazy { clientContainer.eventProducer.subscribe() }
-    private val commandExecutor: MqttCommandExecutor by lazy { clientContainer.commandExecutor }
+    private val connectClient: ConnectClient
+        get() = clientContainer.connectClient
+    private val disconnectClient: DisconnectClient
+        get() = clientContainer.disconnectClient
+    private val getClientStatus: GetClientStatus
+        get() = clientContainer.getClientStatus
+    private val eventReceiver: ReceiveChannel<MqttEvent>
+        get() = clientContainer.eventProducer.subscribe()
+    private val commandExecutor: MqttCommandExecutor
+        get() = clientContainer.commandExecutor
 
     private val clientConfigurationChanged: ReceiveChannel<ClientConfigurationChangedEvent> by lazy { clientConfigurationChangedUseCase.openSubscription() }
     private var isListening: Boolean = false
@@ -65,10 +72,12 @@ class MainActivityPresenter(
         launch {
             view.showLoading(true)
             when (connectionViewState) {
-                ConnectionViewState.Connected -> disconnectClient()
-                ConnectionViewState.Disconnected -> connectClient()
+                ConnectionViewState.Connected -> disconnect()
+                ConnectionViewState.Disconnected -> connect()
+                ConnectionViewState.Checking -> return@launch
                 ConnectionViewState.Unconfigured ->
                     view.showConfigSettings()
+                        .run { listenForConfigurationChange() }
                         .run { view.showLoading(false) }
             }
         }
@@ -90,14 +99,38 @@ class MainActivityPresenter(
         view.showPublish()
     }
 
+    private fun disconnect() {
+        launch {
+            view.showLoading(true)
+            disconnectClient()
+                .run { view.setConnectionState(ConnectionViewState.Disconnecting) }
+        }
+    }
+
+    private fun connect() {
+        launch {
+            view.showLoading(true)
+            connectClient()
+                .run { view.setConnectionState(ConnectionViewState.Connecting) }
+        }
+    }
+
     override fun onDestroyView() {
         // no-op
     }
 
     private fun listenForConfigurationChange() {
         launch {
-            clientConfigurationChanged.receiveOrNull()?.let {
-                listenForEvents()
+            while (!clientConfigurationChanged.isClosedForReceive) {
+                clientConfigurationChanged.receiveOrNull()?.let {
+                    if (connectionViewState == ConnectionViewState.Connected) {
+                        disconnectClient()
+                    } else if (it.connectionConfiguration.autoReconnect) {
+                        connect()
+                    }
+                    view.setConnectionState(ConnectionViewState.Checking)
+                    listenForEvents()
+                }
             }
         }
     }
@@ -144,7 +177,12 @@ class MainActivityPresenter(
             else -> null
         }
             ?.also { connectionViewState = it }
-            ?.let { view.setConnectionState(it) }
-            ?.run { view.showLoading(false) }
+            ?.also { view.setConnectionState(it) }
+            ?.also { view.showLoading(false) }
+            ?.ifAlso({ (event as? MqttDisconnectedEvent)?.connectionLost == true }) {
+                if (configManager.getConnectionConfiguration()?.autoReconnect == true) {
+                    connect()
+                }
+            }
     }
 }

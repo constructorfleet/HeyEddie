@@ -1,14 +1,18 @@
 package rocks.teagantotally.heartofgoldnotifications.presentation.main.fragments.config
 
+import android.content.Context
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.support.design.widget.Snackbar
 import android.support.v14.preference.SwitchPreference
+import android.support.v4.content.ContextCompat
 import android.support.v7.preference.EditTextPreference
+import android.support.v7.preference.Preference
 import android.support.v7.preference.PreferenceFragmentCompat
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
+import android.view.View
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import rocks.teagantotally.heartofgoldnotifications.R
