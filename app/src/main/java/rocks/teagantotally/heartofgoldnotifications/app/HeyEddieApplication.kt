@@ -28,25 +28,12 @@ class HeyEddieApplication : MultiDexApplication() {
         lateinit var applicationComponent: ApplicationComponent
         lateinit var clientComponent: ClientComponent
 
-        suspend fun setClientComponent(module: ClientModule) {
+        fun setClientComponent(module: ClientModule) {
             DaggerClientComponent.builder()
                 .applicationComponent(applicationComponent)
                 .clientModule(module)
                 .build()
                 .let { clientComponent = it }
-                .also {
-                    applicationComponent.provideConnectionConfigurationChangedUseCase()
-                        .let {
-                            if (!it.isClosedForSend) {
-                                it.send(
-                                    ClientConfigurationChangedEvent(
-                                        clientComponent.provideConnectionConfiguration()
-                                    )
-                                )
-                            }
-                        }
-
-                }
         }
     }
 

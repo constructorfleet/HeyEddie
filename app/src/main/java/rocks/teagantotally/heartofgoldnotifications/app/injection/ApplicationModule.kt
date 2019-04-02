@@ -108,10 +108,12 @@ class ApplicationModule(
     @Provides
     @Singleton
     fun provideConnectionConfigManager(
+        configurationChanged: ClientConfigurationChangedUseCase,
         sharedPreferences: SharedPreferences,
         gson: Gson
     ): ConnectionConfigManager =
         SharedPreferenceConnectionConfigManager(
+            configurationChanged,
             sharedPreferences,
             gson
         )

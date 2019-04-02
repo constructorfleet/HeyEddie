@@ -52,6 +52,7 @@ class MainActivityPresenter(
     private var isListening: Boolean = false
 
     override fun onViewCreated() {
+        listenForConfigurationChange()
         configManager.getConnectionConfiguration()
             ?.let { config ->
                 view.showLoading()
@@ -64,7 +65,6 @@ class MainActivityPresenter(
                 connectionViewState = it
                 view.setConnectionState(it)
                 view.showConfigSettings()
-                listenForConfigurationChange()
             }
     }
 
@@ -123,26 +123,24 @@ class MainActivityPresenter(
         launch {
             while (!clientConfigurationChanged.isClosedForReceive) {
                 clientConfigurationChanged.receiveOrNull()?.let {
+                    listenForEvents()
                     if (connectionViewState == ConnectionViewState.Connected) {
                         disconnectClient()
                     } else if (it.connectionConfiguration.autoReconnect) {
                         connect()
                     }
                     view.setConnectionState(ConnectionViewState.Checking)
-                    listenForEvents()
                 }
             }
         }
     }
 
     private fun listenForEvents() {
-        if (isListening) {
-            return
-        }
-        isListening = true
         launch {
             while (!eventReceiver.isClosedForReceive) {
-                eventReceiver.receiveOrNull()?.let { consume(it) }
+                eventReceiver.receiveOrNull()
+                    ?.let { consume(it) }
+                    ?: run { isListening = false }
             }
         }
     }

@@ -2,19 +2,19 @@ package rocks.teagantotally.heartofgoldnotifications.data.managers.config
 
 import android.content.SharedPreferences
 import com.google.gson.Gson
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import rocks.teagantotally.heartofgoldnotifications.app.HeyEddieApplication
 import rocks.teagantotally.heartofgoldnotifications.app.injection.client.ClientModule
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.event.ClientConfigurationChangedEvent
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.managers.ConnectionConfigManager
 import rocks.teagantotally.heartofgoldnotifications.domain.models.configs.ConnectionConfiguration
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.config.ClientConfigurationChangedUseCase
 
 class SharedPreferenceConnectionConfigManager(
+    private val configurationChanged: ClientConfigurationChangedUseCase,
     private val sharedPreferences: SharedPreferences,
     private val gson: Gson
-) : ConnectionConfigManager{
+) : ConnectionConfigManager {
 
     companion object {
         private const val KEY_CONFIG = "ConnectionConfiguration"
@@ -51,14 +51,15 @@ class SharedPreferenceConnectionConfigManager(
             .apply {
                 putString(KEY_CONFIG, gson.toJson(connectionConfiguration))
             }
-            .commit()
+            .apply()
 
-        getConnectionConfiguration()?.let { setupClientComponent(it) }
+        setupClientComponent(connectionConfiguration)
+        runBlocking {
+            configurationChanged.send(ClientConfigurationChangedEvent(connectionConfiguration))
+        }
     }
 
     private fun setupClientComponent(connectionConfiguration: ConnectionConfiguration) {
-        runBlocking {
-            HeyEddieApplication.setClientComponent(ClientModule(connectionConfiguration))
-        }
+        HeyEddieApplication.setClientComponent(ClientModule(connectionConfiguration))
     }
 }
