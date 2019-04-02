@@ -16,6 +16,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.ObsoleteCoroutinesApi
 import rocks.teagantotally.heartofgoldnotifications.R
 import rocks.teagantotally.heartofgoldnotifications.app.HeyEddieApplication
+import rocks.teagantotally.heartofgoldnotifications.common.extensions.ifMaybe
+import rocks.teagantotally.heartofgoldnotifications.common.extensions.ifTrue
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.BaseActivity
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.ConnectionViewState
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.Navigable
@@ -104,8 +106,12 @@ class MainActivity : BaseActivity(),
             ?: false
 
     override fun onBackStackChanged() {
-
-        updateNavigationMenu()
+        supportFragmentManager
+            ?.ifTrue({it.backStackEntryCount == 0}) {
+                currentFragment = null
+                supportActionBar?.title = getString(R.string.app_name)
+            }
+            .run { updateNavigationMenu() }
     }
 
     override fun showConfigSettings() {
