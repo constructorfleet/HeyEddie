@@ -255,31 +255,6 @@ class MqttService : Service(),
     override fun onSubscriptionRemoved(subscription: SubscriptionConfiguration) {
     }
 
-    //
-//    internal fun connect() {
-//        // Disconnect if already connected
-//        client?.disconnect()
-//
-//        client =
-//            HeyEddieApplication
-//                .applicationComponent
-//                .clientComponentBuilder()
-//                .clientModule(ClientModule(this))
-//                .build()
-//                .provideClient()
-//                .also { it.connect() }
-//    }
-//
-//    internal fun disconnect() {
-//        client?.disconnect()
-//    }
-//
-//    internal fun dismissNotification(notificationId: Int) {
-//        launch {
-//            notifier.dismiss(notificationId)
-//        }
-//    }
-//
     suspend fun publish(message: Message) {
         publish(MqttPublishCommand(message))
     }
