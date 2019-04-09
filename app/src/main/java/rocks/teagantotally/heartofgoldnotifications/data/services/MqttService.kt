@@ -228,14 +228,6 @@ class MqttService : Service(),
         publish(MqttPublishCommand(message))
     }
 
-    suspend fun subscribe(topic: String, qos: Int) {
-        subscribeTo(MqttSubscribeCommand(topic, QoS.fromQoS(qos)))
-    }
-
-    suspend fun unsubscribe(topic: String) {
-        unsubscribeFrom(MqttUnsubscribeCommand(topic))
-    }
-
     class PublishReceiver(
         private val publishMessage: PublishMessage,
         private val finishNotify: FinishNotifyUseCase,
