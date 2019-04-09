@@ -122,10 +122,6 @@ class MqttService : Service(),
     private val clientConfigurationChanged: ReceiveChannel<ClientConfigurationChangedEvent> by lazy { clientConfigurationChangedUseCase.openSubscription() }
     private val clientContainer: ClientContainer
         get() = HeyEddieApplication.clientComponent.provideClientContainer()
-    private val subscribeTo: SubscribeTo
-        get() = clientContainer.subscribeTo
-    private val unsubscribeFrom: UnsubscribeFrom
-        get() = clientContainer.unsubscribeFrom
     private val connect: ConnectClient
         get() = clientContainer.connectClient
     private val publish: PublishMessage
