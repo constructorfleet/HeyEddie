@@ -4,13 +4,13 @@ import android.app.Service
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.os.IBinder
 import com.github.ajalt.timberkt.Timber
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.ReceiveChannel
 import rocks.teagantotally.heartofgoldnotifications.app.HeyEddieApplication
 import rocks.teagantotally.heartofgoldnotifications.app.injection.client.ClientContainer
-import rocks.teagantotally.heartofgoldnotifications.common.extensions.ifAlso
 import rocks.teagantotally.heartofgoldnotifications.data.managers.transform
 import rocks.teagantotally.heartofgoldnotifications.data.services.helpers.LongRunningServiceConnection
 import rocks.teagantotally.heartofgoldnotifications.data.services.helpers.ServiceBinder
@@ -18,15 +18,23 @@ import rocks.teagantotally.heartofgoldnotifications.domain.framework.Notifier
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.event.ClientConfigurationChangedEvent
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.managers.SubscriptionManager
 import rocks.teagantotally.heartofgoldnotifications.domain.models.ClientState
+import rocks.teagantotally.heartofgoldnotifications.domain.models.commands.NotificationCommand
 import rocks.teagantotally.heartofgoldnotifications.domain.models.configs.ConnectionConfiguration
 import rocks.teagantotally.heartofgoldnotifications.domain.models.configs.SubscriptionConfiguration
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.FinishNotifyUseCase
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.UpdatePersistentNotificationUseCase
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.config.ClientConfigurationChangedUseCase
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.config.GetClientConfigurationUseCase
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.connection.ConnectClient
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.message.publish.PublishMessage
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.message.receive.Notify
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.subscription.SubscribeTo
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.subscription.UnsubscribeFrom
 import rocks.teagantotally.kotqtt.domain.framework.client.CommandResult
-import rocks.teagantotally.kotqtt.domain.models.events.MqttConnectedEvent
-import rocks.teagantotally.kotqtt.domain.models.events.MqttDisconnectedEvent
-import rocks.teagantotally.kotqtt.domain.models.events.MqttEvent
+import rocks.teagantotally.kotqtt.domain.models.Message
+import rocks.teagantotally.kotqtt.domain.models.QoS
+import rocks.teagantotally.kotqtt.domain.models.commands.*
+import rocks.teagantotally.kotqtt.domain.models.events.*
 import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
 
@@ -101,10 +109,26 @@ class MqttService : Service(),
     lateinit var clientConfigurationChangedUseCase: ClientConfigurationChangedUseCase
     @Inject
     lateinit var getClientConfiguration: GetClientConfigurationUseCase
+    @Inject
+    lateinit var subscriptionManager: SubscriptionManager
+    @Inject
+    lateinit var notify: Notify
+    @Inject
+    lateinit var finishNotify: FinishNotifyUseCase
 
     private val clientConfigurationChanged: ReceiveChannel<ClientConfigurationChangedEvent> by lazy { clientConfigurationChangedUseCase.openSubscription() }
+    private val clientContainer: ClientContainer
+        get() = HeyEddieApplication.clientComponent.provideClientContainer()
+    private val subscribeTo: SubscribeTo
+        get() = clientContainer.subscribeTo
+    private val unsubscribeFrom: UnsubscribeFrom
+        get() = clientContainer.unsubscribeFrom
+    private val connect: ConnectClient
+        get() = clientContainer.connectClient
+    private val publish: PublishMessage
+        get() = clientContainer.publishMessage
     private lateinit var mqttEventConsumer: ReceiveChannel<MqttEvent>
-    private lateinit var clientUseCases: ClientContainer
+    private var publishReceiver: PublishReceiver? = null
 
     override fun onBind(intent: Intent?): IBinder? =
         serviceBinder
@@ -141,6 +165,7 @@ class MqttService : Service(),
 
 
     override fun onDestroy() {
+        publishReceiver?.let { unregisterReceiver(it) }
         sendBroadcast(
             Intent(
                 this,
@@ -164,17 +189,19 @@ class MqttService : Service(),
     }
 
     private suspend fun onClientConfigured(clientConfiguration: ConnectionConfiguration) {
-        HeyEddieApplication.clientComponent.provideClientContainer()
-            .also {
-                mqttEventConsumer = it.eventProducer.subscribe()
-                listenForEvents()
+        mqttEventConsumer = clientContainer.eventProducer.subscribe()
+        listenForEvents()
+        publishReceiver =
+            PublishReceiver(
+                publish,
+                finishNotify,
+                this
+            ).also {
+                registerReceiver(it, IntentFilter(ACTION_PUBLISH))
             }
-            .ifAlso({ clientConfiguration.autoReconnect }) {
-                HeyEddieApplication
-                    .clientComponent
-                    .provideClientContainer()
-                    .connectClient()
-            }
+        if (clientConfiguration.autoReconnect) {
+            connect()
+        }
     }
 
     private fun listenForEvents() {
@@ -186,24 +213,36 @@ class MqttService : Service(),
     }
 
     private suspend fun consume(event: MqttEvent) {
-        when ((event as? CommandResult.Success<*, *>)?.let { it.result } ?: event) {
+        val receivedEvent = (event as? CommandResult.Success<*, *>)?.let { it.result } ?: event
+        when (receivedEvent) {
             MqttConnectedEvent ->
                 updatePersistentNotification(ClientState.Connected)
-//                        .run {
-//                            subscriptionManager
-//                                .getSubscriptions()
-//                                .forEach {
-//                                    subscribe(it.topic, it.maxQoS)
-//                                }
-//                        }
+                    .run {
+                        subscriptionManager
+                            .getSubscriptions()
+                            .forEach {
+                                subscribe(it.topic, it.maxQoS)
+                            }
+                    }
+                    .run {
+
+                    }
             is MqttDisconnectedEvent ->
                 updatePersistentNotification(ClientState.Disconnected)
-//                is MqttEvent.CommandFailed ->
-//                    when (event.command) {
-//                        MqttCommand.Connect, MqttCommand.Disconnect ->
-//                            updatePersistentNotification(ClientState.Unknown)
-//                    }
-//                is MqttEvent.MessageReceived -> processMessageReceived(event)
+            is CommandResult.Failure<*> ->
+                when (receivedEvent.command) {
+                    is MqttConnectCommand, is MqttDisconnectCommand ->
+                        updatePersistentNotification(ClientState.Unknown)
+                    is MqttSubscribeCommand ->
+                        Timber.e(receivedEvent.throwable) { "Cannot subscribe" }
+                    is MqttUnsubscribeCommand ->
+                        Timber.e(receivedEvent.throwable) { "Cannot unsubscribe" }
+                }
+            is MqttSubscribedEvent ->
+                Timber.d { "Subscribed to ${receivedEvent.topic}" }
+            is MqttUnsubscribedEvent ->
+                Timber.d { "Unsubscribed from ${receivedEvent.topic}" }
+            is MqttMessageReceived -> notify(receivedEvent.message)
 //                is MqttEvent.MessagePublished -> processMessagePublished(event)
             else -> null
         }
@@ -215,7 +254,8 @@ class MqttService : Service(),
 
     override fun onSubscriptionRemoved(subscription: SubscriptionConfiguration) {
     }
-//
+
+    //
 //    internal fun connect() {
 //        // Disconnect if already connected
 //        client?.disconnect()
@@ -240,17 +280,47 @@ class MqttService : Service(),
 //        }
 //    }
 //
-//    internal fun publish(message: Message) {
-//        client?.publish(message)
-//    }
-//
-//    internal fun subscribe(topic: String, qos: Int) {
-//        client?.subscribe(topic, qos)
-//    }
-//
-//    internal fun unsubscribe(topic: String) {
-//        client?.unsubscribe(topic)
-//    }
+    suspend fun publish(message: Message) {
+        publish(MqttPublishCommand(message))
+    }
+
+    suspend fun subscribe(topic: String, qos: Int) {
+        subscribeTo(MqttSubscribeCommand(topic, QoS.fromQoS(qos)))
+    }
+
+    suspend fun unsubscribe(topic: String) {
+        unsubscribeFrom(MqttUnsubscribeCommand(topic))
+    }
+
+    class PublishReceiver(
+        private val publishMessage: PublishMessage,
+        private val finishNotify: FinishNotifyUseCase,
+        coroutineScope: CoroutineScope
+    ) : BroadcastReceiver(), CoroutineScope by coroutineScope {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            intent?.let {
+                when (it.action) {
+                    ACTION_PUBLISH ->
+                        it.getParcelableExtra<Message>(EXTRA_MESSAGE)
+                            ?.let { message ->
+                                launch {
+                                    publishMessage(MqttPublishCommand(message))
+                                }
+                            }
+                            .run {
+                                launch {
+                                    finishNotify(
+                                        NotificationCommand.Dismiss(
+                                            it.getIntExtra(EXTRA_NOTIFICATION_ID, 0)
+                                        )
+                                    )
+                                }
+                            }
+                    else -> return
+                }
+            }
+        }
+    }
 
     class StartReceiver : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {

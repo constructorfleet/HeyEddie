@@ -28,6 +28,7 @@ class MqttClient(
     private val eventChannel: BroadcastChannel<MqttEvent> = BroadcastChannel(100)
 
     init {
+        client.setCallback(this)
         launch {
             while (!commandChannel.isClosedForReceive) {
                 commandChannel.receiveOrNull()?.let { execute(it) }
@@ -54,6 +55,9 @@ class MqttClient(
             ?.let {
                 message?.run {
                     launch {
+                        if (eventChannel.isClosedForSend) {
+                            return@launch
+                        }
                         eventChannel.send(
                             MqttMessageReceived(
                                 Message(

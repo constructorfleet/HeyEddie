@@ -8,6 +8,7 @@ import android.content.Context
 import android.content.Intent
 import android.support.multidex.MultiDex
 import android.support.multidex.MultiDexApplication
+import com.github.ajalt.timberkt.Timber
 import kotlinx.coroutines.*
 import rocks.teagantotally.heartofgoldnotifications.app.injection.ApplicationComponent
 import rocks.teagantotally.heartofgoldnotifications.app.injection.ApplicationModule
@@ -47,6 +48,7 @@ class HeyEddieApplication : MultiDexApplication() {
         super.onCreate()
         setupGraph()
         startForegroundService(Intent(this, MqttService::class.java))
+        Timber.plant(Timber.DebugTree())
     }
 
     private fun setupGraph() {

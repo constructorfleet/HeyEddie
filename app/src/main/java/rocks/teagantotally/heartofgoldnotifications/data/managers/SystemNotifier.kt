@@ -49,7 +49,7 @@ class SystemNotifier(
     }
 
     private fun NotificationMessageChannel.transform(): NotificationChannel =
-        NotificationChannel(id, name, importance.systemValue)
+        NotificationChannel(id, name, (importance ?: NotificationMessageChannel.DEFAULT_IMPORTANCE).systemValue)
             .also { channel ->
 
                 channel.enableLights(enableLights)
@@ -59,10 +59,9 @@ class SystemNotifier(
                 vibrationPattern?.let {
                     channel.vibrationPattern = vibrationPattern
                 }
-                channel.lockscreenVisibility = visibility.systemValue
+                channel.lockscreenVisibility = (visibility ?: NotificationMessageChannel.DEFAULT_VISIBILITY).systemValue
                 channel.description = description
                 channel.name = name
-                channel.importance = importance.systemValue
                 channel.setSound(null, null)
             }
 }

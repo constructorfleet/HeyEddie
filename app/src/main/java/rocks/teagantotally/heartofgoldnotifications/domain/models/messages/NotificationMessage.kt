@@ -28,10 +28,15 @@ class NotificationMessageChannel(
     val description: String,
     val enableLights: Boolean = false,
     @ColorRes val lightColor: Int = 0,
-    val visibility: NotificationVisibility = NotificationVisibility.PRIVATE,
+    var visibility: NotificationVisibility? = null,
     val vibrationPattern: LongArray? = null,
-    val importance: NotificationImportance = NotificationImportance.MID
-) : Parcelable
+    var importance: NotificationImportance? = null
+) : Parcelable {
+    companion object {
+        val DEFAULT_IMPORTANCE = NotificationImportance.MID
+        val DEFAULT_VISIBILITY = NotificationVisibility.PRIVATE
+    }
+}
 
 @Parcelize
 class NotificationMessageAction(
@@ -51,7 +56,6 @@ class NotificationMessage(
     val openApplication: Boolean = false,
     val onGoing: Boolean = false,
     val autoCancel: Boolean = true,
-    val importance: NotificationImportance = NotificationImportance.MID,
     val actions: List<NotificationMessageAction> = listOf()
 ) : Parcelable, ReceivedMessage {
     val notificationId: Int

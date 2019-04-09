@@ -1,14 +1,17 @@
 package rocks.teagantotally.kotqtt.domain.models
 
+import android.os.Parcelable
+import kotlinx.android.parcel.Parcelize
 import java.util.*
 
+@Parcelize
 data class Message(
     val topic: String,
     val retain: Boolean = false,
     val qos: QoS = QoS.DEFAULT_QOS,
     val payload: ByteArray = ByteArray(0),
     val date: Date = Date()
-) {
+) : Parcelable {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
