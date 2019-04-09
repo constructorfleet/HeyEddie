@@ -208,14 +208,9 @@ class MqttService : Service(),
     }
 
     override fun onSubscriptionAdded(subscription: SubscriptionConfiguration) {
-
     }
 
     override fun onSubscriptionRemoved(subscription: SubscriptionConfiguration) {
-    }
-
-    suspend fun publish(message: Message) {
-        publish(MqttPublishCommand(message))
     }
 
     class PublishReceiver(
