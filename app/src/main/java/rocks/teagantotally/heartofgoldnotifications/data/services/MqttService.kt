@@ -105,17 +105,11 @@ class MqttService : Service(),
     @Inject
     lateinit var notifier: Notifier
     @Inject
-    lateinit var updatePersistentNotification: UpdatePersistentNotificationUseCase
-    @Inject
     lateinit var clientConfigurationChangedUseCase: ClientConfigurationChangedUseCase
     @Inject
     lateinit var getClientConfiguration: GetClientConfigurationUseCase
     @Inject
     lateinit var mqttEventProcessor: MqttEventProcessor
-    @Inject
-    lateinit var subscriptionManager: SubscriptionManager
-    @Inject
-    lateinit var processMessage: ProcessMessageReceived
     @Inject
     lateinit var finishNotify: FinishNotifyUseCase
 
