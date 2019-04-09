@@ -217,42 +217,6 @@ class MqttService : Service(),
         }
     }
 
-    private suspend fun consume(event: MqttEvent) {
-        val receivedEvent = (event as? CommandResult.Success<*, *>)?.let { it.result } ?: event
-        when (receivedEvent) {
-            MqttConnectedEvent ->
-                updatePersistentNotification(ClientState.Connected)
-                    .run {
-                        subscriptionManager
-                            .getSubscriptions()
-                            .forEach {
-                                subscribe(it.topic, it.maxQoS)
-                            }
-                    }
-                    .run {
-
-                    }
-            is MqttDisconnectedEvent ->
-                updatePersistentNotification(ClientState.Disconnected)
-            is CommandResult.Failure<*> ->
-                when (receivedEvent.command) {
-                    is MqttConnectCommand, is MqttDisconnectCommand ->
-                        updatePersistentNotification(ClientState.Unknown)
-                    is MqttSubscribeCommand ->
-                        Timber.e(receivedEvent.throwable) { "Cannot subscribe" }
-                    is MqttUnsubscribeCommand ->
-                        Timber.e(receivedEvent.throwable) { "Cannot unsubscribe" }
-                }
-            is MqttSubscribedEvent ->
-                Timber.d { "Subscribed to ${receivedEvent.topic}" }
-            is MqttUnsubscribedEvent ->
-                Timber.d { "Unsubscribed from ${receivedEvent.topic}" }
-            is MqttMessageReceived -> processMessage(receivedEvent.message)
-//                is MqttEvent.MessagePublished -> processMessagePublished(event)
-            else -> null
-        }
-    }
-
     override fun onSubscriptionAdded(subscription: SubscriptionConfiguration) {
 
     }
