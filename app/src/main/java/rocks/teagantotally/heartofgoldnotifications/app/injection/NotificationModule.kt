@@ -1,5 +1,6 @@
 package rocks.teagantotally.heartofgoldnotifications.app.injection
 
+import android.app.AlarmManager
 import android.app.NotificationManager
 import android.content.Context
 import com.google.gson.Gson
@@ -25,11 +26,13 @@ class NotificationModule {
     @Singleton
     fun provideNotifier(
         context: Context,
-        notificationManager: NotificationManager
+        notificationManager: NotificationManager,
+        alarmManager: AlarmManager
     ): Notifier =
         SystemNotifier(
             context,
-            notificationManager
+            notificationManager,
+            alarmManager
         )
 
     @Provides

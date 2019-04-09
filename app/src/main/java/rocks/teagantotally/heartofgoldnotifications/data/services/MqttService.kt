@@ -28,14 +28,9 @@ import rocks.teagantotally.heartofgoldnotifications.domain.usecases.config.GetCl
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.connection.ConnectClient
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.mqtt.MqttEventProcessor
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.mqtt.message.publish.PublishMessage
-import rocks.teagantotally.heartofgoldnotifications.domain.usecases.mqtt.message.receive.ProcessMessageReceived
-import rocks.teagantotally.heartofgoldnotifications.domain.usecases.subscription.SubscribeTo
-import rocks.teagantotally.heartofgoldnotifications.domain.usecases.subscription.UnsubscribeFrom
-import rocks.teagantotally.kotqtt.domain.framework.client.CommandResult
 import rocks.teagantotally.kotqtt.domain.models.Message
-import rocks.teagantotally.kotqtt.domain.models.QoS
-import rocks.teagantotally.kotqtt.domain.models.commands.*
-import rocks.teagantotally.kotqtt.domain.models.events.*
+import rocks.teagantotally.kotqtt.domain.models.commands.MqttPublishCommand
+import rocks.teagantotally.kotqtt.domain.models.events.MqttEvent
 import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
 
@@ -51,47 +46,11 @@ class MqttService : Service(),
         private const val BASE_EVENT = "$BASE.event"
 
         const val ACTION_START = "$BASE_ACTION.start"
-        const val ACTION_CONNECT = "$BASE_ACTION.connect"
-        const val ACTION_DISCONNECT = "$BASE_ACTION.disconnect"
         const val ACTION_PUBLISH = "$BASE_ACTION.publish"
-        const val ACTION_SUBSCRIBE = "$BASE_ACTION.subscribe"
-        const val ACTION_UNSUBSCRIBE = "$BASE_ACTION.unsubscribe"
-
-        const val EVENT_CONNECTED = "$BASE_EVENT.connected"
-        const val EVENT_DISCONNECTED = "$BASE_EVENT.disconnected"
-        const val EVENT_SUBSCRIBED = "$BASE_EVENT.subscribed"
-        const val EVENT_UNSUBSCRIBED = "$BASE_EVENT.unsubscribed"
-        const val EVENT_MESSAGE_PUBLISHED = "$BASE_EVENT.message_published"
-        const val EVENT_MESSAGE_RECEIVED = "$BASE_EVENT.message_received"
-        const val EVENT_COMMAND_FAILED = "$BASE_EVENT.command_failed"
-
-        private val COMMAND_ACTIONS =
-            listOf(
-                ACTION_START,
-                ACTION_CONNECT,
-                ACTION_DISCONNECT,
-                ACTION_PUBLISH,
-                ACTION_SUBSCRIBE,
-                ACTION_UNSUBSCRIBE
-            )
-
-        private val EVENTS =
-            listOf(
-                EVENT_CONNECTED,
-                EVENT_DISCONNECTED,
-                EVENT_SUBSCRIBED,
-                EVENT_UNSUBSCRIBED,
-                EVENT_MESSAGE_RECEIVED,
-                EVENT_MESSAGE_PUBLISHED,
-                EVENT_COMMAND_FAILED
-            )
+        const val ACTION_DISMISS = "$BASE_ACTION.dismiss"
 
         const val EXTRA_MESSAGE = "message"
         const val EXTRA_NOTIFICATION_ID = "notification_id"
-        const val EXTRA_TOPIC = "topic"
-        const val EXTRA_QOS = "qos"
-        const val EXTRA_COMMAND = "command"
-        const val EXTRA_FAILURE_REASON = "failure_reason"
 
         lateinit var serviceBinder: ServiceBinder<MqttService>
         val longRunningServiceConnection: LongRunningServiceConnection<MqttService> =
@@ -122,6 +81,7 @@ class MqttService : Service(),
         get() = clientContainer.publishMessage
     private lateinit var mqttEventConsumer: ReceiveChannel<MqttEvent>
     private var publishReceiver: PublishReceiver? = null
+    private var dismissReceiver: DismissNotificationReceiver? = null
 
     override fun onBind(intent: Intent?): IBinder? =
         serviceBinder
@@ -147,6 +107,16 @@ class MqttService : Service(),
                     }
                     .run { serviceBinder = ServiceBinder(this@MqttService) }
                     .run {
+                        DismissNotificationReceiver(
+                            finishNotify,
+                            this@MqttService
+                        ).also {
+                            registerReceiver(it, IntentFilter(ACTION_DISMISS))
+                        }.also {
+                            dismissReceiver = it
+                        }
+                    }
+                    .run {
                         bindService(
                             Intent(this@MqttService, MqttService::class.java),
                             longRunningServiceConnection,
@@ -159,6 +129,7 @@ class MqttService : Service(),
 
     override fun onDestroy() {
         publishReceiver?.let { unregisterReceiver(it) }
+        dismissReceiver?.let { unregisterReceiver(it) }
         sendBroadcast(
             Intent(
                 this,
@@ -213,6 +184,27 @@ class MqttService : Service(),
     override fun onSubscriptionRemoved(subscription: SubscriptionConfiguration) {
     }
 
+    class DismissNotificationReceiver(
+        private val finishNotify: FinishNotifyUseCase,
+        coroutineScope: CoroutineScope
+    ) : BroadcastReceiver(), CoroutineScope by coroutineScope {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            intent?.let {
+                when (it.action) {
+                    ACTION_DISMISS ->
+                        launch {
+                            finishNotify(
+                                NotificationCommand.Dismiss(
+                                    it.getIntExtra(EXTRA_NOTIFICATION_ID, 0)
+                                )
+                            )
+                        }
+                    else -> return
+                }
+            }
+        }
+    }
+
     class PublishReceiver(
         private val publishMessage: PublishMessage,
         private val finishNotify: FinishNotifyUseCase,
@@ -229,13 +221,16 @@ class MqttService : Service(),
                                 }
                             }
                             .run {
-                                launch {
-                                    finishNotify(
-                                        NotificationCommand.Dismiss(
-                                            it.getIntExtra(EXTRA_NOTIFICATION_ID, 0)
+                                context?.sendBroadcast(
+                                    Intent(ACTION_DISMISS)
+                                        .putExtra(
+                                            EXTRA_NOTIFICATION_ID,
+                                            it.getIntExtra(
+                                                EXTRA_NOTIFICATION_ID,
+                                                0
+                                            )
                                         )
-                                    )
-                                }
+                                )
                             }
                     else -> return
                 }

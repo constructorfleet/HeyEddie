@@ -1,6 +1,7 @@
 package rocks.teagantotally.heartofgoldnotifications.app.injection
 
 import `in`.co.ophio.secure.core.ObscuredPreferencesBuilder
+import android.app.AlarmManager
 import android.app.Application
 import android.content.Context
 import android.content.SharedPreferences
@@ -118,4 +119,11 @@ class ApplicationModule(
             onConnected,
             processMessage
         )
+
+    @Provides
+    @Singleton
+    fun provideAlarmManager(
+        context: Context
+    ): AlarmManager =
+        context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 }

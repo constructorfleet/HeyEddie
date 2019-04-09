@@ -1,9 +1,6 @@
 package rocks.teagantotally.heartofgoldnotifications.data.managers
 
-import android.app.Notification
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.PendingIntent
+import android.app.*
 import android.content.Context
 import android.content.Intent
 import android.os.Parcelable
@@ -11,8 +8,10 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.ObsoleteCoroutinesApi
 import rocks.teagantotally.heartofgoldnotifications.R
 import rocks.teagantotally.heartofgoldnotifications.common.extensions.ifAlso
+import rocks.teagantotally.heartofgoldnotifications.common.extensions.ifTrue
 import rocks.teagantotally.heartofgoldnotifications.common.extensions.putInvoker
 import rocks.teagantotally.heartofgoldnotifications.common.extensions.unique
+import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService.Companion.ACTION_DISMISS
 import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService.Companion.ACTION_PUBLISH
 import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService.Companion.EXTRA_MESSAGE
 import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService.Companion.EXTRA_NOTIFICATION_ID
@@ -26,13 +25,37 @@ import java.util.*
 
 class SystemNotifier(
     private val context: Context,
-    private val notificationManager: NotificationManager
+    private val notificationManager: NotificationManager,
+    private val alarmManager: AlarmManager
 ) : Notifier {
+    companion object {
+        const val AUTO_DISMISS_MS: Long = (5 * 60 * 1000).toLong()
+    }
+
     override fun notify(notification: NotificationMessage) {
         createChannel(notification.channel)
         notification.transform(context)
-            .let {
+            .also {
                 notificationManager.notify(it.first, it.second)
+            }
+            .ifTrue({ !notification.onGoing }) {
+                Intent(ACTION_DISMISS)
+                    .putExtra(EXTRA_NOTIFICATION_ID, it.first)
+                    .let {
+                        PendingIntent.getBroadcast(
+                            context,
+                            Int.unique(),
+                            it,
+                            PendingIntent.FLAG_UPDATE_CURRENT
+                        )
+                    }
+                    .let {
+                        alarmManager.set(
+                            AlarmManager.RTC,
+                            System.currentTimeMillis() + AUTO_DISMISS_MS,
+                            it
+                        )
+                    }
             }
     }
 
