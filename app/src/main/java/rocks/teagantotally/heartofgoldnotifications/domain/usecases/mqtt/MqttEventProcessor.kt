@@ -41,7 +41,8 @@ class MqttEventProcessor(
             is MqttUnsubscribedEvent ->
                 Timber.d { "Unsubscribed from ${receivedEvent.topic}" }
             is MqttMessageReceived -> processMessage(receivedEvent.message)
-//                is MqttEvent.MessagePublished -> processMessagePublished(event)
+            is MqttMessagePublished ->
+                Timber.d { "Message published ${receivedEvent.message}" }
             else -> null
         }
     }
