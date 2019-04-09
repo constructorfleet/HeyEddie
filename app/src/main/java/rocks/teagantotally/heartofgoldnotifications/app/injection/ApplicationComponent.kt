@@ -8,7 +8,6 @@ import kotlinx.coroutines.ObsoleteCoroutinesApi
 import rocks.teagantotally.heartofgoldnotifications.app.injection.qualifiers.IO
 import rocks.teagantotally.heartofgoldnotifications.app.injection.qualifiers.UI
 import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService
-import rocks.teagantotally.heartofgoldnotifications.data.services.NotificationService
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.config.ClientConfigurationChangedUseCase
 import rocks.teagantotally.heartofgoldnotifications.presentation.main.injection.MainActivityComponent
 import javax.inject.Singleton
@@ -25,7 +24,6 @@ import javax.inject.Singleton
     ]
 )
 interface ApplicationComponent {
-    fun inject(service: NotificationService)
     fun inject(service: MqttService)
 
     @UI
