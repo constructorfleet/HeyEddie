@@ -1,4 +1,4 @@
-package rocks.teagantotally.heartofgoldnotifications.domain.usecases.message.publish
+package rocks.teagantotally.heartofgoldnotifications.domain.usecases.mqtt.message.publish
 
 //class ProcessMessagePublished // @Inject constructor(
 //    private vararg val messageProcessors: UseCaseWithParameter<Message>

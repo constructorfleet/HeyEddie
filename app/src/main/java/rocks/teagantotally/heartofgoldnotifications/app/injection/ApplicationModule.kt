@@ -2,28 +2,26 @@ package rocks.teagantotally.heartofgoldnotifications.app.injection
 
 import `in`.co.ophio.secure.core.ObscuredPreferencesBuilder
 import android.app.Application
-import android.app.NotificationManager
 import android.content.Context
 import android.content.SharedPreferences
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import dagger.Module
 import dagger.Provides
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.BroadcastChannel
-import rocks.teagantotally.heartofgoldnotifications.app.injection.qualifiers.UI
-import rocks.teagantotally.heartofgoldnotifications.data.managers.SystemNotifier
 import rocks.teagantotally.heartofgoldnotifications.data.managers.config.SharedPreferenceConnectionConfigManager
 import rocks.teagantotally.heartofgoldnotifications.data.managers.history.SharedPreferenceMessageHistoryManager
 import rocks.teagantotally.heartofgoldnotifications.data.managers.subscription.SharedPreferenceSubscriptionManager
-import rocks.teagantotally.heartofgoldnotifications.domain.framework.Notifier
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.managers.ConnectionConfigManager
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.managers.MessageHistoryManager
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.managers.SubscriptionManager
-import rocks.teagantotally.heartofgoldnotifications.domain.usecases.config.ClientConfigurationChangedUseCase
-import rocks.teagantotally.heartofgoldnotifications.domain.usecases.FinishNotifyUseCase
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.UpdatePersistentNotificationUseCase
-import rocks.teagantotally.heartofgoldnotifications.domain.usecases.message.receive.Notify
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.config.ClientConfigurationChangedUseCase
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.mqtt.MqttEventProcessor
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.mqtt.connected.MqttConnectedProcessor
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.mqtt.disconnected.MqttDisconnectedProcessor
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.mqtt.message.receive.Notify
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.mqtt.message.receive.ProcessMessageReceived
 import javax.inject.Singleton
 
 @Module
@@ -57,46 +55,12 @@ class ApplicationModule(
 
     @Provides
     @Singleton
-    fun provideNotificationManager(
-        context: Context
-    ): NotificationManager =
-        context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-
-    @Provides
-    @Singleton
-    fun provideNotifier(
-        context: Context,
-        notificationManager: NotificationManager
-    ): Notifier =
-        SystemNotifier(
-            context,
-            notificationManager
+    fun provideProcessMessageReceived(
+        notify: Notify
+    ): ProcessMessageReceived =
+        ProcessMessageReceived(
+            notify
         )
-
-    @Provides
-    @Singleton
-    fun provideNotifyUseCase(
-        notifier: Notifier,
-        gson: Gson
-    ): Notify =
-        Notify(
-            gson,
-            notifier
-        )
-
-    @Provides
-    @Singleton
-    fun providePersistentNotificationUpdater(
-        notifier: Notifier
-    ): UpdatePersistentNotificationUseCase =
-        UpdatePersistentNotificationUseCase(notifier)
-
-    @Provides
-    @Singleton
-    fun provideFinishNotifyUseCase(
-        notifier: Notifier
-    ): FinishNotifyUseCase =
-        FinishNotifyUseCase(notifier)
 
     @Provides
     @Singleton
@@ -138,5 +102,20 @@ class ApplicationModule(
         SharedPreferenceMessageHistoryManager(
             sharedPreferences,
             gson
+        )
+
+    @Provides
+    @Singleton
+    fun provideMqttEventProcessor(
+        updatePersistentNotificationUseCase: UpdatePersistentNotificationUseCase,
+        onConnected: MqttConnectedProcessor,
+        onDisconnected: MqttDisconnectedProcessor,
+        processMessage: ProcessMessageReceived
+    ): MqttEventProcessor =
+        MqttEventProcessor(
+            updatePersistentNotificationUseCase,
+            onDisconnected,
+            onConnected,
+            processMessage
         )
 }

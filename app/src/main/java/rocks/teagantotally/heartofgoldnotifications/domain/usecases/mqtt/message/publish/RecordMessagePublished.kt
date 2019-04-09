@@ -1,4 +1,4 @@
-package rocks.teagantotally.heartofgoldnotifications.domain.usecases.message.publish
+package rocks.teagantotally.heartofgoldnotifications.domain.usecases.mqtt.message.publish
 
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.UseCaseWithParameter
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.managers.MessageHistoryManager

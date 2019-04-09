@@ -26,8 +26,9 @@ import rocks.teagantotally.heartofgoldnotifications.domain.usecases.UpdatePersis
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.config.ClientConfigurationChangedUseCase
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.config.GetClientConfigurationUseCase
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.connection.ConnectClient
-import rocks.teagantotally.heartofgoldnotifications.domain.usecases.message.publish.PublishMessage
-import rocks.teagantotally.heartofgoldnotifications.domain.usecases.message.receive.Notify
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.mqtt.MqttEventProcessor
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.mqtt.message.publish.PublishMessage
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.mqtt.message.receive.ProcessMessageReceived
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.subscription.SubscribeTo
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.subscription.UnsubscribeFrom
 import rocks.teagantotally.kotqtt.domain.framework.client.CommandResult
@@ -110,9 +111,11 @@ class MqttService : Service(),
     @Inject
     lateinit var getClientConfiguration: GetClientConfigurationUseCase
     @Inject
+    lateinit var mqttEventProcessor: MqttEventProcessor
+    @Inject
     lateinit var subscriptionManager: SubscriptionManager
     @Inject
-    lateinit var notify: Notify
+    lateinit var processMessage: ProcessMessageReceived
     @Inject
     lateinit var finishNotify: FinishNotifyUseCase
 
@@ -207,7 +210,9 @@ class MqttService : Service(),
     private fun listenForEvents() {
         launch {
             while (!mqttEventConsumer.isClosedForReceive) {
-                mqttEventConsumer.receiveOrNull()?.let { consume(it) }
+                mqttEventConsumer.receiveOrNull()?.let {
+                    mqttEventProcessor(it)
+                }
             }
         }
     }
@@ -242,7 +247,7 @@ class MqttService : Service(),
                 Timber.d { "Subscribed to ${receivedEvent.topic}" }
             is MqttUnsubscribedEvent ->
                 Timber.d { "Unsubscribed from ${receivedEvent.topic}" }
-            is MqttMessageReceived -> notify(receivedEvent.message)
+            is MqttMessageReceived -> processMessage(receivedEvent.message)
 //                is MqttEvent.MessagePublished -> processMessagePublished(event)
             else -> null
         }

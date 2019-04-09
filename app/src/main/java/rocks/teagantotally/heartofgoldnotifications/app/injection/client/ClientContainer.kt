@@ -3,7 +3,7 @@ package rocks.teagantotally.heartofgoldnotifications.app.injection.client
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.connection.ConnectClient
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.connection.DisconnectClient
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.connection.GetClientStatus
-import rocks.teagantotally.heartofgoldnotifications.domain.usecases.message.publish.PublishMessage
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.mqtt.message.publish.PublishMessage
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.subscription.SubscribeTo
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.subscription.UnsubscribeFrom
 import rocks.teagantotally.kotqtt.domain.framework.client.MqttCommandExecutor

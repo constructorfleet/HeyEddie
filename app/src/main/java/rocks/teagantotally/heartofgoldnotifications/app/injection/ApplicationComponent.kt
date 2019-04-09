@@ -19,6 +19,8 @@ import javax.inject.Singleton
 @Component(
     modules = [
         ApplicationModule::class,
+        NotificationModule::class,
+        ConnectionModule::class,
         CoroutineModule::class
     ]
 )

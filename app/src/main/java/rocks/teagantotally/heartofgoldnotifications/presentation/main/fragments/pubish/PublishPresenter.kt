@@ -6,7 +6,7 @@ import kotlinx.coroutines.launch
 import rocks.teagantotally.heartofgoldnotifications.app.HeyEddieApplication
 import rocks.teagantotally.heartofgoldnotifications.app.injection.client.ClientContainer
 import rocks.teagantotally.heartofgoldnotifications.common.extensions.ifMaybe
-import rocks.teagantotally.heartofgoldnotifications.domain.usecases.message.publish.PublishMessage
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.mqtt.message.publish.PublishMessage
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.ScopedPresenter
 import rocks.teagantotally.kotqtt.domain.framework.client.CommandResult
 import rocks.teagantotally.kotqtt.domain.framework.client.MqttEventProducer

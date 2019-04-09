@@ -1,4 +1,4 @@
-package rocks.teagantotally.heartofgoldnotifications.domain.usecases.message.receive
+package rocks.teagantotally.heartofgoldnotifications.domain.usecases.mqtt.message.receive
 
 import com.google.gson.Gson
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.Notifier
