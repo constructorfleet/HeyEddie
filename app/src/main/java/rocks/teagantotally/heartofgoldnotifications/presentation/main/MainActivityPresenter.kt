@@ -4,9 +4,10 @@ import com.github.ajalt.timberkt.Timber
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.launch
+import org.eclipse.paho.client.mqttv3.MqttException
 import rocks.teagantotally.heartofgoldnotifications.app.HeyEddieApplication
 import rocks.teagantotally.heartofgoldnotifications.app.injection.client.ClientContainer
-import rocks.teagantotally.heartofgoldnotifications.common.extensions.ifAlso
+import rocks.teagantotally.heartofgoldnotifications.common.extensions.ifMaybe
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.event.ClientConfigurationChangedEvent
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.managers.ConnectionConfigManager
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.config.ClientConfigurationChangedUseCase
@@ -124,11 +125,6 @@ class MainActivityPresenter(
             while (!clientConfigurationChanged.isClosedForReceive) {
                 clientConfigurationChanged.receiveOrNull()?.let {
                     listenForEvents()
-                    if (connectionViewState == ConnectionViewState.Connected) {
-                        disconnectClient()
-                    } else if (it.connectionConfiguration.autoReconnect) {
-                        connect()
-                    }
                     view.setConnectionState(ConnectionViewState.Checking)
                 }
             }
@@ -166,21 +162,10 @@ class MainActivityPresenter(
                     true -> ConnectionViewState.Connected
                     false -> ConnectionViewState.Disconnected
                 }
-            is CommandResult.Failure<*> ->
-                when (event.command) {
-                    is MqttConnectCommand, MqttDisconnectCommand ->
-                        ConnectionViewState.Unconfigured
-                    else -> null
-                }
             else -> null
         }
             ?.also { connectionViewState = it }
             ?.also { view.setConnectionState(it) }
             ?.also { view.showLoading(false) }
-            ?.ifAlso({ (event as? MqttDisconnectedEvent)?.connectionLost == true }) {
-                if (configManager.getConnectionConfiguration()?.autoReconnect == true) {
-                    connect()
-                }
-            }
     }
 }

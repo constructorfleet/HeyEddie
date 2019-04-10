@@ -1,5 +1,6 @@
 package rocks.teagantotally.kotqtt.data
 
+import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.BroadcastChannel
 import kotlinx.coroutines.channels.Channel
@@ -21,7 +22,7 @@ class MqttClient(
     private val connectionOptions: MqttConnectionOptions,
     coroutineScope: CoroutineScope
 ) : Client,
-    MqttCallback,
+    MqttCallbackExtended,
     CoroutineScope by coroutineScope {
 
     private val commandChannel: ReceiveChannel<MqttCommand> = Channel()
@@ -74,9 +75,14 @@ class MqttClient(
             }
     }
 
+    override fun connectComplete(reconnect: Boolean, serverURI: String?) {
+        sendEvent(MqttConnectedEvent)
+    }
+
     override fun connectionLost(throwable: Throwable?) {
+        Log.e("MqttClient", "Connection lost: ${throwable?.message ?: "UNKNOWN"}")
         sendEvent(
-            MqttDisconnectedEvent(throwable != null)
+            MqttDisconnectedEvent(true)
         )
     }
 
@@ -85,6 +91,9 @@ class MqttClient(
     }
 
     private fun connect(command: MqttConnectCommand) {
+        if (client.isConnected) {
+            return
+        }
         client.connect(
             connectionOptions.transform(),
             null,

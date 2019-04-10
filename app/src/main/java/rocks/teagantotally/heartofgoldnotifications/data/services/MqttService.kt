@@ -5,17 +5,23 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.net.ConnectivityManager
+import android.net.ConnectivityManager.CONNECTIVITY_ACTION
+import android.net.ConnectivityManager.EXTRA_NO_CONNECTIVITY
 import android.os.IBinder
 import com.github.ajalt.timberkt.Timber
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.ReceiveChannel
 import rocks.teagantotally.heartofgoldnotifications.app.HeyEddieApplication
 import rocks.teagantotally.heartofgoldnotifications.app.injection.client.ClientContainer
+import rocks.teagantotally.heartofgoldnotifications.common.extensions.ifFalse
+import rocks.teagantotally.heartofgoldnotifications.common.extensions.ifTrue
 import rocks.teagantotally.heartofgoldnotifications.data.managers.transform
 import rocks.teagantotally.heartofgoldnotifications.data.services.helpers.LongRunningServiceConnection
 import rocks.teagantotally.heartofgoldnotifications.data.services.helpers.ServiceBinder
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.Notifier
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.event.ClientConfigurationChangedEvent
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.managers.ConnectionConfigManager
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.managers.SubscriptionManager
 import rocks.teagantotally.heartofgoldnotifications.domain.models.ClientState
 import rocks.teagantotally.heartofgoldnotifications.domain.models.commands.NotificationCommand
@@ -92,38 +98,29 @@ class MqttService : Service(),
             .run {
                 runBlocking {
                     notifier.createChannel(UpdatePersistentNotificationUseCase.PERSISTENT_CHANNEL)
-                }
-                    .run {
-                        UpdatePersistentNotificationUseCase.getPersistentNotification(ClientState.Disconnected)
-                            .transform(this@MqttService)
-                            .let { startForeground(it.first, it.second) }
+                }.run {
+                    UpdatePersistentNotificationUseCase.getPersistentNotification(ClientState.Disconnected)
+                        .transform(this@MqttService)
+                        .let { startForeground(it.first, it.second) }
+                }.run {
+                    launch {
+                        getClientConfiguration()
+                            ?.let { onClientConfigured(it) }
+                            ?: listenForConfigurationChange()
                     }
-                    .run {
-                        launch {
-                            getClientConfiguration()
-                                ?.let { onClientConfigured(it) }
-                                ?: listenForConfigurationChange()
-                        }
-                    }
-                    .run { serviceBinder = ServiceBinder(this@MqttService) }
-                    .run {
-                        DismissNotificationReceiver(
-                            finishNotify,
-                            this@MqttService
-                        ).also {
-                            registerReceiver(it, IntentFilter(ACTION_DISMISS))
-                        }.also {
-                            dismissReceiver = it
-                        }
-                    }
-                    .run {
-                        bindService(
-                            Intent(this@MqttService, MqttService::class.java),
-                            longRunningServiceConnection,
-                            Context.BIND_AUTO_CREATE
-                        )
-                    }
-                    .run { START_STICKY }
+                }.run {
+                    serviceBinder = ServiceBinder(this@MqttService)
+                }.run {
+                    dismissReceiver =
+                        DismissNotificationReceiver(this@MqttService)
+                            .also { registerReceiver(it, IntentFilter(ACTION_DISMISS)) }
+                }.run {
+                    bindService(
+                        Intent(this@MqttService, MqttService::class.java),
+                        longRunningServiceConnection,
+                        Context.BIND_AUTO_CREATE
+                    )
+                }.run { START_STICKY }
             }
 
 
@@ -155,14 +152,13 @@ class MqttService : Service(),
     private suspend fun onClientConfigured(clientConfiguration: ConnectionConfiguration) {
         mqttEventConsumer = clientContainer.eventProducer.subscribe()
         listenForEvents()
+
+        publishReceiver?.let { unregisterReceiver(it) }
+
         publishReceiver =
-            PublishReceiver(
-                publish,
-                finishNotify,
-                this
-            ).also {
-                registerReceiver(it, IntentFilter(ACTION_PUBLISH))
-            }
+            PublishReceiver(this)
+                .also { registerReceiver(it, IntentFilter(ACTION_PUBLISH)) }
+
         if (clientConfiguration.autoReconnect) {
             connect()
         }
@@ -185,10 +181,13 @@ class MqttService : Service(),
     }
 
     class DismissNotificationReceiver(
-        private val finishNotify: FinishNotifyUseCase,
         coroutineScope: CoroutineScope
     ) : BroadcastReceiver(), CoroutineScope by coroutineScope {
+        @Inject
+        lateinit var finishNotify: FinishNotifyUseCase
+
         override fun onReceive(context: Context?, intent: Intent?) {
+            HeyEddieApplication.applicationComponent.inject(this)
             intent?.let {
                 when (it.action) {
                     ACTION_DISMISS ->
@@ -206,34 +205,40 @@ class MqttService : Service(),
     }
 
     class PublishReceiver(
-        private val publishMessage: PublishMessage,
-        private val finishNotify: FinishNotifyUseCase,
         coroutineScope: CoroutineScope
     ) : BroadcastReceiver(), CoroutineScope by coroutineScope {
+        @Inject
+        lateinit var publishMessage: PublishMessage
+
         override fun onReceive(context: Context?, intent: Intent?) {
-            intent?.let {
-                when (it.action) {
-                    ACTION_PUBLISH ->
-                        it.getParcelableExtra<Message>(EXTRA_MESSAGE)
-                            ?.let { message ->
-                                launch {
-                                    publishMessage(MqttPublishCommand(message))
+            try {
+                HeyEddieApplication.clientComponent.inject(this)
+                intent?.let {
+                    when (it.action) {
+                        ACTION_PUBLISH ->
+                            it.getParcelableExtra<Message>(EXTRA_MESSAGE)
+                                ?.let { message ->
+                                    launch {
+                                        publishMessage(MqttPublishCommand(message))
+                                    }
                                 }
-                            }
-                            .run {
-                                context?.sendBroadcast(
-                                    Intent(ACTION_DISMISS)
-                                        .putExtra(
-                                            EXTRA_NOTIFICATION_ID,
-                                            it.getIntExtra(
+                                .run {
+                                    context?.sendBroadcast(
+                                        Intent(ACTION_DISMISS)
+                                            .putExtra(
                                                 EXTRA_NOTIFICATION_ID,
-                                                0
+                                                it.getIntExtra(
+                                                    EXTRA_NOTIFICATION_ID,
+                                                    0
+                                                )
                                             )
-                                        )
-                                )
-                            }
-                    else -> return
+                                    )
+                                }
+                        else -> return
+                    }
                 }
+            } catch (t: Throwable) {
+                Timber.e(t)
             }
         }
     }
