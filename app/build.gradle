@@ -15,8 +15,8 @@ android {
         minSdkVersion 27
         targetSdkVersion 28
         multiDexEnabled true
-        versionCode 3
-        versionName "1.1"
+        versionCode 4
+        versionName "1.2"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
