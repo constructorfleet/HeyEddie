@@ -16,6 +16,8 @@ import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService.Co
 import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService.Companion.EXTRA_MESSAGE
 import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService.Companion.EXTRA_NOTIFICATION_ID
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.Notifier
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.managers.ConnectionConfigManager
+import rocks.teagantotally.heartofgoldnotifications.domain.models.configs.ConnectionConfiguration
 import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.NotificationMessage
 import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.NotificationMessageChannel
 import rocks.teagantotally.heartofgoldnotifications.presentation.main.MainActivity
@@ -26,12 +28,9 @@ import java.util.*
 class SystemNotifier(
     private val context: Context,
     private val notificationManager: NotificationManager,
+    private val connectionConfigManager: ConnectionConfigManager,
     private val alarmManager: AlarmManager
 ) : Notifier {
-    companion object {
-        const val AUTO_DISMISS_MS: Long = (5 * 60 * 1000).toLong()
-    }
-
     override fun notify(notification: NotificationMessage) {
         createChannel(notification.channel)
         notification.transform(context)
@@ -50,11 +49,16 @@ class SystemNotifier(
                         )
                     }
                     .let {
-                        alarmManager.set(
-                            AlarmManager.RTC,
-                            System.currentTimeMillis() + AUTO_DISMISS_MS,
-                            it
-                        )
+                        connectionConfigManager.getConnectionConfiguration()
+                            .let { it?.notificationCancelMinutes ?: ConnectionConfiguration.DEFAULT_AUTO_CANCEL_MINUTES }
+                            .let { it * 60 * 1000 }
+                            .let { cancelDelay ->
+                                alarmManager.set(
+                                    AlarmManager.RTC,
+                                    System.currentTimeMillis() + cancelDelay,
+                                    it
+                                )
+                            }
                     }
             }
     }

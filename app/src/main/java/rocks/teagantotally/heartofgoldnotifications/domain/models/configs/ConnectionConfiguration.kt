@@ -11,9 +11,14 @@ data class ConnectionConfiguration(
     val clientPassword: String? = null,
     val clientId: String,
     val autoReconnect: Boolean = false,
-    val cleanSession: Boolean = false
+    val cleanSession: Boolean = false,
+    val notificationCancelMinutes: Int = DEFAULT_AUTO_CANCEL_MINUTES
 // TODO : Last Will
 ) : Serializable, Transform<MqttConnectOptions> {
+    companion object {
+        const val DEFAULT_AUTO_CANCEL_MINUTES = 60
+    }
+
     override fun transform(): MqttConnectOptions =
         MqttConnectOptions()
             .apply {

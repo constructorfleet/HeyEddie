@@ -14,6 +14,8 @@ interface ConfigContract {
         fun setClientId(clientId: String)
         fun setReconnect(reconnect: Boolean)
         fun setCleanSession(cleanSession: Boolean)
+
+        fun setNotificationAutoCancel(minutes: Int)
         fun close()
     }
 
@@ -25,7 +27,8 @@ interface ConfigContract {
             password: String?,
             clientId: String,
             reconnect: Boolean,
-            cleanSession: Boolean
+            cleanSession: Boolean,
+            notificationAutoCancelMinutes: Int?
         )
 
         fun checkValidity(
@@ -35,7 +38,8 @@ interface ConfigContract {
             password: String?,
             clientId: String?,
             reconnect: Boolean?,
-            cleanSession: Boolean?
+            cleanSession: Boolean?,
+            notificationAutoCancelMinutes: Int?
         )
     }
 }

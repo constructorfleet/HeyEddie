@@ -18,7 +18,8 @@ class ConfigPresenter(
         password: String?,
         clientId: String,
         reconnect: Boolean,
-        cleanSession: Boolean
+        cleanSession: Boolean,
+        notificationAutoCancelMinutes: Int?
     ) {
         connectionConfigManager.setConnectionConfiguration(
             ConnectionConfiguration(
@@ -28,7 +29,8 @@ class ConfigPresenter(
                 password,
                 clientId,
                 reconnect,
-                cleanSession
+                cleanSession,
+                notificationAutoCancelMinutes ?: ConnectionConfiguration.DEFAULT_AUTO_CANCEL_MINUTES
             )
         )
         view.close()
@@ -48,6 +50,7 @@ class ConfigPresenter(
                 view.setPassword(it.clientPassword)
                 view.setReconnect(it.autoReconnect)
                 view.setCleanSession(it.cleanSession)
+                view.setNotificationAutoCancel(it.notificationCancelMinutes)
 
                 checkValidity(
                     it.brokerHost,
@@ -56,7 +59,8 @@ class ConfigPresenter(
                     it.clientPassword,
                     it.clientId,
                     it.autoReconnect,
-                    it.cleanSession
+                    it.cleanSession,
+                    it.notificationCancelMinutes
                 )
             }
             ?: run { view.isValid = false }
@@ -69,7 +73,8 @@ class ConfigPresenter(
         password: String?,
         clientId: String?,
         reconnect: Boolean?,
-        cleanSession: Boolean?
+        cleanSession: Boolean?,
+        notificationAutoCancelMinutes: Int?
     ) {
         safeLet(host, port, clientId) { host, _, clientId ->
             if (host.isBlank() || clientId.isBlank()) {

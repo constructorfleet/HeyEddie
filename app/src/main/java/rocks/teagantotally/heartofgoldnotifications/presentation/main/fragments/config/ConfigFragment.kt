@@ -73,6 +73,11 @@ class ConfigFragment : PreferenceFragmentCompat(), ConfigContract.View,
             findPreference(getString(R.string.pref_clean_session))
                 ?.let { it as? SwitchPreference }
 
+    private val notificationCancelMinutes: EditTextPreference?
+        get() =
+            findPreference(getString(R.string.pref_notification_cancel_minutes))
+                ?.let { it as? EditTextPreference }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -119,7 +124,8 @@ class ConfigFragment : PreferenceFragmentCompat(), ConfigContract.View,
                         passwordPreference?.text,
                         clientIdPreference!!.text,
                         reconnectPreference!!.isChecked,
-                        cleanSessionPreference!!.isChecked
+                        cleanSessionPreference!!.isChecked,
+                        notificationCancelMinutes?.text?.toIntOrNull()
                     )
                 } catch (_: Throwable) {
                     showError("Something went wrong")
@@ -187,6 +193,11 @@ class ConfigFragment : PreferenceFragmentCompat(), ConfigContract.View,
             ?.isChecked = cleanSession
     }
 
+    override fun setNotificationAutoCancel(minutes: Int) {
+        notificationCancelMinutes
+            ?.text = minutes.toString()
+    }
+
     override fun showLoading(loading: Boolean) {
         // no-op
     }
@@ -223,7 +234,8 @@ class ConfigFragment : PreferenceFragmentCompat(), ConfigContract.View,
             passwordPreference?.text,
             clientIdPreference?.text,
             reconnectPreference?.isChecked,
-            cleanSessionPreference?.isChecked
+            cleanSessionPreference?.isChecked,
+            notificationCancelMinutes?.text?.toIntOrNull()
         )
     }
 }

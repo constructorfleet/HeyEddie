@@ -59,4 +59,15 @@
             android:key="@string/pref_clean_session"
             android:title="Clean Session" />
     </PreferenceCategory>
+    <PreferenceCategory android:title="Notification Settings">
+        <EditTextPreference
+            android:id="@+id/notification_cancel_minutes"
+            android:hint="1883"
+            android:imeOptions="actionDone"
+            android:inputType="number"
+            android:key="@string/pref_broker_port"
+            android:maxLines="1"
+            android:singleLine="true"
+            android:title="Port" />
+    </PreferenceCategory>
 </PreferenceScreen>

@@ -10,4 +10,6 @@
 
     <string name="pref_reconnect" translatable="false">pref_reconnect</string>
     <string name="pref_clean_session" translatable="false">pref_clean_session</string>
+
+    <string name="pref_notification_cancel_minutes" translatable="false">pref_notification_cancel_minutes</string>
 </resources>
