@@ -8,6 +8,7 @@ import dagger.Module
 import dagger.Provides
 import rocks.teagantotally.heartofgoldnotifications.data.managers.SystemNotifier
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.Notifier
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.managers.ConnectionConfigManager
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.FinishNotifyUseCase
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.UpdatePersistentNotificationUseCase
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.mqtt.message.receive.Notify
@@ -27,11 +28,13 @@ class NotificationModule {
     fun provideNotifier(
         context: Context,
         notificationManager: NotificationManager,
+        connectionConfigManager: ConnectionConfigManager,
         alarmManager: AlarmManager
     ): Notifier =
         SystemNotifier(
             context,
             notificationManager,
+            connectionConfigManager,
             alarmManager
         )
 
