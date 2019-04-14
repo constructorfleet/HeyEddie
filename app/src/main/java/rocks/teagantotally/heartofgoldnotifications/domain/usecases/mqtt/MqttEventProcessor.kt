@@ -35,8 +35,8 @@ class MqttEventProcessor(
     override suspend fun invoke(parameter: MqttEvent) {
         val receivedEvent = (parameter as? CommandResult.Success<*, *>)?.let { it.result } ?: parameter
         when (receivedEvent) {
-            MqttConnectedEvent ->
-                onConnected(MqttConnectedEvent)
+            is MqttConnectedEvent ->
+                onConnected(receivedEvent)
             is MqttDisconnectedEvent ->
                 onDisconnected(receivedEvent)
             is CommandResult.Failure<*> ->

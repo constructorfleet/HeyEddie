@@ -16,7 +16,11 @@ class SubscribeOnConnectUseCase(
     private val subscribeTo: SubscribeTo
         get() = clientContainer.subscribeTo
 
-    override suspend fun invoke() {
+    override suspend fun invoke(parameter: Connection) {
+        if (parameter is Connection.Reconnect) {
+            return
+        }
+
         subscriptionManager
             .getSubscriptions()
             .forEach {

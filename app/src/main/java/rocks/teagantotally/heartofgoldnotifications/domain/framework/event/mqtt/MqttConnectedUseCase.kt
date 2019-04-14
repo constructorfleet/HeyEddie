@@ -1,5 +1,6 @@
 package rocks.teagantotally.heartofgoldnotifications.domain.framework.event.mqtt
 
-import rocks.teagantotally.heartofgoldnotifications.domain.framework.UseCase
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.UseCaseWithParameter
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.mqtt.connected.Connection
 
-interface MqttConnectedUseCase : UseCase
+interface MqttConnectedUseCase : UseCaseWithParameter<Connection>

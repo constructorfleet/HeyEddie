@@ -14,7 +14,7 @@ import javax.inject.Singleton
 
 @Module
 class ConnectionModule {
-    // region Connected
+    // region Connection
     @Provides
     @Singleton
     fun provideSetConnectedPersistentNotificationUseCase(

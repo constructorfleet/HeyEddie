@@ -7,7 +7,7 @@ import rocks.teagantotally.heartofgoldnotifications.domain.usecases.UpdatePersis
 class SetConnectedPersistentNotificationUseCase(
     private val updatePersistentNotificationUseCase: UpdatePersistentNotificationUseCase
 ) : MqttConnectedUseCase {
-    override suspend fun invoke() {
+    override suspend fun invoke(parameter: Connection) {
         updatePersistentNotificationUseCase(ClientState.Connected)
     }
 }

@@ -76,7 +76,7 @@ class MqttClient(
     }
 
     override fun connectComplete(reconnect: Boolean, serverURI: String?) {
-        sendEvent(MqttConnectedEvent)
+        sendEvent(MqttConnectedEvent(reconnect))
     }
 
     override fun connectionLost(throwable: Throwable?) {
@@ -95,12 +95,7 @@ class MqttClient(
             return
         }
         client.connect(
-            connectionOptions.transform(),
-            null,
-            getListener(
-                command,
-                MqttConnectedEvent
-            )
+            connectionOptions.transform()
         )
     }
 

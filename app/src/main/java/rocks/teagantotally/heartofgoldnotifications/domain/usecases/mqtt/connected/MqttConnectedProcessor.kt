@@ -9,6 +9,13 @@ class MqttConnectedProcessor(
 ) : UseCaseWithParameter<MqttConnectedEvent> {
     override suspend fun invoke(parameter: MqttConnectedEvent) {
         connectedProcessors
-            .forEach { it.invoke() }
+            .forEach {
+                it.invoke(
+                    when (parameter.reconnect) {
+                        true -> Connection.Reconnect
+                        false -> Connection.New
+                    }
+                )
+            }
     }
 }

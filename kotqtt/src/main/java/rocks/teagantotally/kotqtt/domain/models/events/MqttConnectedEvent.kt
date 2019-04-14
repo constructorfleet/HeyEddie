@@ -1,3 +1,3 @@
 package rocks.teagantotally.kotqtt.domain.models.events
 
-object MqttConnectedEvent : MqttEvent
+data class MqttConnectedEvent(val reconnect: Boolean) : MqttEvent
