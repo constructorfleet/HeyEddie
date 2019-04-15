@@ -99,6 +99,7 @@ fun NotificationMessage.transform(context: Context): Pair<Int, Notification> =
     Pair(
         notificationId,
         Notification.Builder(context, channel.id)
+            .setGroup(channel.id)
             .setContentTitle(title)
             .setContentText(body)
             .setAutoCancel(autoCancel)
