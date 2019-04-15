@@ -158,6 +158,19 @@ fun NotificationMessage.transform(context: Context): Pair<Int, Notification> =
             .setOngoing(onGoing)
             .extend(Notification.WearableExtender())
             .extend(Notification.CarExtender())
+            .setDeleteIntent(
+                Intent(ACTION_DISMISS)
+                    .putInvoker(SystemNotifier::class)
+                    .putExtra(EXTRA_NOTIFICATION_ID, notificationId)
+                    .let {
+                        PendingIntent.getBroadcast(
+                            context,
+                            Int.unique(),
+                            it,
+                            PendingIntent.FLAG_UPDATE_CURRENT
+                        )
+                    }
+            )
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setWhen(System.currentTimeMillis())
             .ifAlso({ openApplication }) { builder ->
