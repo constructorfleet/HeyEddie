@@ -27,11 +27,15 @@ class SubscriptionsPresenter(
     ScopedPresenter<SubscriptionsContract.View, SubscriptionsContract.Presenter>(view, coroutineScope),
     SubscriptionManager.Listener {
 
-    val clientContainer: ClientContainer by lazy { HeyEddieApplication.clientComponent.provideClientContainer() }
+    val clientContainer: ClientContainer?
+        get() = HeyEddieApplication.clientComponent?.provideClientContainer()
 
-    val subscribeTo: SubscribeTo by lazy { clientContainer.subscribeTo }
-    val unsubscribeFrom: UnsubscribeFrom by lazy { clientContainer.unsubscribeFrom }
-    val eventProducer: MqttEventProducer by lazy { clientContainer.eventProducer }
+    val subscribeTo: SubscribeTo?
+        get() = clientContainer?.subscribeTo
+    val unsubscribeFrom: UnsubscribeFrom?
+        get() = clientContainer?.unsubscribeFrom
+    val eventProducer: MqttEventProducer?
+        get() = clientContainer?.eventProducer
 
     override fun onViewCreated() {
         subscriptionManager.getSubscriptions()
@@ -59,14 +63,15 @@ class SubscriptionsPresenter(
         )
         launch {
             view.showLoading()
-            subscribeTo(
+            subscribeTo?.invoke(
                 MqttSubscribeCommand(
                     topic,
                     QoS.fromQoS(maxQoS)
                 )
             )
-            eventProducer.subscribe()
-                .run {
+            eventProducer
+                ?.subscribe()
+                ?.run {
                     while (!isClosedForReceive) {
                         consumeEach { event ->
                             (event as? CommandResult<*>)
@@ -93,13 +98,13 @@ class SubscriptionsPresenter(
         )
         launch {
             view.showLoading()
-            unsubscribeFrom(
+            unsubscribeFrom?.invoke(
                 MqttUnsubscribeCommand(
                     topic
                 )
             )
-            eventProducer.subscribe()
-                .run {
+            eventProducer?.subscribe()
+                ?.run {
                     while (!isClosedForReceive) {
                         consumeEach { event ->
                             (event as? CommandResult<*>)

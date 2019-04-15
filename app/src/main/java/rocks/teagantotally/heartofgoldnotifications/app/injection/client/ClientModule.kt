@@ -1,13 +1,16 @@
 package rocks.teagantotally.heartofgoldnotifications.app.injection.client
 
 import android.content.Context
+import com.github.ajalt.timberkt.Timber
 import dagger.Module
 import dagger.Provides
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import org.eclipse.paho.android.service.MqttAndroidClient
 import org.eclipse.paho.client.mqttv3.IMqttAsyncClient
+import rocks.teagantotally.heartofgoldnotifications.app.injection.qualifiers.IO
 import rocks.teagantotally.heartofgoldnotifications.app.injection.scopes.SessionScope
 import rocks.teagantotally.heartofgoldnotifications.common.extensions.safeLet
 import rocks.teagantotally.heartofgoldnotifications.domain.models.configs.ConnectionConfiguration
@@ -110,7 +113,19 @@ class ClientModule(
     @Provides
     @SessionScope
     fun provideEventProducer(
-        client: Client
+        client: Client,
+        @IO coroutineScope: CoroutineScope
     ): MqttEventProducer =
         client
+            .also {
+                it.subscribe()
+                    .also {
+                        coroutineScope.launch {
+                            while (!it.isClosedForReceive) {
+                                it.receiveOrNull()
+                                    ?.let { Timber.d { "Received ${it}" } }
+                            }
+                        }
+                    }
+            }
 }

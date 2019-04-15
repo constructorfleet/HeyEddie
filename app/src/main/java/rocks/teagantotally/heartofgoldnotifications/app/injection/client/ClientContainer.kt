@@ -8,7 +8,6 @@ import rocks.teagantotally.heartofgoldnotifications.domain.usecases.subscription
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.subscription.UnsubscribeFrom
 import rocks.teagantotally.kotqtt.domain.framework.client.MqttCommandExecutor
 import rocks.teagantotally.kotqtt.domain.framework.client.MqttEventProducer
-
 import javax.inject.Inject
 
 data class ClientContainer @Inject constructor(

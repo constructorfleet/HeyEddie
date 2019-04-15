@@ -22,16 +22,13 @@ class PublishPresenter(
 
     private var messagePublishing: Message? = null
 
-    private val clientContainer: ClientContainer by lazy {
-        HeyEddieApplication.clientComponent.provideClientContainer()
-    }
+    private val clientContainer: ClientContainer?
+        get() = HeyEddieApplication.clientComponent?.provideClientContainer()
 
-    private val eventProducer: MqttEventProducer by lazy {
-        clientContainer.eventProducer
-    }
-    private val publishMessage: PublishMessage by lazy {
-        clientContainer.publishMessage
-    }
+    private val eventProducer: MqttEventProducer?
+        get() = clientContainer?.eventProducer
+    private val publishMessage: PublishMessage?
+        get() = clientContainer?.publishMessage
 
     override fun onViewCreated() {
         view.isValid = false
@@ -44,7 +41,7 @@ class PublishPresenter(
     override fun publish(topic: String, payload: String, retain: Boolean, qos: Int) {
         launch {
             view.showLoading(true)
-            publishMessage(
+            publishMessage?.invoke(
                 MqttPublishCommand(
                     Message(
                         topic,
@@ -55,8 +52,8 @@ class PublishPresenter(
                     ).also { messagePublishing = it }
                 )
             )
-            eventProducer.subscribe()
-                .run {
+            eventProducer?.subscribe()
+                ?.run {
                     while (!isClosedForReceive) {
                         consumeEach { event ->
                             (event as? CommandResult<*>)

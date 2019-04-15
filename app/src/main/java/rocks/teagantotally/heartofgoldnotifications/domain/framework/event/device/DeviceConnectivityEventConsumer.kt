@@ -1,5 +1,0 @@
-package rocks.teagantotally.heartofgoldnotifications.domain.framework.event.device
-
-import rocks.teagantotally.heartofgoldnotifications.domain.models.events.DeviceEvent
-
-interface DeviceConnectivityEventConsumer : DeviceEventConsumer<DeviceEvent.NetworkState>

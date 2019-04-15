@@ -9,7 +9,7 @@ import rocks.teagantotally.heartofgoldnotifications.app.injection.qualifiers.IO
 import rocks.teagantotally.heartofgoldnotifications.app.injection.qualifiers.UI
 import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.managers.ConnectionConfigManager
-import rocks.teagantotally.heartofgoldnotifications.domain.usecases.config.ClientConfigurationChangedUseCase
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.config.ClientConfigurationSavedUseCase
 import rocks.teagantotally.heartofgoldnotifications.presentation.main.injection.MainActivityComponent
 import javax.inject.Singleton
 
@@ -34,7 +34,7 @@ interface ApplicationComponent {
     @IO
     fun provideIOCoroutineScope(): CoroutineScope
 
-    fun provideConnectionConfigurationChangedUseCase(): ClientConfigurationChangedUseCase
+    fun provideConnectionConfigurationChangedUseCase(): ClientConfigurationSavedUseCase
 
     fun provideConnectionConfigurationManager(): ConnectionConfigManager
 

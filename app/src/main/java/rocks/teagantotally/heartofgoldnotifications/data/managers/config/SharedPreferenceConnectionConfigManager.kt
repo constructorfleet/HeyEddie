@@ -5,14 +5,17 @@ import com.google.gson.Gson
 import kotlinx.coroutines.runBlocking
 import rocks.teagantotally.heartofgoldnotifications.app.HeyEddieApplication
 import rocks.teagantotally.heartofgoldnotifications.app.injection.client.ClientModule
-import rocks.teagantotally.heartofgoldnotifications.domain.framework.event.ClientConfigurationChangedEvent
+import rocks.teagantotally.heartofgoldnotifications.common.extensions.asynchronousSave
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.event.config.post.PostConnectionConfigurationChangedUseCase
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.event.config.pre.PreConnectionConfigurationChangedUseCase
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.managers.ConnectionConfigManager
 import rocks.teagantotally.heartofgoldnotifications.domain.models.configs.ConnectionConfiguration
-import rocks.teagantotally.heartofgoldnotifications.domain.usecases.config.ClientConfigurationChangedUseCase
+import rocks.teagantotally.heartofgoldnotifications.domain.models.events.ClientConfigurationChangedEvent
 
 class SharedPreferenceConnectionConfigManager(
-    private val configurationChanged: ClientConfigurationChangedUseCase,
+    private val preSave: PreConnectionConfigurationChangedUseCase,
     private val sharedPreferences: SharedPreferences,
+    private val postSave: PostConnectionConfigurationChangedUseCase,
     private val gson: Gson
 ) : ConnectionConfigManager {
 
@@ -43,20 +46,31 @@ class SharedPreferenceConnectionConfigManager(
                 }
             }
 
-    override fun setConnectionConfiguration(
+    override suspend fun setConnectionConfiguration(
         connectionConfiguration: ConnectionConfiguration
     ) {
-        sharedPreferences
-            .edit()
-            .apply {
-                putString(KEY_CONFIG, gson.toJson(connectionConfiguration))
+        getConnectionConfiguration()
+            .let {
+                ClientConfigurationChangedEvent(
+                    it,
+                    connectionConfiguration
+                )
+            }.let { event ->
+                runBlocking {
+                    preSave(event)
+                }.run {
+                    sharedPreferences
+                        .asynchronousSave {
+                            putString(KEY_CONFIG, gson.toJson(connectionConfiguration))
+                        }
+                }.run {
+                    setupClientComponent(connectionConfiguration)
+                }.run {
+                    runBlocking {
+                        postSave(event)
+                    }
+                }
             }
-            .apply()
-
-        setupClientComponent(connectionConfiguration)
-        runBlocking {
-            configurationChanged.send(ClientConfigurationChangedEvent(connectionConfiguration))
-        }
     }
 
     private fun setupClientComponent(connectionConfiguration: ConnectionConfiguration) {

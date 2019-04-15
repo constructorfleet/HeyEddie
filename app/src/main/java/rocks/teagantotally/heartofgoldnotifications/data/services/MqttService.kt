@@ -5,31 +5,26 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.net.ConnectivityManager
-import android.net.ConnectivityManager.CONNECTIVITY_ACTION
-import android.net.ConnectivityManager.EXTRA_NO_CONNECTIVITY
 import android.os.IBinder
 import com.github.ajalt.timberkt.Timber
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.ReceiveChannel
 import rocks.teagantotally.heartofgoldnotifications.app.HeyEddieApplication
 import rocks.teagantotally.heartofgoldnotifications.app.injection.client.ClientContainer
-import rocks.teagantotally.heartofgoldnotifications.common.extensions.ifFalse
 import rocks.teagantotally.heartofgoldnotifications.common.extensions.ifTrue
 import rocks.teagantotally.heartofgoldnotifications.data.managers.transform
 import rocks.teagantotally.heartofgoldnotifications.data.services.helpers.LongRunningServiceConnection
 import rocks.teagantotally.heartofgoldnotifications.data.services.helpers.ServiceBinder
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.Notifier
-import rocks.teagantotally.heartofgoldnotifications.domain.framework.event.ClientConfigurationChangedEvent
-import rocks.teagantotally.heartofgoldnotifications.domain.framework.managers.ConnectionConfigManager
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.managers.SubscriptionManager
 import rocks.teagantotally.heartofgoldnotifications.domain.models.ClientState
 import rocks.teagantotally.heartofgoldnotifications.domain.models.commands.NotificationCommand
 import rocks.teagantotally.heartofgoldnotifications.domain.models.configs.ConnectionConfiguration
 import rocks.teagantotally.heartofgoldnotifications.domain.models.configs.SubscriptionConfiguration
+import rocks.teagantotally.heartofgoldnotifications.domain.models.events.ClientConfigurationChangedEvent
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.FinishNotifyUseCase
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.UpdatePersistentNotificationUseCase
-import rocks.teagantotally.heartofgoldnotifications.domain.usecases.config.ClientConfigurationChangedUseCase
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.config.ClientConfigurationSavedUseCase
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.config.GetClientConfigurationUseCase
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.connection.ConnectClient
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.mqtt.MqttEventProcessor
@@ -70,21 +65,18 @@ class MqttService : Service(),
     @Inject
     lateinit var notifier: Notifier
     @Inject
-    lateinit var clientConfigurationChangedUseCase: ClientConfigurationChangedUseCase
+    lateinit var clientConfigurationChangedUseCase: ClientConfigurationSavedUseCase
     @Inject
     lateinit var getClientConfiguration: GetClientConfigurationUseCase
     @Inject
     lateinit var mqttEventProcessor: MqttEventProcessor
-    @Inject
-    lateinit var finishNotify: FinishNotifyUseCase
 
-    private val clientConfigurationChanged: ReceiveChannel<ClientConfigurationChangedEvent> by lazy { clientConfigurationChangedUseCase.openSubscription() }
-    private val clientContainer: ClientContainer
-        get() = HeyEddieApplication.clientComponent.provideClientContainer()
-    private val connect: ConnectClient
-        get() = clientContainer.connectClient
-    private val publish: PublishMessage
-        get() = clientContainer.publishMessage
+    private val clientConfigurationChanged: ReceiveChannel<ClientConfigurationChangedEvent>
+        get() =  clientConfigurationChangedUseCase.openSubscription()
+    private val clientContainer: ClientContainer?
+        get() = HeyEddieApplication.clientComponent?.provideClientContainer()
+    private val connect: ConnectClient?
+        get() = clientContainer?.connectClient
     private lateinit var mqttEventConsumer: ReceiveChannel<MqttEvent>
     private var publishReceiver: PublishReceiver? = null
     private var dismissReceiver: DismissNotificationReceiver? = null
@@ -106,7 +98,7 @@ class MqttService : Service(),
                     launch {
                         getClientConfiguration()
                             ?.let { onClientConfigured(it) }
-                            ?: listenForConfigurationChange()
+                            .run { listenForConfigurationChange() }
                     }
                 }.run {
                     serviceBinder = ServiceBinder(this@MqttService)
@@ -141,27 +133,32 @@ class MqttService : Service(),
 
     private fun listenForConfigurationChange() {
         launch {
-            while (!clientConfigurationChanged.isClosedForReceive) {
-                clientConfigurationChanged.receiveOrNull()?.let {
-                    onClientConfigured(it.connectionConfiguration)
+            clientConfigurationChanged
+                .let { channel ->
+                    while (!channel.isClosedForReceive) {
+                        channel.receiveOrNull()?.let {
+                            onClientConfigured(it.new)
+                        }
+                    }
                 }
-            }
         }
     }
 
     private suspend fun onClientConfigured(clientConfiguration: ConnectionConfiguration) {
-        mqttEventConsumer = clientContainer.eventProducer.subscribe()
-        listenForEvents()
-
-        publishReceiver?.let { unregisterReceiver(it) }
-
-        publishReceiver =
-            PublishReceiver(this)
-                .also { registerReceiver(it, IntentFilter(ACTION_PUBLISH)) }
-
-        if (clientConfiguration.autoReconnect) {
-            connect()
-        }
+        clientContainer
+            ?.eventProducer
+            ?.subscribe()
+            ?.let { mqttEventConsumer = it }
+            ?.run { listenForEvents() }
+            ?.run { publishReceiver?.let { unregisterReceiver(it) } }
+            ?.run {
+                PublishReceiver(this@MqttService)
+                    .also { registerReceiver(it, IntentFilter(ACTION_PUBLISH)) }
+            }
+            ?.let { publishReceiver = it }
+            ?.ifTrue({ clientConfiguration.autoReconnect }) {
+                connect?.invoke()
+            }
     }
 
     private fun listenForEvents() {
@@ -212,31 +209,35 @@ class MqttService : Service(),
 
         override fun onReceive(context: Context?, intent: Intent?) {
             try {
-                HeyEddieApplication.clientComponent.inject(this)
-                intent?.let {
-                    when (it.action) {
-                        ACTION_PUBLISH ->
-                            it.getParcelableExtra<Message>(EXTRA_MESSAGE)
-                                ?.let { message ->
-                                    launch {
-                                        publishMessage(MqttPublishCommand(message))
+                HeyEddieApplication
+                    .clientComponent
+                    ?.inject(this)
+                    ?.let { intent }
+                    ?.let {
+                        when (it.action) {
+                            ACTION_PUBLISH ->
+                                it.getParcelableExtra<Message>(EXTRA_MESSAGE)
+                                    ?.let { message ->
+                                        launch {
+                                            publishMessage(MqttPublishCommand(message))
+                                        }
                                     }
-                                }
-                                .run {
-                                    context?.sendBroadcast(
-                                        Intent(ACTION_DISMISS)
-                                            .putExtra(
-                                                EXTRA_NOTIFICATION_ID,
-                                                it.getIntExtra(
+                                    .run {
+                                        context?.sendBroadcast(
+                                            Intent(ACTION_DISMISS)
+                                                .putExtra(
                                                     EXTRA_NOTIFICATION_ID,
-                                                    0
+                                                    it.getIntExtra(
+                                                        EXTRA_NOTIFICATION_ID,
+                                                        0
+                                                    )
                                                 )
-                                            )
-                                    )
-                                }
-                        else -> return
+                                        )
+                                    }
+                            else -> return
+                        }
                     }
-                }
+
             } catch (t: Throwable) {
                 Timber.e(t)
             }

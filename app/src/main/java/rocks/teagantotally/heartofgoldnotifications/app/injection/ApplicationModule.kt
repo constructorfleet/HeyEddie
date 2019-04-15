@@ -9,15 +9,21 @@ import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import dagger.Module
 import dagger.Provides
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.BroadcastChannel
+import rocks.teagantotally.heartofgoldnotifications.app.injection.qualifiers.UI
 import rocks.teagantotally.heartofgoldnotifications.data.managers.config.SharedPreferenceConnectionConfigManager
 import rocks.teagantotally.heartofgoldnotifications.data.managers.history.SharedPreferenceMessageHistoryManager
 import rocks.teagantotally.heartofgoldnotifications.data.managers.subscription.SharedPreferenceSubscriptionManager
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.event.config.post.PostClientConfigurationChangedUseCase
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.event.config.post.PostConnectionConfigurationChangedUseCase
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.event.config.pre.PreConnectionChangedUseCase
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.event.config.pre.PreConnectionConfigurationChangedUseCase
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.managers.ConnectionConfigManager
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.managers.MessageHistoryManager
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.managers.SubscriptionManager
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.UpdatePersistentNotificationUseCase
-import rocks.teagantotally.heartofgoldnotifications.domain.usecases.config.ClientConfigurationChangedUseCase
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.config.ClientConfigurationSavedUseCase
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.mqtt.MqttEventProcessor
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.mqtt.connected.MqttConnectedProcessor
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.mqtt.disconnected.MqttDisconnectedProcessor
@@ -65,21 +71,41 @@ class ApplicationModule(
 
     @Provides
     @Singleton
-    fun provideConnectionConfigurationChangedUseCase(): ClientConfigurationChangedUseCase =
-        ClientConfigurationChangedUseCase(
+    fun provideConnectionConfigurationChangedUseCase(): ClientConfigurationSavedUseCase =
+        ClientConfigurationSavedUseCase(
             BroadcastChannel(100)
+        )
+
+    @Provides
+    fun providePreConnectionConfigurationChangedUseCase(
+        @UI coroutineScope: CoroutineScope
+    ): PreConnectionConfigurationChangedUseCase =
+        PreConnectionChangedUseCase(
+            coroutineScope
+        )
+
+    @Provides
+    fun providePostConnectionConfigurationChangedUseCase(
+        clientConfigurationSavedUseCase: ClientConfigurationSavedUseCase,
+        @UI coroutineScope: CoroutineScope
+    ): PostConnectionConfigurationChangedUseCase =
+        PostClientConfigurationChangedUseCase(
+            clientConfigurationSavedUseCase,
+            coroutineScope
         )
 
     @Provides
     @Singleton
     fun provideConnectionConfigManager(
-        configurationChanged: ClientConfigurationChangedUseCase,
         sharedPreferences: SharedPreferences,
-        gson: Gson
+        gson: Gson,
+        preSave: PreConnectionConfigurationChangedUseCase,
+        postSave: PostConnectionConfigurationChangedUseCase
     ): ConnectionConfigManager =
         SharedPreferenceConnectionConfigManager(
-            configurationChanged,
+            preSave,
             sharedPreferences,
+            postSave,
             gson
         )
 

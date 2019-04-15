@@ -6,7 +6,7 @@ import kotlinx.coroutines.CoroutineScope
 import rocks.teagantotally.heartofgoldnotifications.app.injection.qualifiers.UI
 import rocks.teagantotally.heartofgoldnotifications.app.injection.scopes.ActivityScope
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.managers.ConnectionConfigManager
-import rocks.teagantotally.heartofgoldnotifications.domain.usecases.config.ClientConfigurationChangedUseCase
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.config.ClientConfigurationSavedUseCase
 import rocks.teagantotally.heartofgoldnotifications.presentation.main.MainActivityContract
 import rocks.teagantotally.heartofgoldnotifications.presentation.main.MainActivityPresenter
 
@@ -23,7 +23,7 @@ class MainActivityModule(
     @ActivityScope
     fun providePresenter(
         view: MainActivityContract.View,
-        configurationChanged: ClientConfigurationChangedUseCase,
+        configurationChanged: ClientConfigurationSavedUseCase,
         configManager: ConnectionConfigManager,
         @UI coroutineScope: CoroutineScope
     ): MainActivityContract.Presenter =

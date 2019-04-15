@@ -11,10 +11,10 @@ import rocks.teagantotally.kotqtt.domain.models.commands.MqttSubscribeCommand
 class SubscribeOnConnectUseCase(
     private val subscriptionManager: SubscriptionManager
 ) : MqttConnectedUseCase {
-    private val clientContainer: ClientContainer
-        get() = HeyEddieApplication.clientComponent.provideClientContainer()
-    private val subscribeTo: SubscribeTo
-        get() = clientContainer.subscribeTo
+    private val clientContainer: ClientContainer?
+        get() = HeyEddieApplication.clientComponent?.provideClientContainer()
+    private val subscribeTo: SubscribeTo?
+        get() = clientContainer?.subscribeTo
 
     override suspend fun invoke(parameter: Connection) {
         if (parameter is Connection.Reconnect) {
@@ -24,7 +24,7 @@ class SubscribeOnConnectUseCase(
         subscriptionManager
             .getSubscriptions()
             .forEach {
-                subscribeTo(
+                subscribeTo?.invoke(
                     MqttSubscribeCommand(
                         it.topic,
                         QoS.fromQoS(it.maxQoS)

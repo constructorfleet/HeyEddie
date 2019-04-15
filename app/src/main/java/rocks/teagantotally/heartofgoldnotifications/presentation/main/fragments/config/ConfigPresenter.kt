@@ -1,6 +1,7 @@
 package rocks.teagantotally.heartofgoldnotifications.presentation.main.fragments.config
 
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import rocks.teagantotally.heartofgoldnotifications.common.extensions.safeLet
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.managers.ConnectionConfigManager
 import rocks.teagantotally.heartofgoldnotifications.domain.models.configs.ConnectionConfiguration
@@ -21,19 +22,25 @@ class ConfigPresenter(
         cleanSession: Boolean,
         notificationAutoCancelMinutes: Int?
     ) {
-        connectionConfigManager.setConnectionConfiguration(
-            ConnectionConfiguration(
-                host,
-                port,
-                username,
-                password,
-                clientId,
-                reconnect,
-                cleanSession,
-                notificationAutoCancelMinutes ?: ConnectionConfiguration.DEFAULT_AUTO_CANCEL_MINUTES
-            )
-        )
-        view.close()
+        view.showLoading(true)
+            .run {
+                launch {
+                    connectionConfigManager.setConnectionConfiguration(
+                        ConnectionConfiguration(
+                            host,
+                            port,
+                            username,
+                            password,
+                            clientId,
+                            reconnect,
+                            cleanSession,
+                            notificationAutoCancelMinutes ?: ConnectionConfiguration.DEFAULT_AUTO_CANCEL_MINUTES
+                        )
+                    )
+                    view.showLoading(false)
+                    view.close()
+                }
+            }
     }
 
     override fun onViewCreated() {

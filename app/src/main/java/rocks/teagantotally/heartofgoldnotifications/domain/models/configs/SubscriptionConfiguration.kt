@@ -7,7 +7,7 @@ open class SubscriptionConfiguration(
     val topic: String,
     val maxQoS: Int,
     val messageType: MessageType
-) : Serializable {
+) : Serializable, Configuration {
     override fun equals(other: Any?): Boolean =
         (other as? SubscriptionConfiguration)
             ?.let { it.topic == topic }

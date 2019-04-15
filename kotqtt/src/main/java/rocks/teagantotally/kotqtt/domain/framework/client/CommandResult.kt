@@ -7,10 +7,16 @@ sealed class CommandResult<CommandType : MqttCommand>(val command: CommandType) 
     class Success<ResultType, CommandType : MqttCommand>(
         command: CommandType,
         val result: ResultType
-    ) : CommandResult<CommandType>(command)
+    ) : CommandResult<CommandType>(command) {
+        override fun toString(): String =
+                command.javaClass.simpleName + result.toString()
+    }
 
     class Failure<CommandType : MqttCommand>(
         command: CommandType,
         val throwable: Throwable
-    ) : CommandResult<CommandType>(command)
+    ) : CommandResult<CommandType>(command) {
+        override fun toString(): String =
+            command.javaClass.simpleName + throwable.message
+    }
 }

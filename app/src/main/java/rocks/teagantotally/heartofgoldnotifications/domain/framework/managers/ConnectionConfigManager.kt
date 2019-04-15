@@ -7,5 +7,5 @@ interface ConnectionConfigManager {
 
     fun getConnectionConfiguration(): ConnectionConfiguration?
 
-    fun setConnectionConfiguration(connectionConfiguration: ConnectionConfiguration)
+    suspend fun setConnectionConfiguration(connectionConfiguration: ConnectionConfiguration)
 }

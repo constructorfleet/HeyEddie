@@ -62,12 +62,12 @@
     <PreferenceCategory android:title="Notification Settings">
         <EditTextPreference
             android:id="@+id/notification_cancel_minutes"
-            android:hint="1883"
+            android:hint="60"
             android:imeOptions="actionDone"
             android:inputType="number"
-            android:key="@string/pref_broker_port"
+            android:key="@string/pref_notification_cancel_minutes"
             android:maxLines="1"
             android:singleLine="true"
-            android:title="Port" />
+            android:title="Minutes Before Dismissing" />
     </PreferenceCategory>
 </PreferenceScreen>

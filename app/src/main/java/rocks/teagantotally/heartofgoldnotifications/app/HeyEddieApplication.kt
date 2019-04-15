@@ -18,8 +18,6 @@ import rocks.teagantotally.heartofgoldnotifications.app.injection.client.ClientM
 import rocks.teagantotally.heartofgoldnotifications.app.injection.client.DaggerClientComponent
 import rocks.teagantotally.heartofgoldnotifications.app.managers.ActivityJobManager
 import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService
-import rocks.teagantotally.heartofgoldnotifications.domain.framework.event.ClientConfigurationChangedEvent
-import kotlin.coroutines.CoroutineContext
 
 @ExperimentalCoroutinesApi
 @ObsoleteCoroutinesApi
@@ -27,7 +25,7 @@ class HeyEddieApplication : MultiDexApplication() {
     companion object {
         @ObsoleteCoroutinesApi
         lateinit var applicationComponent: ApplicationComponent
-        lateinit var clientComponent: ClientComponent
+        var clientComponent: ClientComponent? = null
 
         fun setClientComponent(module: ClientModule) {
             DaggerClientComponent.builder()

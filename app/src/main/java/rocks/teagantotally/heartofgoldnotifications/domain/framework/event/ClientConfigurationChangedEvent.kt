@@ -1,6 +1,0 @@
-package rocks.teagantotally.heartofgoldnotifications.domain.framework.event
-
-import rocks.teagantotally.heartofgoldnotifications.domain.models.configs.ConnectionConfiguration
-import rocks.teagantotally.heartofgoldnotifications.domain.models.events.Event
-
-data class ClientConfigurationChangedEvent(val connectionConfiguration: ConnectionConfiguration) : Event

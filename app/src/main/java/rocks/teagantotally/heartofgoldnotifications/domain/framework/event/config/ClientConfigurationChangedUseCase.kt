@@ -1,0 +1,7 @@
+package rocks.teagantotally.heartofgoldnotifications.domain.framework.event.config
+
+import rocks.teagantotally.heartofgoldnotifications.domain.models.configs.ConnectionConfiguration
+import rocks.teagantotally.heartofgoldnotifications.domain.models.events.ClientConfigurationChangedEvent
+
+interface ClientConfigurationChangedUseCase :
+    ConfigurationChangedUseCase<ClientConfigurationChangedEvent, ConnectionConfiguration>
