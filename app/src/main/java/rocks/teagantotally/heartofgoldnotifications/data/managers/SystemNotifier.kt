@@ -31,11 +31,21 @@ class SystemNotifier(
     private val connectionConfigManager: ConnectionConfigManager,
     private val alarmManager: AlarmManager
 ) : Notifier {
+    companion object {
+        private val notificationGroupMap: MutableMap<String, NotificationGroup> = mutableMapOf()
+    }
+
     override fun notify(notification: NotificationMessage) {
         createChannel(notification.channel)
         notification.transform(context)
             .also {
-                notificationManager.notify(it.first, it.second)
+                val notificationId = it.first
+                notificationManager.notify(notificationId, it.second)
+                createGroupSummary(notification.channel, notificationGroupMap.get(notification.channel.name))
+                    .let {
+                        it.second.notificationIds.add(notificationId)
+                        notificationManager.notify(it.second.notificationId, it.first)
+                    }
             }
             .ifTrue({ !notification.onGoing }) {
                 Intent(ACTION_DISMISS)
@@ -50,7 +60,9 @@ class SystemNotifier(
                     }
                     .let {
                         connectionConfigManager.getConnectionConfiguration()
-                            .let { it?.notificationCancelMinutes ?: ConnectionConfiguration.DEFAULT_AUTO_CANCEL_MINUTES }
+                            .let {
+                                it?.notificationCancelMinutes ?: ConnectionConfiguration.DEFAULT_AUTO_CANCEL_MINUTES
+                            }
                             .let { it * 60 * 1000 }
                             .let { cancelDelay ->
                                 alarmManager.set(
@@ -65,6 +77,12 @@ class SystemNotifier(
 
     override fun dismiss(notificationId: Int) {
         notificationManager.cancel(notificationId)
+        notificationGroupMap
+            .values
+            .firstOrNull{
+                it.notificationIds.contains(notificationId)
+            }
+            ?.let { it.decrementGroup() }
     }
 
     override fun createChannel(notificationChannel: NotificationMessageChannel) {
@@ -74,6 +92,27 @@ class SystemNotifier(
             null
         } ?: notificationManager.createNotificationChannel(notificationChannel.transform())
     }
+
+    private fun createGroupSummary(
+        notificationChannel: NotificationMessageChannel,
+        notificationGroup: NotificationGroup? = null
+    ): Pair<Notification, NotificationGroup> =
+        Pair(
+            Notification.Builder(context, notificationChannel.id)
+                .setContentTitle(notificationChannel.name)
+                .setContentText(notificationChannel.description)
+                .setGroup(notificationChannel.name)
+                .setNumber(notificationGroup?.count ?: 1)
+                .setGroupSummary(true)
+                .setSmallIcon(R.drawable.ic_hitchhiker_symbol)
+                .build(),
+            notificationGroup?.incrementGroup()
+                ?: NotificationGroup(
+                    notificationChannel.name
+                )
+        ).also {
+            notificationGroupMap[notificationChannel.name] = it.second
+        }
 
     private fun NotificationMessageChannel.transform(): NotificationChannel =
         NotificationChannel(id, name, (importance ?: NotificationMessageChannel.DEFAULT_IMPORTANCE).systemValue)
@@ -91,6 +130,19 @@ class SystemNotifier(
                 channel.name = name
                 channel.setSound(null, null)
             }
+
+    private data class NotificationGroup(
+        val groupId: String,
+        val summaryId: Int = Int.unique(),
+        val notificationId: Int = Int.unique(),
+        var count: Int = 1,
+        val notificationIds: MutableSet<Int> = mutableSetOf()
+    ) {
+        fun incrementGroup(): NotificationGroup =
+            this.also { count++ }
+        fun decrementGroup(): NotificationGroup =
+            this.also { count-- }
+    }
 }
 
 @UseExperimental(ExperimentalCoroutinesApi::class)
@@ -99,7 +151,7 @@ fun NotificationMessage.transform(context: Context): Pair<Int, Notification> =
     Pair(
         notificationId,
         Notification.Builder(context, channel.id)
-            .setGroup(channel.id)
+            .setGroup(channel.name)
             .setContentTitle(title)
             .setContentText(body)
             .setAutoCancel(autoCancel)
