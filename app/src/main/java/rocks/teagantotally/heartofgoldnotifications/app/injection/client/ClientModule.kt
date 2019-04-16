@@ -14,6 +14,12 @@ import rocks.teagantotally.heartofgoldnotifications.app.injection.qualifiers.IO
 import rocks.teagantotally.heartofgoldnotifications.app.injection.scopes.SessionScope
 import rocks.teagantotally.heartofgoldnotifications.common.extensions.safeLet
 import rocks.teagantotally.heartofgoldnotifications.domain.models.configs.ConnectionConfiguration
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.connection.ConnectClient
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.connection.DisconnectClient
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.connection.GetClientStatus
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.mqtt.message.publish.PublishMessage
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.subscription.SubscribeTo
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.subscription.UnsubscribeFrom
 import rocks.teagantotally.kotqtt.data.MqttClient
 import rocks.teagantotally.kotqtt.domain.framework.client.Client
 import rocks.teagantotally.kotqtt.domain.framework.client.MqttCommandExecutor
@@ -128,4 +134,74 @@ class ClientModule(
                         }
                     }
             }
+
+    @Provides
+    @SessionScope
+    fun provideSubscribeTo(
+        commandExecutor: MqttCommandExecutor
+    ): SubscribeTo =
+        SubscribeTo(
+            commandExecutor
+        )
+
+    @Provides
+    @SessionScope
+    fun provideUnsubscribeFrom(
+        commandExecutor: MqttCommandExecutor
+    ): UnsubscribeFrom =
+        UnsubscribeFrom(
+            commandExecutor
+        )
+
+    @Provides
+    @SessionScope
+    fun provideConnectClient(
+        connectionConfiguration: ConnectionConfiguration,
+        commandExecutor: MqttCommandExecutor
+    ): ConnectClient =
+        ConnectClient(
+            connectionConfiguration,
+            commandExecutor
+        )
+
+    @Provides
+    @SessionScope
+    fun provideDisconnectClient(
+        commandExecutor: MqttCommandExecutor
+    ): DisconnectClient =
+        DisconnectClient(
+            commandExecutor
+        )
+
+    @Provides
+    @SessionScope
+    fun providePublishMessage(
+        commandExecutor: MqttCommandExecutor
+    ): PublishMessage =
+        PublishMessage(
+            commandExecutor
+        )
+
+    @Provides
+    @SessionScope
+    fun provideClientContainer(
+        subscribeTo: SubscribeTo,
+        unsubscribeFrom: UnsubscribeFrom,
+        eventProducer: MqttEventProducer,
+        commandExecutor: MqttCommandExecutor,
+        connectClient: ConnectClient,
+        disconnectClient: DisconnectClient,
+        publishMessage: PublishMessage,
+        getClientStatus: GetClientStatus
+    ): ClientContainer =
+        ClientContainer(
+            subscribeTo,
+            unsubscribeFrom,
+            eventProducer,
+            commandExecutor,
+            connectClient,
+            disconnectClient,
+            publishMessage,
+            getClientStatus
+        )
 }

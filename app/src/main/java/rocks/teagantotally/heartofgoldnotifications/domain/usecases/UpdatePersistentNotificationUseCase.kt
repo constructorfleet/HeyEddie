@@ -3,6 +3,7 @@ package rocks.teagantotally.heartofgoldnotifications.domain.usecases
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.Notifier
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.UseCaseWithParameter
 import rocks.teagantotally.heartofgoldnotifications.domain.models.ClientState
+import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.NotificationImportance
 import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.NotificationMessage
 import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.NotificationMessageChannel
 
@@ -15,7 +16,8 @@ class UpdatePersistentNotificationUseCase(
             NotificationMessageChannel(
                 "persistent",
                 "Persistent",
-                "Allows application to remain open in background"
+                "Allows application to remain open in background",
+                importance = NotificationImportance.MIN
             )
 
         fun getPersistentNotification(state: ClientState) =

@@ -72,9 +72,8 @@ class MqttService : Service(),
     lateinit var mqttEventProcessor: MqttEventProcessor
 
     private val clientConfigurationChanged: ReceiveChannel<ClientConfigurationChangedEvent>
-        get() =  clientConfigurationChangedUseCase.openSubscription()
-    private val clientContainer: ClientContainer?
-        get() = HeyEddieApplication.clientComponent?.provideClientContainer()
+        get() = clientConfigurationChangedUseCase.openSubscription()
+    private lateinit var clientContainer: ClientContainer
     private val connect: ConnectClient?
         get() = clientContainer?.connectClient
     private lateinit var mqttEventConsumer: ReceiveChannel<MqttEvent>
@@ -145,17 +144,23 @@ class MqttService : Service(),
     }
 
     private suspend fun onClientConfigured(clientConfiguration: ConnectionConfiguration) {
-        clientContainer
-            ?.eventProducer
-            ?.subscribe()
-            ?.let { mqttEventConsumer = it }
-            ?.run { listenForEvents() }
-            ?.run { publishReceiver?.let { unregisterReceiver(it) } }
+        HeyEddieApplication
+            .clientComponent
+            ?.provideClientContainer()
+            ?.also {
+                clientContainer = it
+                clientContainer
+                    .eventProducer
+                    .subscribe()
+                    .let { mqttEventConsumer = it }
+                    .run { listenForEvents() }
+            }
             ?.run {
+                publishReceiver?.let { unregisterReceiver(it) }
                 PublishReceiver(this@MqttService)
                     .also { registerReceiver(it, IntentFilter(ACTION_PUBLISH)) }
+                    .let { publishReceiver = it }
             }
-            ?.let { publishReceiver = it }
             ?.ifTrue({ clientConfiguration.autoReconnect }) {
                 connect?.invoke()
             }
