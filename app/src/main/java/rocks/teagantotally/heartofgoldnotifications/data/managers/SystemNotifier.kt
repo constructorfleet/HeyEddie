@@ -83,6 +83,10 @@ class SystemNotifier(
                 it.notificationIds.contains(notificationId)
             }
             ?.let { it.decrementGroup() }
+            ?.ifTrue({it.count == 0}) {
+                notificationManager.cancel(it.notificationId)
+                notificationGroupMap.remove(it.groupId)
+            }
     }
 
     override fun createChannel(notificationChannel: NotificationMessageChannel) {
@@ -156,6 +160,7 @@ fun NotificationMessage.transform(context: Context): Pair<Int, Notification> =
             .setContentText(body)
             .setAutoCancel(autoCancel)
             .setOngoing(onGoing)
+            .setSmallIcon(R.drawable.ic_hitchhiker_symbol)
             .extend(Notification.WearableExtender())
             .extend(Notification.CarExtender())
             .setDeleteIntent(
