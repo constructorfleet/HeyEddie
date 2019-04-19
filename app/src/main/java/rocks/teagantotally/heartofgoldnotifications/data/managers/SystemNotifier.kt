@@ -161,6 +161,8 @@ fun NotificationMessage.transform(context: Context, alertAlways: Boolean): Pair<
             .setAutoCancel(autoCancel)
             .setOnlyAlertOnce(!alertAlways)
             .setOngoing(onGoing)
+            .setWhen(System.currentTimeMillis())
+            .setShowWhen(true)
             .setSmallIcon(R.drawable.ic_hitchhiker_symbol)
             .extend(Notification.WearableExtender())
             .extend(Notification.CarExtender())
