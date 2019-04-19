@@ -35,9 +35,9 @@ class SystemNotifier(
         private val notificationGroupMap: MutableMap<String, NotificationGroup> = mutableMapOf()
     }
 
-    override fun notify(notification: NotificationMessage) {
+    override fun notify(notification: NotificationMessage, alertAlways: Boolean) {
         createChannel(notification.channel)
-        notification.transform(context)
+        notification.transform(context, alertAlways)
             .also {
                 val notificationId = it.first
                 notificationManager.notify(notificationId, it.second)
@@ -151,7 +151,7 @@ class SystemNotifier(
 
 @UseExperimental(ExperimentalCoroutinesApi::class)
 @ObsoleteCoroutinesApi
-fun NotificationMessage.transform(context: Context): Pair<Int, Notification> =
+fun NotificationMessage.transform(context: Context, alertAlways: Boolean): Pair<Int, Notification> =
     Pair(
         notificationId,
         Notification.Builder(context, channel.id)
@@ -159,6 +159,7 @@ fun NotificationMessage.transform(context: Context): Pair<Int, Notification> =
             .setContentTitle(title)
             .setContentText(body)
             .setAutoCancel(autoCancel)
+            .setOnlyAlertOnce(!alertAlways)
             .setOngoing(onGoing)
             .setSmallIcon(R.drawable.ic_hitchhiker_symbol)
             .extend(Notification.WearableExtender())

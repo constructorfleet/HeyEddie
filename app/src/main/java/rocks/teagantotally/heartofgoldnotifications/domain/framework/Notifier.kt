@@ -6,7 +6,7 @@ import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.Notif
 interface Notifier {
     fun createChannel(channel: NotificationMessageChannel)
 
-    fun notify(notification: NotificationMessage)
+    fun notify(notification: NotificationMessage, alertAlways: Boolean = true)
 
     fun dismiss(notificationId: Int)
 }

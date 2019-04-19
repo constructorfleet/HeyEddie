@@ -33,6 +33,6 @@ class UpdatePersistentNotificationUseCase(
     }
 
     override suspend fun invoke(parameter: ClientState) {
-        notifier.notify(getPersistentNotification(parameter))
+        notifier.notify(getPersistentNotification(parameter), false)
     }
 }
