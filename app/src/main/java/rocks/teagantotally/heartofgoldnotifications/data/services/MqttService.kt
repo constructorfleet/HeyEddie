@@ -91,7 +91,7 @@ class MqttService : Service(),
                     notifier.createChannel(UpdatePersistentNotificationUseCase.PERSISTENT_CHANNEL)
                 }.run {
                     UpdatePersistentNotificationUseCase.getPersistentNotification(ClientState.Disconnected)
-                        .transform(this@MqttService)
+                        .transform(this@MqttService, false)
                         .let { startForeground(it.first, it.second) }
                 }.run {
                     launch {
