@@ -52,6 +52,7 @@ class MainActivityPresenter(
                 launch {
                     commandExecutor?.execute(MqttGetStatusCommand)
                 }
+                view.showHistory()
             } ?: ConnectionViewState.Unconfigured
             .let {
                 connectionViewState = it
