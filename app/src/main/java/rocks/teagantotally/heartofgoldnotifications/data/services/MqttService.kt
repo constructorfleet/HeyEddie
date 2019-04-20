@@ -7,11 +7,13 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.IBinder
 import com.github.ajalt.timberkt.Timber
+import com.google.gson.Gson
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.ReceiveChannel
 import rocks.teagantotally.heartofgoldnotifications.app.HeyEddieApplication
 import rocks.teagantotally.heartofgoldnotifications.app.injection.client.ClientContainer
 import rocks.teagantotally.heartofgoldnotifications.common.extensions.ifTrue
+import rocks.teagantotally.heartofgoldnotifications.common.extensions.unique
 import rocks.teagantotally.heartofgoldnotifications.data.managers.transform
 import rocks.teagantotally.heartofgoldnotifications.data.services.helpers.LongRunningServiceConnection
 import rocks.teagantotally.heartofgoldnotifications.data.services.helpers.ServiceBinder
@@ -22,6 +24,8 @@ import rocks.teagantotally.heartofgoldnotifications.domain.models.commands.Notif
 import rocks.teagantotally.heartofgoldnotifications.domain.models.configs.ConnectionConfiguration
 import rocks.teagantotally.heartofgoldnotifications.domain.models.configs.SubscriptionConfiguration
 import rocks.teagantotally.heartofgoldnotifications.domain.models.events.ClientConfigurationChangedEvent
+import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.NotificationMessage
+import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.NotificationMessageChannel
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.FinishNotifyUseCase
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.UpdatePersistentNotificationUseCase
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.config.ClientConfigurationSavedUseCase
@@ -29,6 +33,7 @@ import rocks.teagantotally.heartofgoldnotifications.domain.usecases.config.GetCl
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.connection.ConnectClient
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.mqtt.MqttEventProcessor
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.mqtt.message.publish.PublishMessage
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.mqtt.message.receive.Notify
 import rocks.teagantotally.kotqtt.domain.models.Message
 import rocks.teagantotally.kotqtt.domain.models.commands.MqttPublishCommand
 import rocks.teagantotally.kotqtt.domain.models.events.MqttEvent
@@ -52,10 +57,13 @@ class MqttService : Service(),
 
         const val EXTRA_MESSAGE = "message"
         const val EXTRA_NOTIFICATION_ID = "notification_id"
+        const val EXTRA_NOTIFICATION_AUTO_DISMISSED = "notification_auto_dismissed"
 
         lateinit var serviceBinder: ServiceBinder<MqttService>
         val longRunningServiceConnection: LongRunningServiceConnection<MqttService> =
             LongRunningServiceConnection()
+
+        private val debugChannelId: String = "Debug"
     }
 
 
@@ -187,6 +195,10 @@ class MqttService : Service(),
     ) : BroadcastReceiver(), CoroutineScope by coroutineScope {
         @Inject
         lateinit var finishNotify: FinishNotifyUseCase
+        @Inject
+        lateinit var notify: Notify
+        @Inject
+        lateinit var gson: Gson
 
         override fun onReceive(context: Context?, intent: Intent?) {
             HeyEddieApplication.applicationComponent.inject(this)
@@ -199,6 +211,26 @@ class MqttService : Service(),
                                     it.getIntExtra(EXTRA_NOTIFICATION_ID, 0)
                                 )
                             )
+                            it.getBooleanExtra(EXTRA_NOTIFICATION_AUTO_DISMISSED, false)
+                                .ifTrue {
+                                    NotificationMessage(
+                                        NotificationMessageChannel(
+                                            debugChannelId,
+                                            debugChannelId,
+                                            "Debugging"
+                                        ),
+                                        Int.unique(),
+                                        "Notification auto dismissed",
+                                        "Notification ${it.getIntExtra(EXTRA_NOTIFICATION_ID, 0)}",
+                                        false,
+                                        false,
+                                        false
+                                    )
+                                        .let { gson.toJson(it) }
+                                        .let { Message("", payload = it.toByteArray()) }
+                                        .let { notify(it) }
+                                }
+
                         }
                     else -> return
                 }

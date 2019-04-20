@@ -14,6 +14,7 @@ import rocks.teagantotally.heartofgoldnotifications.common.extensions.unique
 import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService.Companion.ACTION_DISMISS
 import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService.Companion.ACTION_PUBLISH
 import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService.Companion.EXTRA_MESSAGE
+import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService.Companion.EXTRA_NOTIFICATION_AUTO_DISMISSED
 import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService.Companion.EXTRA_NOTIFICATION_ID
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.Notifier
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.managers.ConnectionConfigManager
@@ -50,6 +51,18 @@ class SystemNotifier(
             .ifTrue({ !notification.onGoing }) {
                 Intent(ACTION_DISMISS)
                     .putExtra(EXTRA_NOTIFICATION_ID, it.first)
+                    .also {
+                        PendingIntent.getBroadcast(
+                            context,
+                            Int.unique(),
+                            it,
+                            PendingIntent.FLAG_UPDATE_CURRENT
+                        )
+                    }
+                    .let {
+                        Intent(it)
+                            .putExtra(EXTRA_NOTIFICATION_AUTO_DISMISSED, true)
+                    }
                     .let {
                         PendingIntent.getBroadcast(
                             context,
