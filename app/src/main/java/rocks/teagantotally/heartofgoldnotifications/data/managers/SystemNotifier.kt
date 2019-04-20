@@ -180,7 +180,6 @@ fun NotificationMessage.transform(context: Context, alertAlways: Boolean): Pair<
                     }
             )
             .setSmallIcon(R.drawable.ic_launcher_foreground)
-            .setWhen(System.currentTimeMillis())
             .ifAlso({ openApplication }) { builder ->
                 Intent(context, MainActivity::class.java)
                     .let {
