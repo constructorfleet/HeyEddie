@@ -21,9 +21,9 @@
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning">
 
-        <meta-data
-            android:name="com.google.android.gms.car.application"
-            android:resource="@xml/automotive_app_description" />
+        <!--<meta-data-->
+            <!--android:name="com.google.android.gms.car.application"-->
+            <!--android:resource="@xml/automotive_app_description" />-->
 
         <activity
             android:name=".presentation.SplashScreen"
