@@ -3,6 +3,7 @@ package rocks.teagantotally.heartofgoldnotifications.data.managers.config
 import android.content.SharedPreferences
 import com.google.gson.Gson
 import rocks.teagantotally.heartofgoldnotifications.common.extensions.asynchronousSave
+import rocks.teagantotally.heartofgoldnotifications.common.extensions.ifTrue
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.managers.NotificationConfigManager
 import rocks.teagantotally.heartofgoldnotifications.domain.models.configs.NotificationConfiguration
 
@@ -11,7 +12,7 @@ class SharedPreferenceNotificationConfigManager(
     private val gson: Gson
 ) : NotificationConfigManager {
     companion object {
-        private const val KEY_CONFIG = "NotificationConfiguration"
+        const val KEY_CONFIG = "NotificationConfiguration"
     }
 
     override fun hasConfiguration(): Boolean =
@@ -32,5 +33,13 @@ class SharedPreferenceNotificationConfigManager(
             .asynchronousSave {
                 putString(KEY_CONFIG, gson.toJson(configuration))
             }
+    }
+
+    override fun addOnConfigurationChangeListener(listener: SharedPreferences.OnSharedPreferenceChangeListener) {
+        sharedPreferences.registerOnSharedPreferenceChangeListener(listener)
+    }
+
+    override fun removeOnConfigurationChangeListener(listener: SharedPreferences.OnSharedPreferenceChangeListener) {
+        sharedPreferences.unregisterOnSharedPreferenceChangeListener(listener)
     }
 }

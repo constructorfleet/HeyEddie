@@ -22,7 +22,7 @@ import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
 
 
-@ActionBarTitle(R.string.title_connection_config)
+@ActionBarTitle(R.string.title_config)
 class ConfigFragment : PreferenceFragmentCompat(), ConfigContract.View,
     SharedPreferences.OnSharedPreferenceChangeListener, Navigable {
 

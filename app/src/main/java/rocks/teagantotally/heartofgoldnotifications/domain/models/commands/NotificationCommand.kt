@@ -4,5 +4,5 @@ import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.Notif
 
 sealed class NotificationCommand : Command {
     class Notify(val notificationMessage: NotificationMessage) : NotificationCommand()
-    class Dismiss(val notificationId: Int) : NotificationCommand()
+    class Dismiss(val notificationId: Int, val autoDismiss: Boolean) : NotificationCommand()
 }

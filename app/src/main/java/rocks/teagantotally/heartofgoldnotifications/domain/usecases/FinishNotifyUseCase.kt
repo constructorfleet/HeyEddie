@@ -8,6 +8,6 @@ class FinishNotifyUseCase(
     private val notifier: Notifier
 ) : UseCaseWithParameter<NotificationCommand.Dismiss> {
     override suspend fun invoke(parameter: NotificationCommand.Dismiss) {
-        notifier.dismiss(parameter.notificationId)
+        notifier.dismiss(parameter.notificationId, parameter.autoDismiss)
     }
 }

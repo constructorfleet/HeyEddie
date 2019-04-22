@@ -50,9 +50,10 @@ class NotificationMessageAction(
 @Parcelize
 class NotificationMessage(
     val channel: NotificationMessageChannel,
-    var id: Int? = null,
-    val title: String,
-    val body: String,
+    override var id: Int? = null,
+    override var title: String,
+    override var body: String,
+    override var topic: String,
     val openApplication: Boolean = false,
     val onGoing: Boolean = false,
     val autoCancel: Boolean = true,

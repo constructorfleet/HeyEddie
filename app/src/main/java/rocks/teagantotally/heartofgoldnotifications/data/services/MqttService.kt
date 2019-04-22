@@ -14,6 +14,7 @@ import rocks.teagantotally.heartofgoldnotifications.app.HeyEddieApplication
 import rocks.teagantotally.heartofgoldnotifications.app.injection.client.ClientContainer
 import rocks.teagantotally.heartofgoldnotifications.common.extensions.ifTrue
 import rocks.teagantotally.heartofgoldnotifications.common.extensions.unique
+import rocks.teagantotally.heartofgoldnotifications.data.managers.SystemNotifier
 import rocks.teagantotally.heartofgoldnotifications.data.managers.transform
 import rocks.teagantotally.heartofgoldnotifications.data.services.helpers.LongRunningServiceConnection
 import rocks.teagantotally.heartofgoldnotifications.data.services.helpers.ServiceBinder
@@ -181,6 +182,15 @@ class MqttService : Service(),
                     mqttEventProcessor(it)
                 }
             }
+            notifier.notify(
+                NotificationMessage(
+                    SystemNotifier.debugNotificationChannel,
+                    Int.unique(),
+                    "Event Channel Closed",
+                    "Event channel was closed",
+                    "N/A"
+                )
+            )
         }
     }
 
@@ -208,29 +218,10 @@ class MqttService : Service(),
                         launch {
                             finishNotify(
                                 NotificationCommand.Dismiss(
-                                    it.getIntExtra(EXTRA_NOTIFICATION_ID, 0)
+                                    it.getIntExtra(EXTRA_NOTIFICATION_ID, 0),
+                                    it.getBooleanExtra(EXTRA_NOTIFICATION_AUTO_DISMISSED, false)
                                 )
                             )
-                            it.getBooleanExtra(EXTRA_NOTIFICATION_AUTO_DISMISSED, false)
-                                .ifTrue {
-                                    NotificationMessage(
-                                        NotificationMessageChannel(
-                                            debugChannelId,
-                                            debugChannelId,
-                                            "Debugging"
-                                        ),
-                                        Int.unique(),
-                                        "Notification auto dismissed",
-                                        "Notification ${it.getIntExtra(EXTRA_NOTIFICATION_ID, 0)}",
-                                        false,
-                                        false,
-                                        false
-                                    )
-                                        .let { gson.toJson(it) }
-                                        .let { Message("", payload = it.toByteArray()) }
-                                        .let { notify(it) }
-                                }
-
                         }
                     else -> return
                 }
@@ -281,8 +272,21 @@ class MqttService : Service(),
         }
     }
 
-    class StartReceiver : BroadcastReceiver() {
+    class StartReceiver() : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
+            HeyEddieApplication
+                .applicationComponent
+                .provideNotifier()
+                .notify(
+                    NotificationMessage(
+                        SystemNotifier.debugNotificationChannel,
+                        Int.unique(),
+                        "Service Killed",
+                        "Trying to restart service",
+                        "N/A"
+                    )
+                )
+
             try {
                 context?.let {
                     it.startForegroundService(

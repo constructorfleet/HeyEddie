@@ -24,11 +24,12 @@ class UpdatePersistentNotificationUseCase(
             NotificationMessage(
                 PERSISTENT_CHANNEL,
                 PERSISTENT_NOTIFICATION_ID,
-                "Hey Eddie",
+                "Connection Status",
                 state.message,
                 openApplication = true,
                 onGoing = true,
-                autoCancel = false
+                autoCancel = false,
+                topic = "persistent"
             )
     }
 

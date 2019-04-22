@@ -2,16 +2,16 @@ package rocks.teagantotally.heartofgoldnotifications.data.managers
 
 import android.app.*
 import android.app.Notification.EXTRA_TEXT
+import android.app.Notification.EXTRA_TITLE
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Parcelable
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.ObsoleteCoroutinesApi
 import rocks.teagantotally.heartofgoldnotifications.R
-import rocks.teagantotally.heartofgoldnotifications.common.extensions.ifAlso
-import rocks.teagantotally.heartofgoldnotifications.common.extensions.ifTrue
-import rocks.teagantotally.heartofgoldnotifications.common.extensions.putInvoker
-import rocks.teagantotally.heartofgoldnotifications.common.extensions.unique
+import rocks.teagantotally.heartofgoldnotifications.common.extensions.*
+import rocks.teagantotally.heartofgoldnotifications.data.managers.config.SharedPreferenceNotificationConfigManager
 import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService.Companion.ACTION_DISMISS
 import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService.Companion.ACTION_PUBLISH
 import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService.Companion.EXTRA_MESSAGE
@@ -32,27 +32,31 @@ class SystemNotifier(
     private val notificationManager: NotificationManager,
     private val notificationConfigManager: NotificationConfigManager,
     private val alarmManager: AlarmManager
-) : Notifier {
+) : Notifier, SharedPreferences.OnSharedPreferenceChangeListener {
     companion object {
         private val notificationGroupMap: MutableMap<String, NotificationGroup> = mutableMapOf()
         private val notificationMap: MutableMap<Int, Notification> = mutableMapOf()
         private val debugNotificationGroupId: Int = Int.unique()
-        private const val debugNotificationGroupName: String = "Debug"
-        private lateinit var debugNotificationGroup: Notification
+        const val debugNotificationGroupName: String = "Debug"
+        lateinit var debugNotificationGroup: Notification
+        lateinit var debugNotificationChannel: NotificationMessageChannel
+        private var debugNotificationIds: MutableList<Int> = mutableListOf()
     }
 
     init {
-        debugNotificationGroup =
-            Notification.Builder(context, debugNotificationGroupName)
-                .setContentTitle("Debug")
-                .setContentText("Debug Notifications")
-                .setGroup(debugNotificationGroupName)
-                .setGroupSummary(true)
-                .setSmallIcon(R.drawable.ic_hitchhiker_symbol)
-                .build()
-        notificationManager.notify(debugNotificationGroupId, debugNotificationGroup)
+        debugNotificationChannel =
+            NotificationMessageChannel(
+                debugNotificationGroupName,
+                debugNotificationGroupName,
+                "Debug messages",
+                false
+            )
+        debugNotificationGroup = createGroupSummary(debugNotificationChannel).first
+        notificationConfigManager.getConfiguration()
+            ?.debug
+            .let { debugMode(it ?: false) }
+        notificationConfigManager.addOnConfigurationChangeListener(this)
     }
-
 
     override fun notify(notification: NotificationMessage, alertAlways: Boolean) {
         createChannel(notification.channel)
@@ -107,7 +111,7 @@ class SystemNotifier(
             }
     }
 
-    override fun dismiss(notificationId: Int) {
+    override fun dismiss(notificationId: Int, autoDismiss: Boolean) {
         notificationManager.cancel(notificationId)
         notificationGroupMap
             .values
@@ -120,22 +124,27 @@ class SystemNotifier(
                 notificationGroupMap.remove(it.groupId)
             }
         notificationConfigManager.getConfiguration()
-            ?.ifTrue({ it.debug }) {
+            ?.ifTrue({ it.debug && autoDismiss }) {
                 notificationMap[notificationId]
                     ?.let { notification ->
-                        notificationManager.notify(
-                            debugNotificationGroupId,
-                            Notification.Builder(context, debugNotificationGroupName)
-                                .setGroup(debugNotificationGroupName)
-                                .setContentTitle("Dismissed")
-                                .setContentText("Notification ${notification.extras.getString(EXTRA_TEXT)}")
-                                .setAutoCancel(false)
-                                .setOngoing(false)
-                                .setWhen(System.currentTimeMillis())
-                                .setShowWhen(true)
-                                .setSmallIcon(R.drawable.ic_hitchhiker_symbol)
-                                .build()
-                        )
+                        Int.unique()
+                            .let { debugId ->
+                                notificationManager.notify(
+                                    debugId,
+                                    Notification.Builder(context, debugNotificationGroupName)
+                                        .setGroup(debugNotificationGroupName)
+                                        .setContentTitle("Dismissed ${notification.extras.getCharSequence(EXTRA_TITLE)}")
+                                        .setContentText("Notification ${notification.extras.getCharSequence(EXTRA_TEXT)}")
+                                        .setAutoCancel(false)
+                                        .setOngoing(false)
+                                        .setWhen(System.currentTimeMillis())
+                                        .setShowWhen(true)
+                                        .setSmallIcon(R.drawable.ic_hitchhiker_symbol)
+                                        .build()
+                                        .also { debugNotificationIds.add(debugId) }
+                                )
+                            }
+                        notificationMap.remove(notificationId)
                     }
             }
         notificationMap.remove(notificationId)
@@ -147,6 +156,13 @@ class SystemNotifier(
         } catch (_: Throwable) {
             null
         } ?: notificationManager.createNotificationChannel(notificationChannel.transform())
+    }
+
+    override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
+        sharedPreferences?.getBoolean(context.getString(R.string.pref_notification_debug), false)
+            .let {
+                debugMode(it ?: false)
+            }
     }
 
     private fun createGroupSummary(
@@ -169,6 +185,18 @@ class SystemNotifier(
         ).also {
             notificationGroupMap[notificationChannel.name] = it.second
         }
+
+    private fun debugMode(enabled: Boolean) {
+        if (enabled) {
+            notificationManager.notify(debugNotificationGroupId, debugNotificationGroup)
+            debugNotificationIds.clear()
+        } else {
+            debugNotificationIds.forEach {
+                notificationManager.cancel(it)
+            }
+            notificationManager.cancel(debugNotificationGroupId)
+        }
+    }
 
     private fun NotificationMessageChannel.transform(): NotificationChannel =
         NotificationChannel(id, name, (importance ?: NotificationMessageChannel.DEFAULT_IMPORTANCE).systemValue)
@@ -201,17 +229,7 @@ class SystemNotifier(
             this.also { count-- }
     }
 }
-//
-//fun NotificationMessage.getCarExtender(): Notification.CarExtender =
-//    Notification.CarExtender()
-//        .setUnreadConversation(
-//            android.app.Notification.CarExtender.Builder(
-//                channel.name
-//            ).addMessage(body)
-//                .setLatestTimestamp(System.currentTimeMillis())
-//                .
-//                .build()
-//        )
+
 
 @UseExperimental(ExperimentalCoroutinesApi::class)
 @ObsoleteCoroutinesApi
@@ -243,7 +261,6 @@ fun NotificationMessage.transform(context: Context, alertAlways: Boolean): Pair<
                         )
                     }
             )
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
             .ifAlso({ openApplication }) { builder ->
                 Intent(context, MainActivity::class.java)
                     .let {

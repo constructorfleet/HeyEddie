@@ -29,6 +29,7 @@ import rocks.teagantotally.heartofgoldnotifications.domain.usecases.mqtt.connect
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.mqtt.disconnected.MqttDisconnectedProcessor
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.mqtt.message.receive.Notify
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.mqtt.message.receive.ProcessMessageReceived
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.mqtt.message.receive.RecordMessageReceived
 import javax.inject.Singleton
 
 @Module
@@ -62,11 +63,24 @@ class ApplicationModule(
 
     @Provides
     @Singleton
+    fun provideRecordMessageReceived(
+        messageHistoryManager: MessageHistoryManager,
+        gson: Gson
+    ): RecordMessageReceived =
+        RecordMessageReceived(
+            messageHistoryManager,
+            gson
+        )
+
+    @Provides
+    @Singleton
     fun provideProcessMessageReceived(
-        notify: Notify
+        notify: Notify,
+        recordMessageReceived: RecordMessageReceived
     ): ProcessMessageReceived =
         ProcessMessageReceived(
-            notify
+            notify,
+            recordMessageReceived
         )
 
     @Provides

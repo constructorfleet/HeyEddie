@@ -8,5 +8,5 @@ interface Notifier {
 
     fun notify(notification: NotificationMessage, alertAlways: Boolean = true)
 
-    fun dismiss(notificationId: Int)
+    fun dismiss(notificationId: Int, autoDismiss: Boolean = false)
 }

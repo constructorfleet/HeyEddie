@@ -8,6 +8,7 @@ import kotlinx.coroutines.ObsoleteCoroutinesApi
 import rocks.teagantotally.heartofgoldnotifications.app.injection.qualifiers.IO
 import rocks.teagantotally.heartofgoldnotifications.app.injection.qualifiers.UI
 import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.Notifier
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.managers.ConnectionConfigManager
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.config.ClientConfigurationSavedUseCase
 import rocks.teagantotally.heartofgoldnotifications.presentation.main.injection.MainActivityComponent
@@ -41,4 +42,6 @@ interface ApplicationComponent {
     fun mainActivityComponentBuilder(): MainActivityComponent.Builder
 
     fun provideApplicationContext(): Context
+
+    fun provideNotifier(): Notifier
 }
