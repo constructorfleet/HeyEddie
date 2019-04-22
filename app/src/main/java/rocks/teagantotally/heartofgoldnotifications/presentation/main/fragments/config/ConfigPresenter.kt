@@ -4,12 +4,16 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import rocks.teagantotally.heartofgoldnotifications.common.extensions.safeLet
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.managers.ConnectionConfigManager
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.managers.NotificationConfigManager
 import rocks.teagantotally.heartofgoldnotifications.domain.models.configs.ConnectionConfiguration
+import rocks.teagantotally.heartofgoldnotifications.domain.models.configs.NotificationConfiguration
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.ScopedPresenter
+import rocks.teagantotally.kotqtt.domain.models.Message
 
 class ConfigPresenter(
     view: ConfigContract.View,
     private val connectionConfigManager: ConnectionConfigManager,
+    private val notificationConfigManager: NotificationConfigManager,
     coroutineScope: CoroutineScope
 ) : ScopedPresenter<ConfigContract.View, ConfigContract.Presenter>(view, coroutineScope), ConfigContract.Presenter {
     override fun saveConfig(
@@ -20,12 +24,14 @@ class ConfigPresenter(
         clientId: String,
         reconnect: Boolean,
         cleanSession: Boolean,
-        notificationAutoCancelMinutes: Int?
+        lastWill: Message?,
+        autoDismiss: Int?,
+        debug: Boolean?
     ) {
         view.showLoading(true)
             .run {
                 launch {
-                    connectionConfigManager.setConnectionConfiguration(
+                    connectionConfigManager.saveConfiguration(
                         ConnectionConfiguration(
                             host,
                             port,
@@ -34,7 +40,13 @@ class ConfigPresenter(
                             clientId,
                             reconnect,
                             cleanSession,
-                            notificationAutoCancelMinutes ?: ConnectionConfiguration.DEFAULT_AUTO_CANCEL_MINUTES
+                            lastWill
+                        )
+                    )
+                    notificationConfigManager.saveConfiguration(
+                        NotificationConfiguration(
+                            autoDismiss ?: NotificationConfiguration.DEFAULT_AUTO_CANCEL_MINUTES,
+                            debug ?: false
                         )
                     )
                     view.showLoading(false)
@@ -44,11 +56,17 @@ class ConfigPresenter(
     }
 
     override fun onViewCreated() {
-        if (!connectionConfigManager.hasConnectionConfiguration()) {
+        if (!connectionConfigManager.hasConfiguration()) {
             return
         }
 
-        connectionConfigManager.getConnectionConfiguration()
+        notificationConfigManager.getConfiguration()
+            ?.let {
+                view.setAutoDismiss(it.notificationCancelMinutes)
+                view.setDebug(it.debug)
+            }
+
+        connectionConfigManager.getConfiguration()
             ?.let {
                 view.setHost(it.brokerHost)
                 view.setPort(it.brokerPort)
@@ -57,7 +75,7 @@ class ConfigPresenter(
                 view.setPassword(it.clientPassword)
                 view.setReconnect(it.autoReconnect)
                 view.setCleanSession(it.cleanSession)
-                view.setNotificationAutoCancel(it.notificationCancelMinutes)
+                view.setLastWill(it.lastWill)
 
                 checkValidity(
                     it.brokerHost,
@@ -67,7 +85,7 @@ class ConfigPresenter(
                     it.clientId,
                     it.autoReconnect,
                     it.cleanSession,
-                    it.notificationCancelMinutes
+                    it.lastWill
                 )
             }
             ?: run { view.isValid = false }
@@ -81,7 +99,7 @@ class ConfigPresenter(
         clientId: String?,
         reconnect: Boolean?,
         cleanSession: Boolean?,
-        notificationAutoCancelMinutes: Int?
+        lastWill: Message?
     ) {
         safeLet(host, port, clientId) { host, _, clientId ->
             if (host.isBlank() || clientId.isBlank()) {

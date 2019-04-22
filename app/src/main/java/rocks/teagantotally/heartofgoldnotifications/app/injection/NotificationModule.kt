@@ -3,12 +3,14 @@ package rocks.teagantotally.heartofgoldnotifications.app.injection
 import android.app.AlarmManager
 import android.app.NotificationManager
 import android.content.Context
+import android.content.SharedPreferences
 import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
 import rocks.teagantotally.heartofgoldnotifications.data.managers.SystemNotifier
+import rocks.teagantotally.heartofgoldnotifications.data.managers.config.SharedPreferenceNotificationConfigManager
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.Notifier
-import rocks.teagantotally.heartofgoldnotifications.domain.framework.managers.ConnectionConfigManager
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.managers.NotificationConfigManager
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.FinishNotifyUseCase
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.UpdatePersistentNotificationUseCase
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.mqtt.message.receive.Notify
@@ -25,16 +27,27 @@ class NotificationModule {
 
     @Provides
     @Singleton
+    fun provideNotificationConfigManager(
+        sharedPreferences: SharedPreferences,
+        gson: Gson
+    ): NotificationConfigManager =
+        SharedPreferenceNotificationConfigManager(
+            sharedPreferences,
+            gson
+        )
+
+    @Provides
+    @Singleton
     fun provideNotifier(
         context: Context,
         notificationManager: NotificationManager,
-        connectionConfigManager: ConnectionConfigManager,
+        notificationConfigManager: NotificationConfigManager,
         alarmManager: AlarmManager
     ): Notifier =
         SystemNotifier(
             context,
             notificationManager,
-            connectionConfigManager,
+            notificationConfigManager,
             alarmManager
         )
 

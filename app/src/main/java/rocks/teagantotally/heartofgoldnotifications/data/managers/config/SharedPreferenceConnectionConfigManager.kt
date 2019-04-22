@@ -24,19 +24,14 @@ class SharedPreferenceConnectionConfigManager(
     }
 
     init {
-        getConnectionConfiguration()
+        getConfiguration()
             ?.let { setupClientComponent(it) }
     }
 
-    override fun hasConnectionConfiguration(): Boolean =
-        try {
-            getConnectionConfiguration()
-                .let { true }
-        } catch (_: Throwable) {
-            false
-        }
+    override fun hasConfiguration(): Boolean =
+        getConfiguration() != null
 
-    override fun getConnectionConfiguration(): ConnectionConfiguration? =
+    override fun getConfiguration(): ConnectionConfiguration? =
         sharedPreferences.getString(KEY_CONFIG, null)
             ?.let {
                 try {
@@ -46,14 +41,12 @@ class SharedPreferenceConnectionConfigManager(
                 }
             }
 
-    override suspend fun setConnectionConfiguration(
-        connectionConfiguration: ConnectionConfiguration
-    ) {
-        getConnectionConfiguration()
+    override suspend fun saveConfiguration(configuration: ConnectionConfiguration) {
+        getConfiguration()
             .let {
                 ClientConfigurationChangedEvent(
                     it,
-                    connectionConfiguration
+                    configuration
                 )
             }.let { event ->
                 runBlocking {
@@ -61,10 +54,10 @@ class SharedPreferenceConnectionConfigManager(
                 }.run {
                     sharedPreferences
                         .asynchronousSave {
-                            putString(KEY_CONFIG, gson.toJson(connectionConfiguration))
+                            putString(KEY_CONFIG, gson.toJson(configuration))
                         }
                 }.run {
-                    setupClientComponent(connectionConfiguration)
+                    setupClientComponent(configuration)
                 }.run {
                     runBlocking {
                         postSave(event)

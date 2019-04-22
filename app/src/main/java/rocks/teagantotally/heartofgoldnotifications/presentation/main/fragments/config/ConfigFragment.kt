@@ -1,18 +1,14 @@
 package rocks.teagantotally.heartofgoldnotifications.presentation.main.fragments.config
 
-import android.content.Context
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.support.design.widget.Snackbar
 import android.support.v14.preference.SwitchPreference
-import android.support.v4.content.ContextCompat
 import android.support.v7.preference.EditTextPreference
-import android.support.v7.preference.Preference
 import android.support.v7.preference.PreferenceFragmentCompat
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
-import android.view.View
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import rocks.teagantotally.heartofgoldnotifications.R
@@ -21,6 +17,7 @@ import rocks.teagantotally.heartofgoldnotifications.presentation.base.Navigable
 import rocks.teagantotally.heartofgoldnotifications.presentation.common.annotations.ActionBarTitle
 import rocks.teagantotally.heartofgoldnotifications.presentation.main.MainActivity
 import rocks.teagantotally.heartofgoldnotifications.presentation.main.fragments.config.injection.ConfigModule
+import rocks.teagantotally.kotqtt.domain.models.Message
 import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
 
@@ -73,10 +70,15 @@ class ConfigFragment : PreferenceFragmentCompat(), ConfigContract.View,
             findPreference(getString(R.string.pref_clean_session))
                 ?.let { it as? SwitchPreference }
 
-    private val notificationCancelMinutes: EditTextPreference?
+    private val autoDismissDelay: EditTextPreference?
         get() =
             findPreference(getString(R.string.pref_notification_cancel_minutes))
                 ?.let { it as? EditTextPreference }
+
+    private val debugNotifications: SwitchPreference?
+        get() =
+            findPreference(getString(R.string.pref_notification_debug))
+                ?.let { it as? SwitchPreference }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -85,7 +87,7 @@ class ConfigFragment : PreferenceFragmentCompat(), ConfigContract.View,
     }
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
-        setPreferencesFromResource(R.xml.connection_configuration, rootKey)
+        addPreferencesFromResource(R.xml.configuration_preferences)
 
         MainActivity.mainActivityComponent
             .configComponentBuilder()
@@ -125,7 +127,9 @@ class ConfigFragment : PreferenceFragmentCompat(), ConfigContract.View,
                         clientIdPreference!!.text,
                         reconnectPreference!!.isChecked,
                         cleanSessionPreference!!.isChecked,
-                        notificationCancelMinutes?.text?.toIntOrNull()
+                        null,
+                        autoDismissDelay?.text?.toIntOrNull(),
+                        debugNotifications?.isChecked ?: false
                     )
                 } catch (_: Throwable) {
                     showError("Something went wrong")
@@ -193,11 +197,6 @@ class ConfigFragment : PreferenceFragmentCompat(), ConfigContract.View,
             ?.isChecked = cleanSession
     }
 
-    override fun setNotificationAutoCancel(minutes: Int) {
-        notificationCancelMinutes
-            ?.text = minutes.toString()
-    }
-
     override fun showLoading(loading: Boolean) {
         // no-op
     }
@@ -210,6 +209,20 @@ class ConfigFragment : PreferenceFragmentCompat(), ConfigContract.View,
                 Snackbar.LENGTH_SHORT
             ).show()
         }
+    }
+
+    override fun setLastWill(message: Message?) {
+
+    }
+
+    override fun setAutoDismiss(minutes: Int?) {
+        autoDismissDelay
+            ?.text = minutes.toString()
+    }
+
+    override fun setDebug(enableDebug: Boolean) {
+        debugNotifications
+            ?.isChecked = enableDebug
     }
 
     override fun close() {
@@ -235,7 +248,7 @@ class ConfigFragment : PreferenceFragmentCompat(), ConfigContract.View,
             clientIdPreference?.text,
             reconnectPreference?.isChecked,
             cleanSessionPreference?.isChecked,
-            notificationCancelMinutes?.text?.toIntOrNull()
+            null
         )
     }
 }

@@ -1,0 +1,5 @@
+package rocks.teagantotally.heartofgoldnotifications.domain.framework.managers
+
+import rocks.teagantotally.heartofgoldnotifications.domain.models.configs.NotificationConfiguration
+
+interface NotificationConfigManager : ConfigManager<NotificationConfiguration>

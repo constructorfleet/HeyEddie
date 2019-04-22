@@ -1,6 +1,7 @@
 package rocks.teagantotally.heartofgoldnotifications.data.managers
 
 import android.app.*
+import android.app.Notification.EXTRA_TEXT
 import android.content.Context
 import android.content.Intent
 import android.os.Parcelable
@@ -17,8 +18,8 @@ import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService.Co
 import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService.Companion.EXTRA_NOTIFICATION_AUTO_DISMISSED
 import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService.Companion.EXTRA_NOTIFICATION_ID
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.Notifier
-import rocks.teagantotally.heartofgoldnotifications.domain.framework.managers.ConnectionConfigManager
-import rocks.teagantotally.heartofgoldnotifications.domain.models.configs.ConnectionConfiguration
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.managers.NotificationConfigManager
+import rocks.teagantotally.heartofgoldnotifications.domain.models.configs.NotificationConfiguration.Companion.DEFAULT_AUTO_CANCEL_MINUTES
 import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.NotificationMessage
 import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.NotificationMessageChannel
 import rocks.teagantotally.heartofgoldnotifications.presentation.main.MainActivity
@@ -29,18 +30,36 @@ import java.util.*
 class SystemNotifier(
     private val context: Context,
     private val notificationManager: NotificationManager,
-    private val connectionConfigManager: ConnectionConfigManager,
+    private val notificationConfigManager: NotificationConfigManager,
     private val alarmManager: AlarmManager
 ) : Notifier {
     companion object {
         private val notificationGroupMap: MutableMap<String, NotificationGroup> = mutableMapOf()
+        private val notificationMap: MutableMap<Int, Notification> = mutableMapOf()
+        private val debugNotificationGroupId: Int = Int.unique()
+        private const val debugNotificationGroupName: String = "Debug"
+        private lateinit var debugNotificationGroup: Notification
     }
+
+    init {
+        debugNotificationGroup =
+            Notification.Builder(context, debugNotificationGroupName)
+                .setContentTitle("Debug")
+                .setContentText("Debug Notifications")
+                .setGroup(debugNotificationGroupName)
+                .setGroupSummary(true)
+                .setSmallIcon(R.drawable.ic_hitchhiker_symbol)
+                .build()
+        notificationManager.notify(debugNotificationGroupId, debugNotificationGroup)
+    }
+
 
     override fun notify(notification: NotificationMessage, alertAlways: Boolean) {
         createChannel(notification.channel)
         notification.transform(context, alertAlways)
             .also {
                 val notificationId = it.first
+                notificationMap.put(notificationId, it.second)
                 notificationManager.notify(notificationId, it.second)
                 createGroupSummary(notification.channel, notificationGroupMap.get(notification.channel.name))
                     .let {
@@ -72,9 +91,9 @@ class SystemNotifier(
                         )
                     }
                     .let {
-                        connectionConfigManager.getConnectionConfiguration()
+                        notificationConfigManager.getConfiguration()
                             .let {
-                                it?.notificationCancelMinutes ?: ConnectionConfiguration.DEFAULT_AUTO_CANCEL_MINUTES
+                                it?.notificationCancelMinutes ?: DEFAULT_AUTO_CANCEL_MINUTES
                             }
                             .let { it * 60 * 1000 }
                             .let { cancelDelay ->
@@ -92,14 +111,34 @@ class SystemNotifier(
         notificationManager.cancel(notificationId)
         notificationGroupMap
             .values
-            .firstOrNull{
+            .firstOrNull {
                 it.notificationIds.contains(notificationId)
             }
             ?.let { it.decrementGroup() }
-            ?.ifTrue({it.count == 0}) {
+            ?.ifTrue({ it.count == 0 }) {
                 notificationManager.cancel(it.notificationId)
                 notificationGroupMap.remove(it.groupId)
             }
+        notificationConfigManager.getConfiguration()
+            ?.ifTrue({ it.debug }) {
+                notificationMap[notificationId]
+                    ?.let { notification ->
+                        notificationManager.notify(
+                            debugNotificationGroupId,
+                            Notification.Builder(context, debugNotificationGroupName)
+                                .setGroup(debugNotificationGroupName)
+                                .setContentTitle("Dismissed")
+                                .setContentText("Notification ${notification.extras.getString(EXTRA_TEXT)}")
+                                .setAutoCancel(false)
+                                .setOngoing(false)
+                                .setWhen(System.currentTimeMillis())
+                                .setShowWhen(true)
+                                .setSmallIcon(R.drawable.ic_hitchhiker_symbol)
+                                .build()
+                        )
+                    }
+            }
+        notificationMap.remove(notificationId)
     }
 
     override fun createChannel(notificationChannel: NotificationMessageChannel) {
@@ -157,10 +196,22 @@ class SystemNotifier(
     ) {
         fun incrementGroup(): NotificationGroup =
             this.also { count++ }
+
         fun decrementGroup(): NotificationGroup =
             this.also { count-- }
     }
 }
+//
+//fun NotificationMessage.getCarExtender(): Notification.CarExtender =
+//    Notification.CarExtender()
+//        .setUnreadConversation(
+//            android.app.Notification.CarExtender.Builder(
+//                channel.name
+//            ).addMessage(body)
+//                .setLatestTimestamp(System.currentTimeMillis())
+//                .
+//                .build()
+//        )
 
 @UseExperimental(ExperimentalCoroutinesApi::class)
 @ObsoleteCoroutinesApi

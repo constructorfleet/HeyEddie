@@ -2,6 +2,7 @@ package rocks.teagantotally.heartofgoldnotifications.domain.models.configs
 
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions
 import rocks.teagantotally.heartofgoldnotifications.common.Transform
+import rocks.teagantotally.kotqtt.domain.models.Message
 import java.io.Serializable
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.findAnnotation
@@ -19,12 +20,10 @@ data class ConnectionConfiguration(
     @CausesClientCreation val clientId: String,
     @CausesClientCreation val autoReconnect: Boolean = false,
     @CausesClientCreation val cleanSession: Boolean = false,
-    val notificationCancelMinutes: Int = DEFAULT_AUTO_CANCEL_MINUTES
-// TODO : Last Will
+    val lastWill: Message? = null
 // TODO : TLS
 ) : Serializable, Transform<MqttConnectOptions>, Configuration {
     companion object {
-        const val DEFAULT_AUTO_CANCEL_MINUTES = 60
         private val RECREATE_CLIENT_FIELDS: Set<KProperty1<ConnectionConfiguration, *>> =
             ConnectionConfiguration::class.memberProperties
                 .filter { it.findAnnotation<CausesClientCreation>() != null }
@@ -36,6 +35,14 @@ data class ConnectionConfiguration(
             .apply {
                 isAutomaticReconnect = autoReconnect
                 isCleanSession = cleanSession
+                lastWill?.let {
+                    setWill(
+                        it.topic,
+                        it.payload,
+                        it.qos.value,
+                        it.retain
+                    )
+                }
             }
 
     fun shouldRecreateClient(oldConnectionConfiguration: ConnectionConfiguration): Boolean =

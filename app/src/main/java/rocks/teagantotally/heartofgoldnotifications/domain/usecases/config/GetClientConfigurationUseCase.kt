@@ -9,5 +9,5 @@ class GetClientConfigurationUseCase @Inject constructor(
     private val clientConfigManager: ConnectionConfigManager
 ) : UseCasesWithReturn<ConnectionConfiguration?> {
     override suspend fun invoke(): ConnectionConfiguration? =
-        clientConfigManager.getConnectionConfiguration()
+        clientConfigManager.getConfiguration()
 }

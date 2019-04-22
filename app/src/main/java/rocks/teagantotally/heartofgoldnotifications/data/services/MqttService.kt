@@ -284,14 +284,14 @@ class MqttService : Service(),
     class StartReceiver : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             try {
-//                context?.let {
-//                    it.startForegroundService(
-//                        Intent(
-//                            it,
-//                            MqttService::class.java
-//                        )
-//                    )
-//                }
+                context?.let {
+                    it.startForegroundService(
+                        Intent(
+                            it,
+                            MqttService::class.java
+                        )
+                    )
+                }
             } catch (t: Throwable) {
                 Timber.e(t)
             }

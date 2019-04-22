@@ -6,7 +6,6 @@ import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.launch
 import rocks.teagantotally.heartofgoldnotifications.app.HeyEddieApplication
 import rocks.teagantotally.heartofgoldnotifications.app.injection.client.ClientContainer
-import rocks.teagantotally.heartofgoldnotifications.domain.models.events.ClientConfigurationChangedEvent
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.managers.ConnectionConfigManager
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.config.ClientConfigurationSavedUseCase
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.connection.ConnectClient
@@ -24,7 +23,7 @@ import rocks.teagantotally.kotqtt.domain.models.events.MqttStatusEvent
 class MainActivityPresenter(
     view: MainActivityContract.View,
     private val clientConfigurationChangedUseCase: ClientConfigurationSavedUseCase,
-    private val configManager: ConnectionConfigManager,
+    private val connectionConfigManager: ConnectionConfigManager,
     coroutineScope: CoroutineScope
 ) : MainActivityContract.Presenter,
     ScopedPresenter<MainActivityContract.View, MainActivityContract.Presenter>(view, coroutineScope) {
@@ -45,7 +44,7 @@ class MainActivityPresenter(
     private var isListening: Boolean = false
 
     override fun onViewCreated() {
-        configManager.getConnectionConfiguration()
+        connectionConfigManager.getConfiguration()
             ?.let { config ->
                 view.showLoading()
                 listenForEvents()
