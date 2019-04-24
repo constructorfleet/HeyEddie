@@ -148,6 +148,18 @@ class MqttService : Service(),
                             onClientConfigured(it.new)
                         }
                     }
+                    notifier.notify(
+                        NotificationMessage(
+                            SystemNotifier.debugNotificationChannel,
+                            Int.unique(),
+                            "Configuration Change Channel Closed",
+                            "Configuration Change channel was closed",
+                            "N/A",
+                            autoCancel = false,
+                            onGoing = true
+                        ),
+                        true
+                    )
                 }
         }
     }
@@ -188,8 +200,11 @@ class MqttService : Service(),
                     Int.unique(),
                     "Event Channel Closed",
                     "Event channel was closed",
-                    "N/A"
-                )
+                    "N/A",
+                    autoCancel = false,
+                    onGoing = true
+                ),
+                true
             )
         }
     }
