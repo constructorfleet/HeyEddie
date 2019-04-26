@@ -5,6 +5,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.BroadcastChannel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.launch
 import org.eclipse.paho.client.mqttv3.*
 import rocks.teagantotally.kotqtt.domain.framework.client.Client
@@ -20,13 +21,12 @@ import java.util.*
 class MqttClient(
     private val client: IMqttAsyncClient,
     private val connectionOptions: MqttConnectionOptions,
+    private val eventChannel: BroadcastChannel<MqttEvent> = BroadcastChannel(100),
+    private val commandChannel: ReceiveChannel<MqttCommand> = Channel(),
     coroutineScope: CoroutineScope
 ) : Client,
     MqttCallbackExtended,
     CoroutineScope by coroutineScope {
-
-    private val commandChannel: ReceiveChannel<MqttCommand> = Channel()
-    private val eventChannel: BroadcastChannel<MqttEvent> = BroadcastChannel(100)
 
     init {
         client.setCallback(this)

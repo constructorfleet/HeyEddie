@@ -9,7 +9,11 @@ import android.content.Intent
 import android.support.multidex.MultiDex
 import android.support.multidex.MultiDexApplication
 import com.github.ajalt.timberkt.Timber
-import kotlinx.coroutines.*
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.ObsoleteCoroutinesApi
+import kotlinx.coroutines.channels.BroadcastChannel
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ReceiveChannel
 import rocks.teagantotally.heartofgoldnotifications.app.injection.ApplicationComponent
 import rocks.teagantotally.heartofgoldnotifications.app.injection.ApplicationModule
 import rocks.teagantotally.heartofgoldnotifications.app.injection.DaggerApplicationComponent
@@ -18,6 +22,9 @@ import rocks.teagantotally.heartofgoldnotifications.app.injection.client.ClientM
 import rocks.teagantotally.heartofgoldnotifications.app.injection.client.DaggerClientComponent
 import rocks.teagantotally.heartofgoldnotifications.app.managers.ActivityJobManager
 import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService
+import rocks.teagantotally.heartofgoldnotifications.domain.models.configs.ConnectionConfiguration
+import rocks.teagantotally.kotqtt.domain.models.commands.MqttCommand
+import rocks.teagantotally.kotqtt.domain.models.events.MqttEvent
 
 @ExperimentalCoroutinesApi
 @ObsoleteCoroutinesApi
@@ -27,10 +34,19 @@ class HeyEddieApplication : MultiDexApplication() {
         lateinit var applicationComponent: ApplicationComponent
         var clientComponent: ClientComponent? = null
 
-        fun setClientComponent(module: ClientModule) {
+        val eventChannel: BroadcastChannel<MqttEvent> = BroadcastChannel(100)
+        val commandChannel: ReceiveChannel<MqttCommand> = Channel()
+
+        fun setClientComponent(config: ConnectionConfiguration) {
             DaggerClientComponent.builder()
                 .applicationComponent(applicationComponent)
-                .clientModule(module)
+                .clientModule(
+                    ClientModule(
+                        config,
+                        eventChannel,
+                        commandChannel
+                    )
+                )
                 .build()
                 .let { clientComponent = it }
         }

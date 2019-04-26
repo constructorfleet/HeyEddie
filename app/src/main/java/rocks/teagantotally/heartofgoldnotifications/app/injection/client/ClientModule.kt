@@ -7,6 +7,9 @@ import dagger.Provides
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.BroadcastChannel
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.launch
 import org.eclipse.paho.android.service.MqttAndroidClient
 import org.eclipse.paho.client.mqttv3.IMqttAsyncClient
@@ -27,11 +30,15 @@ import rocks.teagantotally.kotqtt.domain.framework.client.MqttEventProducer
 import rocks.teagantotally.kotqtt.domain.framework.connections.MqttAuthentication
 import rocks.teagantotally.kotqtt.domain.framework.connections.MqttBrokerConnection
 import rocks.teagantotally.kotqtt.domain.framework.connections.MqttConnectionOptions
+import rocks.teagantotally.kotqtt.domain.models.commands.MqttCommand
+import rocks.teagantotally.kotqtt.domain.models.events.MqttEvent
 import kotlin.coroutines.CoroutineContext
 
 @Module
 class ClientModule(
-    private val connectionConfiguration: ConnectionConfiguration
+    private val connectionConfiguration: ConnectionConfiguration,
+    private val eventChannel: BroadcastChannel<MqttEvent> = BroadcastChannel(100),
+    private val commandChannel: ReceiveChannel<MqttCommand> = Channel()
 ) {
 
     @Provides
@@ -106,6 +113,8 @@ class ClientModule(
         MqttClient(
             mqttAsyncClient,
             connectionOptions,
+            eventChannel,
+            commandChannel,
             coroutineScope
         )
 
