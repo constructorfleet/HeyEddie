@@ -6,7 +6,7 @@ import rocks.teagantotally.heartofgoldnotifications.presentation.base.Connection
 
 interface MainActivityContract {
     interface View : BaseView<Presenter> {
-        fun showConfigSettings()
+        fun showConfigSettings(screenKey: String? = null)
 
         fun showHistory()
 

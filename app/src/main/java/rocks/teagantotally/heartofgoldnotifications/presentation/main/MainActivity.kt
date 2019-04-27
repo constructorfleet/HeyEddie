@@ -5,9 +5,10 @@ import android.support.design.widget.Snackbar
 import android.support.v4.app.Fragment
 import android.support.v4.app.FragmentManager
 import android.support.v4.view.GravityCompat
+import android.support.v7.preference.PreferenceFragmentCompat
+import android.support.v7.preference.PreferenceScreen
 import android.view.MenuItem
 import android.view.View
-import android.widget.TextView
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.Dispatchers
@@ -16,7 +17,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.ObsoleteCoroutinesApi
 import rocks.teagantotally.heartofgoldnotifications.R
 import rocks.teagantotally.heartofgoldnotifications.app.HeyEddieApplication
-import rocks.teagantotally.heartofgoldnotifications.common.extensions.ifMaybe
+import rocks.teagantotally.heartofgoldnotifications.common.extensions.ifAlso
 import rocks.teagantotally.heartofgoldnotifications.common.extensions.ifTrue
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.BaseActivity
 import rocks.teagantotally.heartofgoldnotifications.presentation.base.ConnectionViewState
@@ -35,7 +36,8 @@ import kotlin.coroutines.CoroutineContext
 @ExperimentalCoroutinesApi
 class MainActivity : BaseActivity(),
     MainActivityContract.View,
-    FragmentManager.OnBackStackChangedListener {
+    FragmentManager.OnBackStackChangedListener,
+    PreferenceFragmentCompat.OnPreferenceStartScreenCallback {
 
     companion object {
         lateinit var mainActivityComponent: MainActivityComponent
@@ -107,20 +109,32 @@ class MainActivity : BaseActivity(),
 
     override fun onBackStackChanged() {
         supportFragmentManager
-            ?.ifTrue({it.backStackEntryCount == 0}) {
+            ?.ifTrue({ it.backStackEntryCount == 0 }) {
                 currentFragment = null
                 supportActionBar?.title = getString(R.string.app_name)
             }
             .run { updateNavigationMenu() }
     }
 
-    override fun showConfigSettings() {
+    override fun showConfigSettings(screenKey: String?) {
         setFragment(
-            ConfigFragment(),
+            ConfigFragment()
+                .ifAlso({ screenKey != null }) {
+                    it.arguments =
+                        Bundle()
+                            .apply { putString(PreferenceFragmentCompat.ARG_PREFERENCE_ROOT, screenKey) }
+                },
             true,
             setCurrentFragment
         )
     }
+
+    override fun onPreferenceStartScreen(
+        fragment: PreferenceFragmentCompat?,
+        screen: PreferenceScreen?
+    ): Boolean =
+        showConfigSettings(screen?.key)
+            .let { true }
 
     override fun showHistory() {
         setFragment(

@@ -3,7 +3,6 @@ package rocks.teagantotally.heartofgoldnotifications.presentation.main.fragments
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.support.design.widget.Snackbar
-import android.support.v14.preference.SwitchPreference
 import android.support.v7.preference.EditTextPreference
 import android.support.v7.preference.PreferenceFragmentCompat
 import android.view.Menu
@@ -17,7 +16,6 @@ import rocks.teagantotally.heartofgoldnotifications.presentation.base.Navigable
 import rocks.teagantotally.heartofgoldnotifications.presentation.common.annotations.ActionBarTitle
 import rocks.teagantotally.heartofgoldnotifications.presentation.main.MainActivity
 import rocks.teagantotally.heartofgoldnotifications.presentation.main.fragments.config.injection.ConfigModule
-import rocks.teagantotally.kotqtt.domain.models.Message
 import javax.inject.Inject
 import kotlin.coroutines.CoroutineContext
 
@@ -41,45 +39,6 @@ class ConfigFragment : PreferenceFragmentCompat(), ConfigContract.View,
             activity?.invalidateOptionsMenu()
         }
 
-    private val brokerHostPreference: EditTextPreference?
-        get() =
-            findPreference(getString(R.string.pref_broker_host))
-                ?.let { it as? EditTextPreference }
-    private val brokerPortPreference: EditTextPreference?
-        get() =
-            findPreference(getString(R.string.pref_broker_port))
-                ?.let { it as? EditTextPreference }
-    private val usernamePreference: EditTextPreference?
-        get() =
-            findPreference(getString(R.string.pref_username))
-                ?.let { it as? EditTextPreference }
-    private val passwordPreference: EditTextPreference?
-        get() =
-            findPreference(getString(R.string.pref_password))
-                ?.let { it as? EditTextPreference }
-    private val clientIdPreference: EditTextPreference?
-        get() =
-            findPreference(getString(R.string.pref_client_id))
-                ?.let { it as? EditTextPreference }
-    private val reconnectPreference: SwitchPreference?
-        get() =
-            findPreference(getString(R.string.pref_reconnect))
-                ?.let { it as? SwitchPreference }
-    private val cleanSessionPreference: SwitchPreference?
-        get() =
-            findPreference(getString(R.string.pref_clean_session))
-                ?.let { it as? SwitchPreference }
-
-    private val autoDismissDelay: EditTextPreference?
-        get() =
-            findPreference(getString(R.string.pref_notification_cancel_minutes))
-                ?.let { it as? EditTextPreference }
-
-    private val debugNotifications: SwitchPreference?
-        get() =
-            findPreference(getString(R.string.pref_notification_debug))
-                ?.let { it as? SwitchPreference }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -87,11 +46,16 @@ class ConfigFragment : PreferenceFragmentCompat(), ConfigContract.View,
     }
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
-        addPreferencesFromResource(R.xml.configuration_preferences)
+        setPreferencesFromResource(R.xml.configuration_preferences, rootKey)
 
         MainActivity.mainActivityComponent
             .configComponentBuilder()
-            .module(ConfigModule(this))
+            .module(
+                ConfigModule(
+                    this,
+                    rootKey
+                )
+            )
             .build()
             .inject(this)
 
@@ -119,18 +83,7 @@ class ConfigFragment : PreferenceFragmentCompat(), ConfigContract.View,
         when (item?.itemId) {
             R.id.menu_item_save ->
                 try {
-                    presenter.saveConfig(
-                        brokerHostPreference!!.text,
-                        brokerPortPreference!!.text.toInt(),
-                        usernamePreference?.text,
-                        passwordPreference?.text,
-                        clientIdPreference!!.text,
-                        reconnectPreference!!.isChecked,
-                        cleanSessionPreference!!.isChecked,
-                        null,
-                        autoDismissDelay?.text?.toIntOrNull(),
-                        debugNotifications?.isChecked ?: false
-                    )
+                    presenter.saveConfig()
                 } catch (_: Throwable) {
                     showError("Something went wrong")
                 }.run { true }
@@ -162,41 +115,6 @@ class ConfigFragment : PreferenceFragmentCompat(), ConfigContract.View,
             .unregisterOnSharedPreferenceChangeListener(this)
     }
 
-    override fun setHost(host: String) {
-        brokerHostPreference
-            ?.text = host
-    }
-
-    override fun setPort(port: Int) {
-        brokerPortPreference
-            ?.text = port.toString()
-    }
-
-    override fun setUsername(usernmae: String?) {
-        usernamePreference
-            ?.text = usernmae
-    }
-
-    override fun setPassword(password: String?) {
-        passwordPreference
-            ?.text = password
-    }
-
-    override fun setClientId(clientId: String) {
-        clientIdPreference
-            ?.text = clientId
-    }
-
-    override fun setReconnect(reconnect: Boolean) {
-        reconnectPreference
-            ?.isChecked = reconnect
-    }
-
-    override fun setCleanSession(cleanSession: Boolean) {
-        cleanSessionPreference
-            ?.isChecked = cleanSession
-    }
-
     override fun showLoading(loading: Boolean) {
         // no-op
     }
@@ -209,20 +127,6 @@ class ConfigFragment : PreferenceFragmentCompat(), ConfigContract.View,
                 Snackbar.LENGTH_SHORT
             ).show()
         }
-    }
-
-    override fun setLastWill(message: Message?) {
-
-    }
-
-    override fun setAutoDismiss(minutes: Int?) {
-        autoDismissDelay
-            ?.text = minutes.toString()
-    }
-
-    override fun setDebug(enableDebug: Boolean) {
-        debugNotifications
-            ?.isChecked = enableDebug
     }
 
     override fun close() {
@@ -240,15 +144,6 @@ class ConfigFragment : PreferenceFragmentCompat(), ConfigContract.View,
             }
 
     private fun checkValidity() {
-        presenter.checkValidity(
-            brokerHostPreference?.text,
-            brokerPortPreference?.text?.toIntOrNull(),
-            usernamePreference?.text,
-            passwordPreference?.text,
-            clientIdPreference?.text,
-            reconnectPreference?.isChecked,
-            cleanSessionPreference?.isChecked,
-            null
-        )
+        presenter.checkValidity()
     }
 }

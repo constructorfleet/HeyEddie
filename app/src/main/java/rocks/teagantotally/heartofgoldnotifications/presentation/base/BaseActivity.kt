@@ -6,7 +6,6 @@ import android.support.v7.app.AppCompatActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.MainScope
 import rocks.teagantotally.heartofgoldnotifications.R
 import rocks.teagantotally.heartofgoldnotifications.app.managers.FragmentJobManager
 import rocks.teagantotally.heartofgoldnotifications.presentation.common.annotations.ActionBarTitle

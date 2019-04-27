@@ -1,65 +1,71 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     android:title="Settings">
-    <PreferenceCategory android:title="Broker Information">
-        <EditTextPreference
-            android:id="@+id/broker_host"
-            android:hint="127.0.0.1"
-            android:imeOptions="actionDone"
-            android:inputType="textUri"
-            android:key="@string/pref_broker_host"
-            android:maxLines="1"
-            android:singleLine="true"
-            android:title="Host" />
-        <EditTextPreference
-            android:id="@+id/broker_port"
-            android:hint="1883"
-            android:imeOptions="actionDone"
-            android:inputType="number"
-            android:key="@string/pref_broker_port"
-            android:maxLines="1"
-            android:singleLine="true"
-            android:title="Port" />
-    </PreferenceCategory>
-    <PreferenceCategory android:title="Authentication">
-        <EditTextPreference
-            android:id="@+id/username"
-            android:hint="SomeUser"
-            android:imeOptions="actionDone"
-            android:inputType="text"
-            android:key="@string/pref_username"
-            android:maxLines="1"
-            android:singleLine="true"
-            android:title="Username" />
-        <EditTextPreference
-            android:id="@+id/password"
-            android:hint="Password"
-            android:imeOptions="actionDone"
-            android:inputType="textVisiblePassword"
-            android:key="@string/pref_password"
-            android:maxLines="1"
-            android:singleLine="true"
-            android:title="Password" />
-    </PreferenceCategory>
-    <PreferenceCategory android:title="Client Information">
-        <EditTextPreference
-            android:id="@+id/client_id"
-            android:hint="phone_client"
-            android:imeOptions="actionDone"
-            android:key="@string/pref_client_id"
-            android:maxLines="1"
-            android:singleLine="true"
-            android:title="Client Id" />
-        <SwitchPreference
-            android:id="@+id/reconnect"
-            android:key="@string/pref_reconnect"
-            android:title="Auto Reconnect" />
-        <SwitchPreference
-            android:id="@+id/clean_session"
-            android:key="@string/pref_clean_session"
-            android:title="Clean Session" />
-    </PreferenceCategory>
-    <PreferenceCategory android:title="Notifications">
+    <PreferenceScreen
+        android:key="connection_settings"
+        android:title="Connection Settings">
+        <PreferenceCategory android:title="Broker Information">
+            <EditTextPreference
+                android:id="@+id/broker_host"
+                android:hint="127.0.0.1"
+                android:imeOptions="actionDone"
+                android:inputType="textUri"
+                android:key="@string/pref_broker_host"
+                android:maxLines="1"
+                android:singleLine="true"
+                android:title="Host" />
+            <EditTextPreference
+                android:id="@+id/broker_port"
+                android:hint="1883"
+                android:imeOptions="actionDone"
+                android:inputType="number"
+                android:key="@string/pref_broker_port"
+                android:maxLines="1"
+                android:singleLine="true"
+                android:title="Port" />
+        </PreferenceCategory>
+        <PreferenceCategory android:title="Authentication">
+            <EditTextPreference
+                android:id="@+id/username"
+                android:hint="SomeUser"
+                android:imeOptions="actionDone"
+                android:inputType="text"
+                android:key="@string/pref_username"
+                android:maxLines="1"
+                android:singleLine="true"
+                android:title="Username" />
+            <EditTextPreference
+                android:id="@+id/password"
+                android:hint="Password"
+                android:imeOptions="actionDone"
+                android:inputType="textVisiblePassword"
+                android:key="@string/pref_password"
+                android:maxLines="1"
+                android:singleLine="true"
+                android:title="Password" />
+        </PreferenceCategory>
+        <PreferenceCategory android:title="Client Information">
+            <EditTextPreference
+                android:id="@+id/client_id"
+                android:hint="phone_client"
+                android:imeOptions="actionDone"
+                android:key="@string/pref_client_id"
+                android:maxLines="1"
+                android:singleLine="true"
+                android:title="Client Id" />
+            <SwitchPreference
+                android:id="@+id/reconnect"
+                android:key="@string/pref_reconnect"
+                android:title="Auto Reconnect" />
+            <SwitchPreference
+                android:id="@+id/clean_session"
+                android:key="@string/pref_clean_session"
+                android:title="Clean Session" />
+        </PreferenceCategory>
+    </PreferenceScreen>
+    <PreferenceScreen
+        android:key="notification_settings"
+        android:title="Notifications">
         <EditTextPreference
             android:id="@+id/auto_dismiss"
             android:hint="Auto dismiss delay"
@@ -74,5 +80,5 @@
             android:id="@+id/debug"
             android:key="@string/pref_notification_debug"
             android:title="Debug" />
-    </PreferenceCategory>
+    </PreferenceScreen>
 </PreferenceScreen>
