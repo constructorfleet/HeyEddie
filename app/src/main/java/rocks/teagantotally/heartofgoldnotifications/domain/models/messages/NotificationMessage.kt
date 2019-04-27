@@ -54,6 +54,7 @@ class NotificationMessage(
     override var title: String,
     override var body: String,
     override var topic: String,
+    val imageUrl: String? = null,
     val openApplication: Boolean = false,
     val onGoing: Boolean = false,
     val autoCancel: Boolean = true,

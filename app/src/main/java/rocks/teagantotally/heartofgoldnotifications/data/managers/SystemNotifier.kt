@@ -6,12 +6,16 @@ import android.app.Notification.EXTRA_TITLE
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.graphics.Bitmap
 import android.os.Parcelable
+import com.bumptech.glide.Glide
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.ObsoleteCoroutinesApi
 import rocks.teagantotally.heartofgoldnotifications.R
-import rocks.teagantotally.heartofgoldnotifications.common.extensions.*
-import rocks.teagantotally.heartofgoldnotifications.data.managers.config.SharedPreferenceNotificationConfigManager
+import rocks.teagantotally.heartofgoldnotifications.common.extensions.ifAlso
+import rocks.teagantotally.heartofgoldnotifications.common.extensions.ifTrue
+import rocks.teagantotally.heartofgoldnotifications.common.extensions.putInvoker
+import rocks.teagantotally.heartofgoldnotifications.common.extensions.unique
 import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService.Companion.ACTION_DISMISS
 import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService.Companion.ACTION_PUBLISH
 import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService.Companion.EXTRA_MESSAGE
@@ -230,7 +234,6 @@ class SystemNotifier(
     }
 }
 
-
 @UseExperimental(ExperimentalCoroutinesApi::class)
 @ObsoleteCoroutinesApi
 fun NotificationMessage.transform(context: Context, alertAlways: Boolean): Pair<Int, Notification> =
@@ -273,6 +276,24 @@ fun NotificationMessage.transform(context: Context, alertAlways: Boolean): Pair<
                         )
                     }
                     .let { builder.setContentIntent(it) }
+            }
+            .ifAlso({ imageUrl?.isNotBlank() == true }) { builder ->
+                val scaleMultiplier = context.resources.displayMetrics.density / 3.0
+                Glide.with(context)
+                    .asBitmap()
+                    .load(imageUrl)
+                    .submit()
+                    .get()
+                    ?.let {
+                        builder.style = Notification.BigPictureStyle()
+                            .bigPicture(it)
+                        Bitmap.createScaledBitmap(
+                            it,
+                            (it.width * scaleMultiplier).toInt(),
+                            (it.height * scaleMultiplier).toInt()
+                            , false
+                        ).let { builder.setLargeIcon(it) }
+                    }
             }
             .ifAlso({ !actions.isNullOrEmpty() }) { builder ->
                 actions

@@ -68,7 +68,7 @@ class SharedPreferenceConnectionConfigManager(
 
     private fun setupClientComponent(connectionConfiguration: ConnectionConfiguration) {
         HeyEddieApplication.setClientComponent(
-            ClientModule(connectionConfiguration)
+            connectionConfiguration
         )
     }
 }

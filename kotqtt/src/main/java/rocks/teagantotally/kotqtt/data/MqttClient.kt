@@ -2,10 +2,11 @@ package rocks.teagantotally.kotqtt.data
 
 import android.util.Log
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.ObsoleteCoroutinesApi
 import kotlinx.coroutines.channels.BroadcastChannel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
-import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.launch
 import org.eclipse.paho.client.mqttv3.*
 import rocks.teagantotally.kotqtt.domain.framework.client.Client
@@ -18,6 +19,8 @@ import rocks.teagantotally.kotqtt.domain.models.commands.*
 import rocks.teagantotally.kotqtt.domain.models.events.*
 import java.util.*
 
+@ObsoleteCoroutinesApi
+@ExperimentalCoroutinesApi
 class MqttClient(
     private val client: IMqttAsyncClient,
     private val connectionOptions: MqttConnectionOptions,
@@ -39,7 +42,7 @@ class MqttClient(
 
     override suspend fun execute(command: MqttCommand) {
         when (command) {
-            is MqttConnectCommand -> connect(command)
+            is MqttConnectCommand -> connect()
             is MqttDisconnectCommand -> disconnect(command)
             is MqttPublishCommand -> publish(command)
             is MqttSubscribeCommand -> subscribe(command)
@@ -90,7 +93,7 @@ class MqttClient(
         // no-op
     }
 
-    private fun connect(command: MqttConnectCommand) {
+    private fun connect() {
         if (client.isConnected) {
             return
         }
