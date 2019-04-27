@@ -12,7 +12,7 @@ android {
     compileSdkVersion 28
     defaultConfig {
         applicationId "rocks.teagantotally.heartofgoldnotifications"
-        minSdkVersion 27
+        minSdkVersion 26
         targetSdkVersion 28
         multiDexEnabled true
         versionCode 18
