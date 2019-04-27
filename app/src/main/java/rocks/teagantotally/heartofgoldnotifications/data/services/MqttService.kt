@@ -12,6 +12,8 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.ReceiveChannel
 import rocks.teagantotally.heartofgoldnotifications.app.HeyEddieApplication
 import rocks.teagantotally.heartofgoldnotifications.app.injection.client.ClientContainer
+import rocks.teagantotally.heartofgoldnotifications.common.extensions.ifFalse
+import rocks.teagantotally.heartofgoldnotifications.common.extensions.ifFalseMaybe
 import rocks.teagantotally.heartofgoldnotifications.common.extensions.ifTrue
 import rocks.teagantotally.heartofgoldnotifications.common.extensions.unique
 import rocks.teagantotally.heartofgoldnotifications.data.managers.SystemNotifier
@@ -65,6 +67,7 @@ class MqttService : Service(),
             LongRunningServiceConnection()
 
         private val debugChannelId: String = "Debug"
+        private var isRunning: Boolean = false
     }
 
 
@@ -93,40 +96,44 @@ class MqttService : Service(),
         serviceBinder
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int =
-        HeyEddieApplication.applicationComponent
-            .also { it.inject(this) }
-            .run {
-                runBlocking {
-                    notifier.createChannel(UpdatePersistentNotificationUseCase.PERSISTENT_CHANNEL)
-                }.run {
-                    UpdatePersistentNotificationUseCase.getPersistentNotification(ClientState.Disconnected)
-                        .transform(this@MqttService, false)
-                        .let { startForeground(it.first, it.second) }
-                }.run {
-                    launch {
-                        getClientConfiguration()
-                            ?.let { onClientConfigured(it) }
-                            .run { listenForConfigurationChange() }
+        isRunning
+            .ifFalseMaybe {
+                HeyEddieApplication.applicationComponent
+                    .also { it.inject(this) }
+                    .run {
+                        isRunning = true
+                        runBlocking {
+                            notifier.createChannel(UpdatePersistentNotificationUseCase.PERSISTENT_CHANNEL)
+                        }.run {
+                            UpdatePersistentNotificationUseCase.getPersistentNotification(ClientState.Disconnected)
+                                .transform(this@MqttService, false)
+                                .let { startForeground(it.first, it.second) }
+                        }.run {
+                            launch {
+                                getClientConfiguration()
+                                    ?.let { onClientConfigured(it) }
+                                    .run { listenForConfigurationChange() }
+                            }
+                        }.run {
+                            serviceBinder = ServiceBinder(this@MqttService)
+                        }.run {
+                            dismissReceiver =
+                                DismissNotificationReceiver(this@MqttService)
+                                    .also { registerReceiver(it, IntentFilter(ACTION_DISMISS)) }
+                        }.run {
+                            bindService(
+                                Intent(this@MqttService, MqttService::class.java),
+                                longRunningServiceConnection,
+                                Context.BIND_AUTO_CREATE
+                            )
+                        }.run { START_STICKY }
                     }
-                }.run {
-                    serviceBinder = ServiceBinder(this@MqttService)
-                }.run {
-                    dismissReceiver =
-                        DismissNotificationReceiver(this@MqttService)
-                            .also { registerReceiver(it, IntentFilter(ACTION_DISMISS)) }
-                }.run {
-                    bindService(
-                        Intent(this@MqttService, MqttService::class.java),
-                        longRunningServiceConnection,
-                        Context.BIND_AUTO_CREATE
-                    )
-                }.run { START_STICKY }
-            }
-
+            } ?: START_NOT_STICKY
 
     override fun onDestroy() {
         publishReceiver?.let { unregisterReceiver(it) }
         dismissReceiver?.let { unregisterReceiver(it) }
+        isRunning = false
         sendBroadcast(
             Intent(
                 this,
