@@ -64,12 +64,10 @@ class ApplicationModule(
     @Provides
     @Singleton
     fun provideRecordMessageReceived(
-        messageHistoryManager: MessageHistoryManager,
-        gson: Gson
+        messageHistoryManager: MessageHistoryManager
     ): RecordMessageReceived =
         RecordMessageReceived(
-            messageHistoryManager,
-            gson
+            messageHistoryManager
         )
 
     @Provides
@@ -79,8 +77,8 @@ class ApplicationModule(
         recordMessageReceived: RecordMessageReceived
     ): ProcessMessageReceived =
         ProcessMessageReceived(
-            notify,
-            recordMessageReceived
+            recordMessageReceived,
+            notify
         )
 
     @Provides

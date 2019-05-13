@@ -5,10 +5,14 @@ import rocks.teagantotally.heartofgoldnotifications.domain.framework.event.Messa
 import rocks.teagantotally.kotqtt.domain.models.Message
 
 class ProcessMessageReceived(
+    private val messageRecorder: RecordMessageReceived? = null,
     private vararg val messageProcessors: MessageReceivedUseCase<*>
 ) : UseCaseWithParameter<Message> {
 
     override suspend fun invoke(parameter: Message) {
+        messageRecorder
+            ?.invoke(parameter)
+
         messageProcessors
             .forEach { it(parameter) }
     }

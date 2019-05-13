@@ -1,23 +1,17 @@
 package rocks.teagantotally.heartofgoldnotifications.domain.usecases.mqtt.message.receive
 
-import com.google.gson.Gson
-import rocks.teagantotally.heartofgoldnotifications.domain.framework.event.MessageReceivedUseCase
+import rocks.teagantotally.heartofgoldnotifications.domain.framework.UseCaseWithParameter
 import rocks.teagantotally.heartofgoldnotifications.domain.framework.managers.MessageHistoryManager
-import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.ReceivedMessage
 import rocks.teagantotally.kotqtt.domain.models.Message
 import javax.inject.Inject
 
 class RecordMessageReceived @Inject constructor(
-    private val messageHistoryManager: MessageHistoryManager,
-    gson: Gson
-) : MessageReceivedUseCase<ReceivedMessage>(gson) {
+    private val messageHistoryManager: MessageHistoryManager
+) : UseCaseWithParameter<Message> {
 
-    override fun handle(result: ReceivedMessage) {
+    override suspend fun invoke(parameter: Message) {
         messageHistoryManager.recordMessageReceived(
-            Message(
-                result.topic,
-                payload = result.body.toByteArray()
-            )
+            parameter
         )
     }
 }

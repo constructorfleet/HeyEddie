@@ -12,7 +12,6 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.ReceiveChannel
 import rocks.teagantotally.heartofgoldnotifications.app.HeyEddieApplication
 import rocks.teagantotally.heartofgoldnotifications.app.injection.client.ClientContainer
-import rocks.teagantotally.heartofgoldnotifications.common.extensions.ifFalse
 import rocks.teagantotally.heartofgoldnotifications.common.extensions.ifFalseMaybe
 import rocks.teagantotally.heartofgoldnotifications.common.extensions.ifTrue
 import rocks.teagantotally.heartofgoldnotifications.common.extensions.unique
@@ -28,7 +27,6 @@ import rocks.teagantotally.heartofgoldnotifications.domain.models.configs.Connec
 import rocks.teagantotally.heartofgoldnotifications.domain.models.configs.SubscriptionConfiguration
 import rocks.teagantotally.heartofgoldnotifications.domain.models.events.ClientConfigurationChangedEvent
 import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.NotificationMessage
-import rocks.teagantotally.heartofgoldnotifications.domain.models.messages.NotificationMessageChannel
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.FinishNotifyUseCase
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.UpdatePersistentNotificationUseCase
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.config.ClientConfigurationSavedUseCase
@@ -71,7 +69,7 @@ class MqttService : Service(),
     }
 
 
-    private val coroutineScope: CoroutineScope by lazy { HeyEddieApplication.applicationComponent.provideUICoroutineScope() }
+    private val coroutineScope: CoroutineScope by lazy { HeyEddieApplication.applicationComponent.provideIOCoroutineScope() }
     override val coroutineContext: CoroutineContext by lazy { coroutineScope.coroutineContext }
 
     @Inject

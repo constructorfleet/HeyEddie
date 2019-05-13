@@ -186,7 +186,7 @@ class HistoryFragment : BaseFragment(), HistoryContract.View {
                 payload.text = try {
                     JSONObject(String(item.payload)).toString(2)
                 } catch (_: Throwable) {
-                    "UNKNOWN"
+                    ""
                 }
                 topic.text = item.topic
             }
