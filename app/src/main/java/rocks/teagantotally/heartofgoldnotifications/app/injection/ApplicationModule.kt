@@ -27,6 +27,8 @@ import rocks.teagantotally.heartofgoldnotifications.domain.usecases.config.Clien
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.mqtt.MqttEventProcessor
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.mqtt.connected.MqttConnectedProcessor
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.mqtt.disconnected.MqttDisconnectedProcessor
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.mqtt.message.publish.ProcessMessagePublished
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.mqtt.message.publish.RecordMessagePublished
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.mqtt.message.receive.Notify
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.mqtt.message.receive.ProcessMessageReceived
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.mqtt.message.receive.RecordMessageReceived
@@ -79,6 +81,24 @@ class ApplicationModule(
         ProcessMessageReceived(
             recordMessageReceived,
             notify
+        )
+
+    @Provides
+    @Singleton
+    fun provideRecordMessagePublished(
+        messageHistoryManager: MessageHistoryManager
+    ): RecordMessagePublished =
+        RecordMessagePublished(
+            messageHistoryManager
+        )
+
+    @Provides
+    @Singleton
+    fun provideProcessMessagePublished(
+        recordMessagePublished: RecordMessagePublished
+    ): ProcessMessagePublished =
+        ProcessMessagePublished(
+            recordMessagePublished
         )
 
     @Provides
@@ -149,13 +169,15 @@ class ApplicationModule(
         updatePersistentNotificationUseCase: UpdatePersistentNotificationUseCase,
         onConnected: MqttConnectedProcessor,
         onDisconnected: MqttDisconnectedProcessor,
-        processMessage: ProcessMessageReceived
+        processMessageReceived: ProcessMessageReceived,
+        processMessagePublished: ProcessMessagePublished
     ): MqttEventProcessor =
         MqttEventProcessor(
             updatePersistentNotificationUseCase,
             onDisconnected,
             onConnected,
-            processMessage
+            processMessageReceived,
+            processMessagePublished
         )
 
     @Provides

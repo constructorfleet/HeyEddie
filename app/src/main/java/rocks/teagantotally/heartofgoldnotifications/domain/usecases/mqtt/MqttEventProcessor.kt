@@ -10,6 +10,7 @@ import rocks.teagantotally.heartofgoldnotifications.domain.models.ClientState
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.UpdatePersistentNotificationUseCase
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.mqtt.connected.MqttConnectedProcessor
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.mqtt.disconnected.MqttDisconnectedProcessor
+import rocks.teagantotally.heartofgoldnotifications.domain.usecases.mqtt.message.publish.ProcessMessagePublished
 import rocks.teagantotally.heartofgoldnotifications.domain.usecases.mqtt.message.receive.ProcessMessageReceived
 import rocks.teagantotally.kotqtt.domain.framework.client.CommandResult
 import rocks.teagantotally.kotqtt.domain.models.commands.MqttConnectCommand
@@ -22,7 +23,8 @@ class MqttEventProcessor(
     private val updatePersistentNotification: UpdatePersistentNotificationUseCase,
     private val onDisconnected: MqttDisconnectedProcessor,
     private val onConnected: MqttConnectedProcessor,
-    private val processMessage: ProcessMessageReceived
+    private val processMessageReceived: ProcessMessageReceived,
+    private val processMessagePublished: ProcessMessagePublished
 ) : UseCaseWithParameter<MqttEvent> {
     companion object {
         private val IGNORE_REASON_CODES: List<Int> =
@@ -57,9 +59,8 @@ class MqttEventProcessor(
                 Timber.d { "Subscribed to ${receivedEvent.topic}" }
             is MqttUnsubscribedEvent ->
                 Timber.d { "Unsubscribed from ${receivedEvent.topic}" }
-            is MqttMessageReceived -> processMessage(receivedEvent.message)
-            is MqttMessagePublished ->
-                Timber.d { "Message published ${receivedEvent.message}" }
+            is MqttMessageReceived -> processMessageReceived(receivedEvent.message)
+            is MqttMessagePublished -> processMessagePublished(receivedEvent.message)
             else -> null
         }
     }

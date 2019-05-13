@@ -5,7 +5,7 @@ import rocks.teagantotally.heartofgoldnotifications.domain.framework.managers.Me
 import rocks.teagantotally.kotqtt.domain.models.Message
 import javax.inject.Inject
 
-class RecordMessagePublished @Inject constructor(
+class RecordMessagePublished(
     private val messageHistoryManager: MessageHistoryManager
 ) : UseCaseWithParameter<Message> {
     override suspend fun invoke(parameter: Message) {
