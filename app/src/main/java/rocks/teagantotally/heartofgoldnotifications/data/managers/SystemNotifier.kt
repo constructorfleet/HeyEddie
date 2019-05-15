@@ -12,10 +12,7 @@ import com.bumptech.glide.Glide
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.ObsoleteCoroutinesApi
 import rocks.teagantotally.heartofgoldnotifications.R
-import rocks.teagantotally.heartofgoldnotifications.common.extensions.ifAlso
-import rocks.teagantotally.heartofgoldnotifications.common.extensions.ifTrue
-import rocks.teagantotally.heartofgoldnotifications.common.extensions.putInvoker
-import rocks.teagantotally.heartofgoldnotifications.common.extensions.unique
+import rocks.teagantotally.heartofgoldnotifications.common.extensions.*
 import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService.Companion.ACTION_DISMISS
 import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService.Companion.ACTION_PUBLISH
 import rocks.teagantotally.heartofgoldnotifications.data.services.MqttService.Companion.EXTRA_MESSAGE
@@ -100,11 +97,12 @@ class SystemNotifier(
                     }
                     .let {
                         notificationConfigManager.getConfiguration()
-                            .let {
-                                it?.notificationCancelMinutes ?: DEFAULT_AUTO_CANCEL_MINUTES
+                            .ifMaybe({ it?.autoCancel ?: true }) { it }
+                            ?.let {
+                                it.notificationCancelMinutes
                             }
-                            .let { it * 60 * 1000 }
-                            .let { cancelDelay ->
+                            ?.let { it * 60 * 1000 }
+                            ?.let { cancelDelay ->
                                 alarmManager.set(
                                     AlarmManager.RTC,
                                     System.currentTimeMillis() + cancelDelay,
