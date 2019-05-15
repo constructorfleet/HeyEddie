@@ -3,6 +3,7 @@ package rocks.teagantotally.heartofgoldnotifications.domain.models.configs
 import java.io.Serializable
 
 data class NotificationConfiguration(
+    val autoCancel: Boolean = true,
     val notificationCancelMinutes: Int = DEFAULT_AUTO_CANCEL_MINUTES,
     val debug: Boolean = false
 ) : Serializable, Configuration {
