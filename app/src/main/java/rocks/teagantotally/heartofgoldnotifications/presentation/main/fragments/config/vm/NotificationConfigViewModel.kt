@@ -14,6 +14,7 @@ class NotificationConfigViewModel(
 ) : ConfigViewModel<NotificationConfiguration>(fragment) {
     override val preferenceTypeMap: Map<Int, KClass<*>> =
         mapOf(
+            Pair(R.string.pref_notification_auto_cancel, SwitchPreference::class),
             Pair(R.string.pref_notification_cancel_minutes, EditTextPreference::class),
             Pair(R.string.pref_notification_debug, SwitchPreference::class)
         )
@@ -21,6 +22,7 @@ class NotificationConfigViewModel(
     override fun populate() {
         retrieve()
             ?.run {
+                setValue(R.string.pref_notification_auto_cancel, autoCancel)
                 setValue(R.string.pref_notification_cancel_minutes, notificationCancelMinutes)
                 setValue(R.string.pref_notification_debug, debug)
             }
@@ -35,6 +37,7 @@ class NotificationConfigViewModel(
 
     override fun retrieve(): NotificationConfiguration? =
         NotificationConfiguration(
+            getValue(R.string.pref_notification_auto_cancel, Boolean::class) ?: true,
             getValue(R.string.pref_notification_cancel_minutes, String::class)?.toIntOrNull()
                 ?: NotificationConfiguration.DEFAULT_AUTO_CANCEL_MINUTES,
             getValue(R.string.pref_notification_debug, Boolean::class) ?: false
