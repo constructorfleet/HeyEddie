@@ -66,15 +66,20 @@
     <PreferenceScreen
         android:key="notification_settings"
         android:title="Notifications">
-        <EditTextPreference
+        <SwitchPreference
             android:id="@+id/auto_dismiss"
+            android:key="@string/pref_notification_auto_cancel"
+            android:title="Auto Dismiss" />
+
+        <EditTextPreference
+            android:id="@+id/auto_dismiss_minutes"
             android:hint="Auto dismiss delay"
             android:imeOptions="actionDone"
             android:inputType="number"
             android:key="@string/pref_notification_cancel_minutes"
             android:maxLines="1"
             android:singleLine="true"
-            android:title="Auto Dismiss" />
+            android:title="Auto Dismiss (minutes)" />
 
         <SwitchPreference
             android:id="@+id/debug"
